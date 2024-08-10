@@ -34,6 +34,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:$kotlinx_html_version")
     implementation("org.jetbrains:kotlin-css-jvm:1.0.0-pre.129-kotlin-1.4.20")
     implementation("org.postgresql:postgresql:$postgres_version")
+    implementation("io.ktor:ktor-server-config-yaml")
     implementation("com.h2database:h2:$h2_version")
     implementation("io.ktor:ktor-server-netty-jvm")
     implementation("ch.qos.logback:logback-classic:$logback_version")
