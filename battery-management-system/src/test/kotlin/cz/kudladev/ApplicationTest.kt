@@ -1,5 +1,6 @@
 package cz.kudladev
 
+import cz.kudladev.backend.plugins.configureRouting
 import cz.kudladev.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
