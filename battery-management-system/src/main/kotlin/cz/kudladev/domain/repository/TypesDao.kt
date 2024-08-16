@@ -11,10 +11,10 @@ interface TypesDao {
 
     suspend fun getTypeByIdWithBatteries(id: Int): TypeBatteries?
 
-    suspend fun insertType(type: Type): Type
+    suspend fun insertType(type: Type): Type?
 
-    suspend fun updateType(type: Type): Type
+    suspend fun updateType(type: Type): Type?
 
-    suspend fun deleteType(id: Int): Type
+    suspend fun deleteType(id: Int): Type?
 
 }

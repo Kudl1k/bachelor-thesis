@@ -17,29 +17,67 @@ fun Route.types(typesDAO: TypesDao){
         }
 
         get("{id}"){
-            call.respond(typesDAO.getTypeById(call.parameters["id"]?.toInt() ?: 0) ?: HttpStatusCode.NotFound)
+            try {
+                val id = call.parameters["id"]?.toInt() ?: return@get call.respond(HttpStatusCode.BadRequest)
+                val type = typesDAO.getTypeById(id)
+                if (type != null){
+                    call.respond(type)
+                } else {
+                    call.respondText(text = "Type with ID $id not found", status = HttpStatusCode.NotFound)
+                }
+            } catch (e: Exception){
+                call.respondText(text = "Please insert right form of ID (Int), starting from 1", status = HttpStatusCode.BadRequest)
+            }
         }
 
         get("{id}/batteries"){
-            call.respond(typesDAO.getTypeByIdWithBatteries(call.parameters["id"]?.toInt() ?: 0) ?: HttpStatusCode.NotFound)
+            try {
+                val id = call.parameters["id"]?.toInt() ?: return@get call.respond(HttpStatusCode.BadRequest)
+                val typeWithBatteries = typesDAO.getTypeByIdWithBatteries(id)
+                if (typeWithBatteries != null){
+                    call.respond(typeWithBatteries)
+                } else {
+                    call.respondText(text = "Type with ID $id not found", status = HttpStatusCode.NotFound)
+                }
+
+            } catch (e: Exception){
+                call.respondText(text = "Please insert right form of ID (Int), starting from 1", status = HttpStatusCode.BadRequest)
+            }
         }
 
         post {
-            val type = call.receive<Type>()
-            val id = typesDAO.insertType(type)
-            call.respond(HttpStatusCode.Created, mapOf("id" to id))
+            try {
+                val type = call.receive<Type>()
+                val id = typesDAO.insertType(type)
+                call.respond(HttpStatusCode.Created, mapOf("id" to id))
+            } catch (e: Exception){
+                call.respondText(text = "Please fill all fields", status = HttpStatusCode.BadRequest)
+            }
         }
 
         put("{id}"){
-            val type = call.receive<Type>()
-            val id = typesDAO.updateType(type)
-            call.respond(HttpStatusCode.OK, mapOf("id" to id))
+            try {
+                val id = call.parameters["id"]?.toInt() ?: return@put call.respond(HttpStatusCode.BadRequest)
+                val type = call.receive<Type>()
+                val updatedType = typesDAO.updateType(type.copy(id = id))
+                if (updatedType != null){
+                    call.respond(HttpStatusCode.OK, mapOf("id" to id))
+                } else {
+                    call.respondText(text = "Type with ID $id not found", status = HttpStatusCode.NotFound)
+                }
+            } catch (e: Exception){
+                call.respondText(text = "Please insert right form of ID (Int), starting from 1", status = HttpStatusCode.BadRequest)
+            }
         }
 
         delete("{id}"){
-            val id = call.parameters["id"]?.toInt() ?: 0
-            typesDAO.deleteType(id)
-            call.respond(HttpStatusCode.OK)
+            try {
+                val id = call.parameters["id"]?.toInt() ?: return@delete call.respond(HttpStatusCode.BadRequest)
+                typesDAO.deleteType(id)
+                call.respond(HttpStatusCode.OK)
+            } catch (e: Exception){
+                call.respondText(text = "Please insert right form of ID (Int), starting from 1", status = HttpStatusCode.BadRequest)
+            }
         }
 
     }
