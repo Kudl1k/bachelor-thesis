@@ -1,5 +1,6 @@
 package cz.kudladev.plugins
 
+import cz.kudladev.data.repository.BatteriesDaoImpl
 import cz.kudladev.data.repository.TypesDaoImpl
 import io.ktor.server.application.*
 import org.koin.dsl.module
@@ -18,6 +19,7 @@ fun Application.configureKoin() {
 val batteryModule = module {
 
     single<TypesDaoImpl> { TypesDaoImpl() }
+    single<BatteriesDaoImpl> { BatteriesDaoImpl() }
 
 }
 
