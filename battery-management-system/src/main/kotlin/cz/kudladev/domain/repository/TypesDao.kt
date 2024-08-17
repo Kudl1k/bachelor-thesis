@@ -5,7 +5,7 @@ import cz.kudladev.data.models.TypeBatteries
 
 interface TypesDao {
 
-    suspend fun getAllTypes(): List<Type>
+    suspend fun getAllTypes(): List<Type?>
 
     suspend fun getTypeById(id: Int): Type?
 

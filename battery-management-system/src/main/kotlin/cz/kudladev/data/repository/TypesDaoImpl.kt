@@ -15,7 +15,7 @@ import java.sql.Timestamp
 
 class TypesDaoImpl(): TypesDao {
 
-    override suspend fun getAllTypes(): List<Type> {
+    override suspend fun getAllTypes(): List<Type?> {
         return try {
             dbQuery {
                 Types.selectAll().map { ResultRowParser.resultRowToType(it) }
@@ -40,7 +40,7 @@ class TypesDaoImpl(): TypesDao {
     override suspend fun getTypeByIdWithBatteries(id: Int): TypeBatteries? {
         return try {
             dbQuery {
-                val result = (Types innerJoin Batteries).select {
+                val result = (Types leftJoin Batteries).select {
                     Types.idType eq id
                 }.map { it }
 
@@ -48,7 +48,15 @@ class TypesDaoImpl(): TypesDao {
                     null
                 } else {
                     val type = ResultRowParser.resultRowToType(result.first())
-                    val batteries = result.map { ResultRowParser.resultRowToBattery(it) }
+                    print(result.first())
+                    val batteries = result.mapNotNull { row ->
+                        if (row[Batteries.idBattery] != null) {
+                            ResultRowParser.resultRowToBattery(row)
+                        } else {
+                            null
+                        }
+                    }
+
                     TypeBatteries(
                         id = type.id,
                         shortcut = type.shortcut,
@@ -59,7 +67,7 @@ class TypesDaoImpl(): TypesDao {
             }
         } catch (e: Throwable) {
             println(e)
-            return null
+            null
         }
     }
 
