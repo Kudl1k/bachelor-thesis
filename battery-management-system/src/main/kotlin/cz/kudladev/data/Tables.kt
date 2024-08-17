@@ -32,6 +32,7 @@ object Chargers : Table("charger") {
     val idCharger = integer("id_charger").autoIncrement()
     val name = varchar("name", 50)
     val tty = varchar("tty", 15)
+    val slots = integer("slots")
     val createdAt = timestamp("created_at")
 
     override val primaryKey = PrimaryKey(idCharger)
@@ -49,6 +50,7 @@ object ChargerTypes : Table("charger_type") {
 object ChargeRecords : Table("charge_record") {
     val idChargeRecord = integer("id_charge_record").autoIncrement()
     val program = varchar("program", 1) // Assuming CHAR is stored as a single-character VARCHAR
+    val slot = integer("slot")
     val startedAt = timestamp("started_at")
     val finishedAt = timestamp("finished_at").nullable()
     val chargedCapacity = integer("charged_capacity").nullable()
