@@ -14,22 +14,44 @@ fun Route.batteries(batteriesDao: BatteriesDao) {
             call.respond(batteriesDao.getAllBatteries())
         }
         get("{id}") {
-            call.respond(batteriesDao.getBatteryById(call.parameters["id"]?.toInt() ?: 0) ?: HttpStatusCode.NotFound)
+            try {
+                val id = call.parameters["id"]?.toInt() ?: return@get call.respond(HttpStatusCode.BadRequest)
+                val battery = batteriesDao.getBatteryById(id)
+                if (battery != null) {
+                    call.respond(battery)
+                } else {
+                    call.respondText(text = "Battery with ID $id not found", status = HttpStatusCode.NotFound)
+                }
+            } catch (e: Exception) {
+                call.respondText(text = "Please insert right form of ID (Int), starting from 1", status = HttpStatusCode.BadRequest)
+            }
         }
         post {
-            val battery = call.receive<Battery>()
-            val id = batteriesDao.createBattery(battery)
-            call.respond(HttpStatusCode.Created, mapOf("id" to id))
+            try {
+                val battery = call.receive<Battery>()
+                val id = batteriesDao.createBattery(battery) ?: throw Exception()
+                call.respond(HttpStatusCode.Created, mapOf("id" to id))
+            } catch (e: Exception) {
+                call.respondText(text = "Please fill all fields", status = HttpStatusCode.BadRequest)
+            }
         }
         put {
-            val battery = call.receive<Battery>()
-            val id = batteriesDao.updateBattery(battery)
-            call.respond(HttpStatusCode.OK, mapOf("id" to id))
+            try {
+                val battery = call.receive<Battery>()
+                batteriesDao.updateBattery(battery)
+                call.respond(HttpStatusCode.OK)
+            } catch (e: Exception) {
+                call.respondText(text = "Please fill all fields", status = HttpStatusCode.BadRequest)
+            }
         }
         delete("{id}") {
-            val id = call.parameters["id"]?.toInt() ?: 0
-            batteriesDao.deleteBattery(id)
-            call.respond(HttpStatusCode.OK)
+            try {
+                val id = call.parameters["id"]?.toInt() ?: return@delete call.respond(HttpStatusCode.BadRequest)
+                batteriesDao.deleteBattery(id)
+                call.respond(HttpStatusCode.OK)
+            } catch (e: Exception) {
+                call.respondText(text = "Please insert right form of ID (Int), starting from 1", status = HttpStatusCode.BadRequest)
+            }
         }
     }
 }

@@ -33,16 +33,21 @@ class BatteriesDaoImpl: BatteriesDao {
                 (Batteries innerJoin Types).selectAll().where { Batteries.idBattery eq id }.map { ResultRowParser.resultRowToBattery(it) }.singleOrNull()
             }
         } catch (e: Exception) {
+            println(e)
             null
         }
     }
 
-    override suspend fun createBattery(battery: Battery): Battery {
+    override suspend fun createBattery(battery: Battery): Battery? {
         return try {
+            if (battery.type.id == null) {
+                throw IllegalArgumentException("Type id is null")
+            }
             val insertedId =  dbQuery {
+                Types.select({ Types.idType eq battery.type.id }).singleOrNull() ?: throw IllegalArgumentException("No type found for id ${battery.type.id}")
                 Batteries.insert {
                     it[size] = battery.size
-                    it[idType] = battery.type.id!!
+                    it[idType] = battery.type.id
                     it[factoryCapacity] = battery.factory_capacity
                     it[voltage] = battery.voltage
                     it[lastChargedCapacity] = battery.last_charged_capacity
@@ -52,11 +57,12 @@ class BatteriesDaoImpl: BatteriesDao {
             }
             battery.copy(id = insertedId)
         } catch (e: Exception) {
-            Battery(-1, Type(-1, "", ""), "", 0, 0, 0, null, Timestamp(0))
+            println(e)
+            null
         }
     }
 
-    override suspend fun updateBattery(battery: Battery): Battery {
+    override suspend fun updateBattery(battery: Battery): Battery? {
         return try {
             val insertedId = dbQuery {
                 Batteries.update({ Batteries.idBattery eq battery.id!! }) {
@@ -70,11 +76,12 @@ class BatteriesDaoImpl: BatteriesDao {
             }
             battery.copy(id = insertedId)
         } catch (e: Exception) {
-            Battery(-1, Type(-1, "", ""), "", 0, 0, 0, null, Timestamp(0))
+            println(e)
+            null
         }
     }
 
-    override suspend fun deleteBattery(id: Int): Battery {
+    override suspend fun deleteBattery(id: Int): Battery? {
         return try {
             val battery = getBatteryById(id) ?: throw IllegalArgumentException("No battery found for id $id")
             dbQuery {
@@ -82,7 +89,8 @@ class BatteriesDaoImpl: BatteriesDao {
             }
             battery
         } catch (e: Exception) {
-            Battery(-1, Type(-1, "", ""), "", 0, 0, 0, null, Timestamp(0))
+            println(e)
+            null
         }
     }
 }
