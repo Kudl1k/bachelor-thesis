@@ -1,11 +1,9 @@
 package cz.kudladev.util
 
-import cz.kudladev.data.Batteries
-import cz.kudladev.data.ChargerTypes
-import cz.kudladev.data.Chargers
-import cz.kudladev.data.Types
+import cz.kudladev.data.*
 import cz.kudladev.data.models.*
 import org.jetbrains.exposed.sql.ResultRow
+import java.sql.Time
 import java.sql.Timestamp
 
 object ResultRowParser {
@@ -62,6 +60,34 @@ object ResultRowParser {
             slots = charger.slots,
             created_at = charger.created_at!!,
             types = types
+        )
+    }
+
+    fun resultRowToChargerRecord(row: ResultRow): ChargeRecord {
+        val charger = resultRowToCharger(row)
+        println(charger)
+        val battery = resultRowToBattery(row)
+        println(battery)
+
+        return ChargeRecord(
+            idChargeRecord = row[ChargeRecords.idChargeRecord],
+            program = row[ChargeRecords.program],
+            slot = row[ChargeRecords.slot],
+            startedAt = Timestamp.from(row[ChargeRecords.startedAt]),
+            finishedAt = row[ChargeRecords.finishedAt]?.let { Timestamp.from(it) },
+            chargedCapacity = row[ChargeRecords.chargedCapacity],
+            charger = charger,
+            battery = battery
+        )
+    }
+
+    fun resultRowToChargeTracking(row: ResultRow): ChargeTrackingID{
+        return ChargeTrackingID(
+            timestamp = Timestamp.from(row[ChargeTracking.timestamp]),
+            charge_record_id = row[ChargeTracking.idChargeRecord],
+            capacity = row[ChargeTracking.capacity],
+            voltage = row[ChargeTracking.voltage],
+            current = row[ChargeTracking.current]
         )
     }
 
