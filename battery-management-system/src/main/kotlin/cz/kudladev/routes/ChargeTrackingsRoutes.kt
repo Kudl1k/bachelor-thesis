@@ -2,14 +2,19 @@ package cz.kudladev.routes
 
 import cz.kudladev.data.models.ChargeTrackingID
 import cz.kudladev.domain.repository.ChargeTrackingDao
+import cz.kudladev.system.isRunning
+import cz.kudladev.system.job
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 fun Route.chargetrackings(chargeTrackingDao: ChargeTrackingDao){
-    route("/chargers"){
+    route("/chargers") {
         get("tracking") {
             try {
                 call.respond(chargeTrackingDao.getAllChargeTracking())
@@ -27,7 +32,10 @@ fun Route.chargetrackings(chargeTrackingDao: ChargeTrackingDao){
                     call.respondText(text = "Charge Tracking with ID $id not found", status = HttpStatusCode.NotFound)
                 }
             } catch (e: Exception) {
-                call.respondText(text = "Please insert right form of ID (Int), starting from 1", status = HttpStatusCode.BadRequest)
+                call.respondText(
+                    text = "Please insert right form of ID (Int), starting from 1",
+                    status = HttpStatusCode.BadRequest
+                )
             }
         }
         post("tracking") {
@@ -39,7 +47,7 @@ fun Route.chargetrackings(chargeTrackingDao: ChargeTrackingDao){
                 call.respondText(text = "Please fill all fields", status = HttpStatusCode.BadRequest)
             }
         }
-        put ("tracking") {
+        put("tracking") {
             try {
                 val chargeTracking = call.receive<ChargeTrackingID>()
                 chargeTrackingDao.updateChargeTracking(chargeTracking)
@@ -54,7 +62,30 @@ fun Route.chargetrackings(chargeTrackingDao: ChargeTrackingDao){
                 chargeTrackingDao.deleteChargeTracking(id)
                 call.respond(HttpStatusCode.OK)
             } catch (e: Exception) {
-                call.respondText(text = "Please insert right form of ID (Int), starting from 1", status = HttpStatusCode.BadRequest)
+                call.respondText(
+                    text = "Please insert right form of ID (Int), starting from 1",
+                    status = HttpStatusCode.BadRequest
+                )
+            }
+        }
+        get("{id}/tracking/start") {
+            if (job == null || job?.isCancelled == true) {
+                isRunning = true
+                job = CoroutineScope(Dispatchers.Default).launch {
+                    cz.kudladev.system.run()
+                }
+                call.respondText("Process started", status = HttpStatusCode.OK)
+            } else {
+                call.respondText("Process is already running", status = HttpStatusCode.BadRequest)
+            }
+        }
+        get("{id}/tracking/stop") {
+            if (job != null && job?.isActive == true) {
+                isRunning = false
+                job?.cancel()
+                call.respondText("Process stopped", status = HttpStatusCode.OK)
+            } else {
+                call.respondText("No process running", status = HttpStatusCode.BadRequest)
             }
         }
     }
