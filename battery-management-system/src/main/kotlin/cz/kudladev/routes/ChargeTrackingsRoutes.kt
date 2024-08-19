@@ -4,6 +4,7 @@ import cz.kudladev.data.models.ChargeTrackingID
 import cz.kudladev.domain.repository.ChargeTrackingDao
 import cz.kudladev.system.isRunning
 import cz.kudladev.system.job
+import cz.kudladev.system.startTracking
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -69,10 +70,11 @@ fun Route.chargetrackings(chargeTrackingDao: ChargeTrackingDao){
             }
         }
         get("{id}/tracking/start") {
+            val id = call.parameters["id"]?.toInt() ?: return@get call.respond(HttpStatusCode.BadRequest)
             if (job == null || job?.isCancelled == true) {
                 isRunning = true
                 job = CoroutineScope(Dispatchers.Default).launch {
-                    cz.kudladev.system.run()
+
                 }
                 call.respondText("Process started", status = HttpStatusCode.OK)
             } else {

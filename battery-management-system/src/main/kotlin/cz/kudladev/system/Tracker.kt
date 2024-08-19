@@ -1,5 +1,6 @@
 package cz.kudladev.system
 
+import cz.kudladev.data.models.Charger
 import kotlinx.coroutines.Job
 
 
@@ -11,4 +12,43 @@ suspend fun run() {
         println("Hello, World!")
         Thread.sleep(1000)
     }
+}
+
+suspend fun startTracking(
+    charger: Charger,
+    program: Char
+){
+    val openPort = openPort(
+        portName = charger.tty,
+        baudRate = 9600,
+        dataBits = 8,
+        stopBits = 1,
+        parity = 0,
+        rts = false,
+        dtr = true
+    )
+    while (isRunning) {
+        val data = readFromPort(
+            port = openPort,
+            bytes = 24,
+            idCharger = 1,
+        )
+        when (program) {
+            'C' -> {
+                println("Charging program")
+                println("Slot: ${data?.slot}; Current: ${data?.current}; Voltage: ${data?.voltage}; Charged: ${data?.charged}")
+            }
+            'D' -> {
+                println("Discharging program")
+                println("Slot: ${data?.slot}; Current: ${data?.current}; Voltage: ${data?.voltage}; Discharged: ${data?.discharged}")
+            }
+        }
+        Thread.sleep(3000)
+    }
+}
+
+suspend fun stopTracking() {
+    isRunning = false
+    job?.cancel()
+    job = null
 }

@@ -54,4 +54,8 @@ dependencies {
     // Status pages
     implementation("io.ktor:ktor-server-status-pages")
 
+    //Serial ports
+    implementation("io.github.java-native:jssc:2.9.6")
+
+
 }
