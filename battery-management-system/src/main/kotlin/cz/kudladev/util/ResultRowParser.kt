@@ -38,6 +38,12 @@ object ResultRowParser {
             id = row[Chargers.idCharger],
             name = row[Chargers.name],
             tty = row[Chargers.tty],
+            baudRate = row[Chargers.baudRate],
+            dataBits = row[Chargers.dataBits],
+            stopBits = row[Chargers.stopBits],
+            parity = row[Chargers.parity],
+            rts = row[Chargers.rts],
+            dtr = row[Chargers.dtr],
             slots = row[Chargers.slots],
             created_at = Timestamp.from(row[Chargers.createdAt])
         )
@@ -57,6 +63,12 @@ object ResultRowParser {
             id = charger.id,
             name = charger.name,
             tty = charger.tty,
+            baudRate = charger.baudRate,
+            dataBits = charger.dataBits,
+            stopBits = charger.stopBits,
+            parity = charger.parity,
+            rts = charger.rts,
+            dtr = charger.dtr,
             slots = charger.slots,
             created_at = charger.created_at!!,
             types = types

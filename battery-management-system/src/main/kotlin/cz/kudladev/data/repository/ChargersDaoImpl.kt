@@ -58,6 +58,12 @@ class ChargersDaoImpl : ChargersDao {
                         id = charger.id,
                         name = charger.name,
                         tty = charger.tty,
+                        baudRate = charger.baudRate,
+                        dataBits = charger.dataBits,
+                        stopBits = charger.stopBits,
+                        parity = charger.parity,
+                        rts = charger.rts,
+                        dtr = charger.dtr,
                         slots = charger.slots,
                         created_at = charger.created_at!!,
                         types = types
@@ -77,6 +83,12 @@ class ChargersDaoImpl : ChargersDao {
                 Chargers.insert {
                     it[name] = charger.name
                     it[tty] = charger.tty
+                    it[baudRate] = charger.baudRate
+                    it[dataBits] = charger.dataBits
+                    it[stopBits] = charger.stopBits
+                    it[parity] = charger.parity
+                    it[rts] = charger.rts
+                    it[dtr] = charger.dtr
                     it[slots] = charger.slots
                     it[createdAt] = timestamp
                 } get Chargers.idCharger
@@ -94,6 +106,12 @@ class ChargersDaoImpl : ChargersDao {
                 Chargers.update({ Chargers.idCharger eq charger.id!! }) {
                     it[name] = charger.name
                     it[tty] = charger.tty
+                    it[baudRate] = charger.baudRate
+                    it[dataBits] = charger.dataBits
+                    it[stopBits] = charger.stopBits
+                    it[parity] = charger.parity
+                    it[rts] = charger.rts
+                    it[dtr] = charger.dtr
                     it[slots] = charger.slots
                     it[createdAt] = charger.created_at?.toInstant()!!
                 }

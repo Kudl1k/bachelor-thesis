@@ -20,12 +20,12 @@ suspend fun startTracking(
 ){
     val openPort = openPort(
         portName = charger.tty,
-        baudRate = 9600,
-        dataBits = 8,
-        stopBits = 1,
-        parity = 0,
-        rts = false,
-        dtr = true
+        baudRate = charger.baudRate,
+        dataBits = charger.dataBits,
+        stopBits = charger.stopBits,
+        parity = charger.parity,
+        rts = charger.rts,
+        dtr = charger.dtr
     )
     while (isRunning) {
         val data = readFromPort(

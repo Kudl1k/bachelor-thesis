@@ -32,6 +32,12 @@ object Chargers : Table("charger") {
     val idCharger = integer("id_charger").autoIncrement()
     val name = varchar("name", 50)
     val tty = varchar("tty", 15)
+    val baudRate = integer("baud_rate")
+    val dataBits = integer("data_bits")
+    val stopBits = integer("stop_bits")
+    val parity = integer("parity")
+    val rts = bool("rts")
+    val dtr = bool("dtr")
     val slots = integer("slots")
     val createdAt = timestamp("created_at")
 
