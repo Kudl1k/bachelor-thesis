@@ -1,6 +1,7 @@
 package cz.kudladev.domain.repository
 
 import cz.kudladev.data.models.Battery
+import cz.kudladev.data.models.BatteryInsert
 
 
 interface BatteriesDao {
@@ -9,7 +10,7 @@ interface BatteriesDao {
 
     suspend fun getBatteryById(id: Int): Battery?
 
-    suspend fun createBattery(battery: Battery): Battery?
+    suspend fun createBattery(battery: BatteryInsert): Battery?
 
     suspend fun updateBattery(battery: Battery): Battery?
 

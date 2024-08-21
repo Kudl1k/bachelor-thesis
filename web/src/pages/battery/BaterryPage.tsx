@@ -1,9 +1,11 @@
 import { BatteryCard } from "@/components/cards/BatteryCard";
 import { InfoBox } from "@/components/InfoBox";
+import { Loading } from "@/components/Loading";
 import { PaggingMenu } from "@/components/PaggingMenu";
 import { buttonVariants } from "@/components/ui/button";
 import { Battery, fetchBatteryData } from "@/models/BatteryData";
 import { BatteryWarning } from "lucide-react";
+
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 
@@ -31,7 +33,7 @@ export function BaterryPage() {
     }, []);
 
     if (!batteryData) {
-        return <div>Loading...</div>;
+        return Loading();
     }
     
     

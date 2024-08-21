@@ -2,19 +2,10 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { Check, ChevronsUpDown } from "lucide-react"
 import { useForm } from "react-hook-form"
 
-import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command"
+
 import {
   Form,
   FormControl,
@@ -24,37 +15,63 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
+
 import { Type } from "@/models/TypeData"
 import { Input } from "@/components/ui/input"
+import { BatteryInsert, insertBatteryData } from "@/models/BatteryData"
+import { Dialog } from "@/components/Dialog"
+import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { TypeFormCombobox } from "@/components/comboboxes/TypeCombobox"
 
 const batteryAddFormSchema = z.object({
     type: z.string(),
     size: z.string().min(1, { message: "Size is required." }),
-    factory_capacity: z.number().min(1, { message: "Factory capacity is required." }),
-    voltage: z.number().min(1, { message: "Voltage is required." }),
+    factory_capacity: z.string().min(1, { message: "Factory capacity is required." }),
+    voltage: z.string().min(1, { message: "Voltage is required." }),
 })
+
 
 interface BatteryAddFormProps {
     types: Type[] | [];
-    onSubmitForm: (data: z.infer<typeof batteryAddFormSchema>) => void;
 }
 
-export function BatteryAddFormSchema({types, onSubmitForm }: BatteryAddFormProps) {
-
+export function BatteryAddFormSchema({types}: BatteryAddFormProps) {
+    const [openDialog, setOpenDialog] = useState(false)
+    const [battery, setBattery] = useState<BatteryInsert | null>(null)
+    const navigate = useNavigate()
     
 
     const form = useForm<z.infer<typeof batteryAddFormSchema>>({
         resolver: zodResolver(batteryAddFormSchema),
     })
-    console.log(types)
 
-    function onSubmit(data: z.infer<typeof batteryAddFormSchema>) {
-        onSubmitForm(data)
+    async function onSubmit(data: z.infer<typeof batteryAddFormSchema>) {
+        const insertBattery: BatteryInsert = {
+            type: data.type,
+            size: data.size,
+            factory_capacity: parseInt(data.factory_capacity),
+            voltage: parseInt(data.voltage),
+        }
+        setBattery(insertBattery)
+    }
+
+    async function onContinue(insertBattery: BatteryInsert) {
+        const battery = await insertBatteryData(insertBattery)
+        console.log(battery)
+        navigate("/battery")
+    }
+
+
+    useEffect(() => {
+        if (form.formState.isSubmitSuccessful) {
+            setOpenDialog(true)
+        }
+    }, [form.formState.isSubmitSuccessful])
+
+    function handleCancel() {
+        setOpenDialog(false)
+        form.reset(form.getValues()) // Reset the form state to allow resubmission
     }
 
     return (
@@ -64,62 +81,14 @@ export function BatteryAddFormSchema({types, onSubmitForm }: BatteryAddFormProps
                     control={form.control}
                     name="type"
                     render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                            <FormLabel>Type</FormLabel>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <FormControl>
-                                        <Button
-                                            variant="outline"
-                                            role="combobox"
-                                            className={cn(
-                                                "justify-between",
-                                                !field.value && "text-muted-foreground"
-                                            )}
-                                        >
-                                            {field.value
-                                                ? types.find(
-                                                    (type) => type.name === field.value
-                                                )?.name
-                                                : "Select type"}
-                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                        </Button>
-                                    </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="p-0">
-                                    <Command>
-                                        <CommandInput placeholder="Search type..." />
-                                        <CommandList>
-                                            <CommandEmpty>No type found.</CommandEmpty>
-                                            <CommandGroup>
-                                                {types.map((type) => (
-                                                    <CommandItem
-                                                        value={type.name}
-                                                        key={type.shortcut}
-                                                        onSelect={() => {
-                                                            form.setValue("type", type.name)
-                                                        } }
-                                                    >
-                                                        <Check
-                                                            className={cn(
-                                                                "mr-2 h-4 w-4",
-                                                                type.name === field.value
-                                                                    ? "opacity-100"
-                                                                    : "opacity-0"
-                                                            )} />
-                                                        {type.name}
-                                                    </CommandItem>
-                                                ))}
-                                            </CommandGroup>
-                                        </CommandList>
-                                    </Command>
-                                </PopoverContent>
-                            </Popover>
-                            <FormDescription>
-                                This is a combobox form field.
-                            </FormDescription>
-                            <FormMessage />
-                        </FormItem>
+                        <TypeFormCombobox
+                            fieldName="type"
+                            label="Type"
+                            description="This is a combobox form field."
+                            types={types}
+                            fieldValue={field.value}
+                            setValue={form.setValue}
+                        />
                     )} />
                 <FormField
                     control={form.control}
@@ -166,11 +135,22 @@ export function BatteryAddFormSchema({types, onSubmitForm }: BatteryAddFormProps
                             <FormMessage />
                         </FormItem>
                     )} />
-                <div className="flex justify-center pt-4">
-                    <Button type="submit">Submit</Button>
-                </div>
+                <Dialog
+                    open={openDialog}
+                    trigger={
+                        <div className="flex justify-center pt-4">
+                            <Button type="submit">Submit</Button>
+                        </div>
+                    }
+                    title="Submit battery"
+                    description="Do you want to submit the battery?"
+                    onContinue={() => onContinue(battery!)}
+                    onCancel={() => handleCancel()}
+                />
+                
             </form>
         </Form>
 
       )
 }
+

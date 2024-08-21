@@ -16,3 +16,12 @@ data class Battery(
     @Serializable(with = TimestampSerializer::class) val last_time_charged_at: Timestamp?,
     @Serializable(with = TimestampSerializer::class) val created_at: Timestamp?
 )
+
+
+@Serializable
+data class BatteryInsert(
+    val type: String,
+    val size: String,
+    val factory_capacity: Int,
+    val voltage: Int
+)

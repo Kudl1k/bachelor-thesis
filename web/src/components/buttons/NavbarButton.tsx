@@ -7,14 +7,12 @@ interface NavBarButtonProps {
     active?: boolean;
     link: string;
     icon: LucideIcon; // Update the type to LucideIcon
-    onClick: () => void;
 }
 
-export function NavBarButton({ text, active, link, icon: Icon, onClick }: NavBarButtonProps) {
+export function NavBarButton({ text, active, link, icon: Icon }: NavBarButtonProps) {
     return (
         <Link 
-            className={`${buttonVariants({ variant: "link", size: "default" })} nav-button ${active ? "font-bold shadow-md" : "font-normal"} m-2`} 
-            onClick={onClick} 
+            className={`${buttonVariants({ variant: "link", size: "default" })} nav-button ${active ? "font-bold shadow-md" : "font-normal"} m-1`} 
             to={link}
         >
             <Icon className="mr-2" /> {/* Render the icon */}

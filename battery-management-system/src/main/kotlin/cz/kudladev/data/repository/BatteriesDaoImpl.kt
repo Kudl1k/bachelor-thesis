@@ -4,13 +4,11 @@ import cz.kudladev.data.Batteries
 import cz.kudladev.data.DatabaseBuilder.dbQuery
 import cz.kudladev.data.Types
 import cz.kudladev.data.models.Battery
-import cz.kudladev.data.models.Type
+import cz.kudladev.data.models.BatteryInsert
 import cz.kudladev.domain.repository.BatteriesDao
 import cz.kudladev.util.ResultRowParser
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import java.sql.Time
-import java.sql.Timestamp
 import java.time.Clock
 
 class BatteriesDaoImpl: BatteriesDao {
@@ -38,24 +36,24 @@ class BatteriesDaoImpl: BatteriesDao {
         }
     }
 
-    override suspend fun createBattery(battery: Battery): Battery? {
+    override suspend fun createBattery(battery: BatteryInsert): Battery? {
         return try {
-            if (battery.type.id == null) {
-                throw IllegalArgumentException("Type id is null")
+            val type = dbQuery {
+                Types.select { Types.name eq battery.type }.singleOrNull() ?: throw IllegalArgumentException("No type found for name ${battery.type}")
             }
-            val insertedId =  dbQuery {
-                Types.select({ Types.idType eq battery.type.id }).singleOrNull() ?: throw IllegalArgumentException("No type found for id ${battery.type.id}")
+            val insertedId = dbQuery {
                 Batteries.insert {
                     it[size] = battery.size
-                    it[idType] = battery.type.id
                     it[factoryCapacity] = battery.factory_capacity
                     it[voltage] = battery.voltage
-                    it[lastChargedCapacity] = battery.last_charged_capacity
-                    it[lastTimeChargedAt] = battery.last_time_charged_at?.toInstant()
+                    it[lastChargedCapacity] = null
+                    it[lastTimeChargedAt] = null
                     it[createdAt] = Clock.systemUTC().instant()
+                    it[idType] = type[Types.idType]
                 } get Batteries.idBattery
             }
-            battery.copy(id = insertedId)
+            val createdBattery = getBatteryById(insertedId) ?: throw IllegalArgumentException("No battery found for id $insertedId")
+            createdBattery
         } catch (e: Exception) {
             println(e)
             null

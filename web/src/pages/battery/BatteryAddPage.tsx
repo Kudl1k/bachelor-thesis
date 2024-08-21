@@ -1,25 +1,26 @@
+// src/pages/battery/BatteryAddPage.tsx
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BatteryAddFormSchema } from "@/forms/BatteryAddFormSchema";
 import { fetchTypeData, Type } from "@/models/TypeData";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-
- 
-
+import { BatteryAddFormSchema } from "@/forms/BatteryAddFormSchema";
+import { Loading } from "@/components/Loading";
 
 
 export function BatteryAddPage() {
-    
     const [types, setTypes] = useState<Type[] | null>(null);
+
 
     useEffect(() => {
         fetchTypeData(setTypes);
     }, []);
 
     if (!types) {
-        return <div>Loading...</div>;
+        return Loading();
     }
+
+
 
     return (
         <>
@@ -35,13 +36,11 @@ export function BatteryAddPage() {
                             <CardTitle>Create a new battery</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <BatteryAddFormSchema types={types} onSubmitForm={() => {}} />
+                            <BatteryAddFormSchema types={types}/>
                         </CardContent>
                     </Card>
                 </div>
             </div>
         </>
-    )
-
+    );
 }
-

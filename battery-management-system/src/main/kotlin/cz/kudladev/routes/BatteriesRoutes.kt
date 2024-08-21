@@ -1,6 +1,7 @@
 package cz.kudladev.routes
 
 import cz.kudladev.data.models.Battery
+import cz.kudladev.data.models.BatteryInsert
 import cz.kudladev.domain.repository.BatteriesDao
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -28,10 +29,11 @@ fun Route.batteries(batteriesDao: BatteriesDao) {
         }
         post {
             try {
-                val battery = call.receive<Battery>()
+                val battery = call.receive<BatteryInsert>()
                 val id = batteriesDao.createBattery(battery) ?: throw Exception()
                 call.respond(HttpStatusCode.Created, mapOf("id" to id))
             } catch (e: Exception) {
+                println(e)
                 call.respondText(text = "Please fill all fields", status = HttpStatusCode.BadRequest)
             }
         }

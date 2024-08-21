@@ -1,10 +1,10 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ThemeProvider } from "@/components/theme-provider"
+import { ThemeProvider } from "@/components/settings/theme-provider"
 import "./index.css"
 import { StartPage } from "./pages/start/StartPage"
 import Layout from "./pages/Layout";
 import { BaterryPage } from "./pages/battery/BaterryPage";
-import { AccumulatorPage } from "./pages/accumulator/AccumulatorPage";
+import { ChargersPage } from "./pages/chargers/ChargersPage";
 import { BatteryAddPage } from "./pages/battery/BatteryAddPage";
  
 
@@ -18,7 +18,7 @@ function App() {
           <Route index element={<StartPage />} />
           <Route path="battery" element={<BaterryPage/>}/>
           <Route path="battery/add" element={<BatteryAddPage/>}/>
-          <Route path="accumulators" element={<AccumulatorPage/>}/>
+          <Route path="chargers" element={<ChargersPage/>}/>
         </Route>
       </Routes>
     </BrowserRouter>
