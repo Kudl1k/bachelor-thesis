@@ -16,4 +16,5 @@ fun Application.module() {
     configureKoin()
     DatabaseBuilder.init()
     configureRouting()
+    configureCORS()
 }

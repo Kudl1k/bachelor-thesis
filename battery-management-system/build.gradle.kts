@@ -57,5 +57,7 @@ dependencies {
     //Serial ports
     implementation("io.github.java-native:jssc:2.9.6")
 
+    // CORS
+    implementation("io.ktor:ktor-server-cors:2.0.0")
 
 }
