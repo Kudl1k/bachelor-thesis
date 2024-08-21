@@ -1,3 +1,4 @@
 .idea
 /battery-management-system/.idea
 /battery-management-system/.gradle
+/web/node-modules
