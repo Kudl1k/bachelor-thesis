@@ -1,7 +1,9 @@
 import { BatteryCard } from "@/components/cards/BatteryCard";
+import { InfoBox } from "@/components/InfoBox";
 import { PaggingMenu } from "@/components/PaggingMenu";
 import { buttonVariants } from "@/components/ui/button";
 import { Battery, fetchBatteryData } from "@/models/BatteryData";
+import { BatteryWarning } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 
@@ -31,9 +33,7 @@ export function BaterryPage() {
     if (!batteryData) {
         return <div>Loading...</div>;
     }
-    if (batteryData.length < 1) {
-        return <div>No battery data available</div>;
-    }
+    
     
 
     const start = (Number(page) - 1) * Number(perPage)
@@ -47,9 +47,23 @@ export function BaterryPage() {
         <>
             <div className="flex justify-center">
                 <div className="flex justify-end w-full xl:w-4/6 ps-4 pe-4 pt-4">
-                <Link className={buttonVariants({ variant: "default" })} to={"/battery/add"} >Add new battery</Link>
+                <div>
+                    <Link className={buttonVariants({ variant: "default" })} to={"/battery/add"} >Add new battery</Link>
+                </div>
                 </div>
             </div>
+            {batteryData.length === 0 && 
+                <div className="flex justify-center">
+                    <div className="w-full xl:w-1/4 lg:w-3/6 md:w-4/6 ps-4 pe-4 pt-4" >
+                        <InfoBox
+                            alertTitle="No batteries found"
+                            alertDescription="There are no batteries found in the database. Please add a new battery."
+                            icon={BatteryWarning}
+                        />
+                    </div>
+                </div>  
+            }
+            
             <div className="flex justify-center">
                 <div className="w-full xl:w-4/6 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
                     {paginatedData.map((battery) => (
@@ -57,7 +71,9 @@ export function BaterryPage() {
                     ))}
                 </div>
             </div>
-            <PaggingMenu totalPosts={batteryData.length} postsPerPage={perPage} currentPage={page} setCurrentPage={setPage} />  
+            {batteryData.length > 0 && 
+                <PaggingMenu totalPosts={batteryData.length} postsPerPage={perPage} currentPage={page} setCurrentPage={setPage} />  
+            }
         </>
     );
 }

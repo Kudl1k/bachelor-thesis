@@ -88,9 +88,9 @@ export function BatteryAddFormSchema({types, onSubmitForm }: BatteryAddFormProps
                                 </PopoverTrigger>
                                 <PopoverContent className="p-0">
                                     <Command>
-                                        <CommandInput placeholder="Search language..." />
+                                        <CommandInput placeholder="Search type..." />
                                         <CommandList>
-                                            <CommandEmpty>No language found.</CommandEmpty>
+                                            <CommandEmpty>No type found.</CommandEmpty>
                                             <CommandGroup>
                                                 {types.map((type) => (
                                                     <CommandItem
