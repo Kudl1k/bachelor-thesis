@@ -61,3 +61,10 @@ dependencies {
     implementation("io.ktor:ktor-server-cors:2.0.0")
 
 }
+
+tasks.register("databaseInstance") {
+    doLast {
+        val command = arrayOf("docker-compose", "up")
+        Runtime.getRuntime().exec(command)
+    }
+}
