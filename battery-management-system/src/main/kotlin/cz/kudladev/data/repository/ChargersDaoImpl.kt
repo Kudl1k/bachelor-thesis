@@ -1,24 +1,22 @@
 package cz.kudladev.data.repository
 
-import cz.kudladev.data.ChargerTypes
-import cz.kudladev.data.Chargers
+import cz.kudladev.data.*
 import cz.kudladev.data.DatabaseBuilder.dbQuery
-import cz.kudladev.data.Types
 import cz.kudladev.data.models.Charger
-import cz.kudladev.data.models.ChargerWithTypes
+import cz.kudladev.data.models.ChargerWithTypesAndSizes
+import cz.kudladev.data.models.Size
 import cz.kudladev.domain.repository.ChargersDao
 import cz.kudladev.util.ResultRowParser
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.javatime.time
 import java.sql.Timestamp
 import java.time.Clock
 
 class ChargersDaoImpl : ChargersDao {
-    override suspend fun getAllChargers(): List<ChargerWithTypes> {
+    override suspend fun getAllChargers(): List<ChargerWithTypesAndSizes> {
         return try {
             dbQuery {
-                val result = (Chargers leftJoin ChargerTypes leftJoin Types)
+                val result = (Chargers leftJoin ChargerTypes leftJoin Types leftJoin ChargerSizes leftJoin Sizes)
                     .selectAll()
                     .toList()
                 if (result.isEmpty()) {
@@ -36,10 +34,10 @@ class ChargersDaoImpl : ChargersDao {
         }
     }
 
-    override suspend fun getChargerById(id: Int): ChargerWithTypes? {
+    override suspend fun getChargerById(id: Int): ChargerWithTypesAndSizes? {
         return try {
             dbQuery {
-                val result = (Chargers leftJoin ChargerTypes leftJoin Types)
+                val result = (Chargers leftJoin ChargerTypes leftJoin Types leftJoin ChargerSizes leftJoin Sizes)
                     .selectAll()
                     .where { Chargers.idCharger eq id }
                     .toList()
@@ -48,13 +46,20 @@ class ChargersDaoImpl : ChargersDao {
                 } else {
                     val charger = ResultRowParser.resultRowToCharger(result.first())
                     val types = result.mapNotNull { row ->
-                        if (row[Types.idType] != null) {
+                        if (row[Types.shortcut] != null) {
                             ResultRowParser.resultRowToType(row)
                         } else {
                             null
                         }
                     }
-                    ChargerWithTypes(
+                    val sizes = result.mapNotNull { row ->
+                        if (row[Sizes.name] != null) {
+                            Size(name = row[Sizes.name])
+                        } else {
+                            null
+                        }
+                    }
+                    ChargerWithTypesAndSizes(
                         id = charger.id,
                         name = charger.name,
                         tty = charger.tty,
@@ -66,7 +71,8 @@ class ChargersDaoImpl : ChargersDao {
                         dtr = charger.dtr,
                         slots = charger.slots,
                         created_at = charger.created_at!!,
-                        types = types
+                        types = types,
+                        sizes = sizes
                     )
                 }
             }
@@ -134,12 +140,12 @@ class ChargersDaoImpl : ChargersDao {
         }
     }
 
-    override suspend fun getChargersByType(typeId: Int): List<ChargerWithTypes> {
+    override suspend fun getChargersByType(shortcut: String): List<ChargerWithTypesAndSizes> {
         return try {
             dbQuery {
-                val result = (Chargers innerJoin ChargerTypes innerJoin Types)
+                val result = (Chargers innerJoin ChargerTypes innerJoin Types innerJoin Sizes)
                     .selectAll()
-                    .where { ChargerTypes.idType eq typeId }
+                    .where { ChargerTypes.typeShortcut eq shortcut }
                     .toList()
                 if (result.isEmpty()) {
                     emptyList()
@@ -156,33 +162,63 @@ class ChargersDaoImpl : ChargersDao {
         }
     }
 
-    override suspend fun addTypeToCharger(chargerId: Int, typeId: Int): ChargerWithTypes? {
+    override suspend fun addTypeToCharger(chargerId: Int, shortcut: String): ChargerWithTypesAndSizes? {
         return try {
-            val result = dbQuery {
+            dbQuery {
                 ChargerTypes.insert {
                     it[idCharger] = chargerId
-                    it[idType] = typeId
+                    it[typeShortcut] = shortcut
                 }
-                getChargerById(chargerId)
             }
-            result
+            getChargerById(chargerId)
         } catch (e: Exception) {
             println(e)
             null
         }
     }
 
-    override suspend fun removeTypeFromCharger(chargerId: Int, typeId: Int): ChargerWithTypes? {
+    override suspend fun removeTypeFromCharger(chargerId: Int, shortcut: String): ChargerWithTypesAndSizes? {
         return try {
             dbQuery {
                 ChargerTypes.deleteWhere {
-                    (ChargerTypes.idCharger eq chargerId) and (ChargerTypes.idType eq typeId)
+                    (ChargerTypes.idCharger eq chargerId) and (ChargerTypes.typeShortcut eq shortcut)
                 }
-                getChargerById(chargerId)
             }
+            getChargerById(chargerId)
         } catch (e: Exception) {
             println(e)
             null
         }
     }
+
+    override suspend fun addSizeToCharger(chargerId: Int, size: String): ChargerWithTypesAndSizes? {
+        return try {
+            dbQuery {
+                ChargerSizes.insert {
+                    it[idCharger] = chargerId
+                    it[sizeName] = size
+                }
+            }
+            getChargerById(chargerId)
+        } catch (e: Exception) {
+            println(e)
+            null
+        }
+    }
+
+    override suspend fun removeSizeFromCharger(chargerId: Int, size: String): ChargerWithTypesAndSizes? {
+        return try {
+            dbQuery {
+                ChargerSizes.deleteWhere {
+                    (ChargerSizes.idCharger eq chargerId) and (ChargerSizes.sizeName eq size)
+                }
+            }
+            getChargerById(chargerId)
+        } catch (e: Exception) {
+            println(e)
+            null
+        }
+    }
+
+
 }

@@ -1,13 +1,13 @@
 package cz.kudladev.domain.repository
 
 import cz.kudladev.data.models.Charger
-import cz.kudladev.data.models.ChargerWithTypes
+import cz.kudladev.data.models.ChargerWithTypesAndSizes
 
 interface ChargersDao {
 
-    suspend fun getAllChargers(): List<ChargerWithTypes>
+    suspend fun getAllChargers(): List<ChargerWithTypesAndSizes>
 
-    suspend fun getChargerById(id: Int): ChargerWithTypes?
+    suspend fun getChargerById(id: Int): ChargerWithTypesAndSizes?
 
     suspend fun createCharger(charger: Charger): Charger?
 
@@ -15,10 +15,15 @@ interface ChargersDao {
 
     suspend fun deleteCharger(id: Int): Boolean
 
-    suspend fun getChargersByType(typeId: Int): List<ChargerWithTypes>
+    suspend fun getChargersByType(shortcut: String): List<ChargerWithTypesAndSizes>
 
-    suspend fun addTypeToCharger(chargerId: Int, typeId: Int): ChargerWithTypes?
+    suspend fun addTypeToCharger(chargerId: Int, shortcut: String): ChargerWithTypesAndSizes?
 
-    suspend fun removeTypeFromCharger(chargerId: Int, typeId: Int): ChargerWithTypes?
+    suspend fun removeTypeFromCharger(chargerId: Int, shortcut: String): ChargerWithTypesAndSizes?
+
+    suspend fun addSizeToCharger(chargerId: Int, size: String): ChargerWithTypesAndSizes?
+
+    suspend fun removeSizeFromCharger(chargerId: Int, size: String): ChargerWithTypesAndSizes?
+
 
 }

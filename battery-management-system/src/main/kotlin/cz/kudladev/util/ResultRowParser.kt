@@ -3,15 +3,13 @@ package cz.kudladev.util
 import cz.kudladev.data.*
 import cz.kudladev.data.models.*
 import org.jetbrains.exposed.sql.ResultRow
-import java.sql.Time
 import java.sql.Timestamp
 
 object ResultRowParser {
 
     fun resultRowToType(row: ResultRow): Type {
         return Type(
-            id = row[Types.idType],
-            shortcut = row[Types.shortcut] ?: "",
+            shortcut = row[Types.shortcut],
             name = row[Types.name] ?: ""
         )
     }
@@ -20,11 +18,12 @@ object ResultRowParser {
         return Battery(
             id = row[Batteries.idBattery],
             type = Type(
-                id = row[Types.idType],
                 shortcut = row[Types.shortcut],
                 name = row[Types.name]
             ),
-            size = row[Batteries.size],
+            size = Size(
+                name = row[Sizes.name]
+            ),
             factory_capacity = row[Batteries.factoryCapacity],
             voltage = row[Batteries.voltage],
             last_charged_capacity = row[Batteries.lastChargedCapacity],
@@ -49,17 +48,26 @@ object ResultRowParser {
         )
     }
 
-    fun resultRowToChargerWithTypes(rows: List<ResultRow>): ChargerWithTypes {
+    fun resultRowToChargerWithTypes(rows: List<ResultRow>): ChargerWithTypesAndSizes {
         val firstRow = rows.first()
         val charger = resultRowToCharger(firstRow)
         val types = rows.mapNotNull { row ->
-            if (row[Types.idType] != null) {
+            if (row[Types.shortcut] != null) {
                 resultRowToType(row)
             } else {
                 null
             }
         }
-        return ChargerWithTypes(
+        val sizes = rows.mapNotNull { row ->
+            if (row[Sizes.name] != null) {
+                resultRowToSize(row)
+            } else {
+                null
+            }
+        }
+
+
+        return ChargerWithTypesAndSizes(
             id = charger.id,
             name = charger.name,
             tty = charger.tty,
@@ -71,7 +79,8 @@ object ResultRowParser {
             dtr = charger.dtr,
             slots = charger.slots,
             created_at = charger.created_at!!,
-            types = types
+            types = types,
+            sizes = sizes
         )
     }
 
@@ -100,6 +109,12 @@ object ResultRowParser {
             capacity = row[ChargeTracking.capacity],
             voltage = row[ChargeTracking.voltage],
             current = row[ChargeTracking.current]
+        )
+    }
+
+    fun resultRowToSize(row: ResultRow): Size {
+        return Size(
+            name = row[Sizes.name],
         )
     }
 

@@ -7,8 +7,6 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import java.sql.Timestamp
-import java.time.Instant
 
 fun Route.types(typesDAO: TypesDao){
     route("/types"){
@@ -16,32 +14,32 @@ fun Route.types(typesDAO: TypesDao){
             call.respond(typesDAO.getAllTypes())
         }
 
-        get("{id}"){
+        get("{shortcut}"){
             try {
-                val id = call.parameters["id"]?.toInt() ?: return@get call.respond(HttpStatusCode.BadRequest)
-                val type = typesDAO.getTypeById(id)
+                val shortcut = call.parameters["shortcut"] ?: return@get call.respond(HttpStatusCode.BadRequest)
+                val type = typesDAO.getTypeByShortcut(shortcut)
                 if (type != null){
                     call.respond(type)
                 } else {
-                    call.respondText(text = "Type with ID $id not found", status = HttpStatusCode.NotFound)
+                    call.respondText(text = "Type with shortcut $shortcut not found", status = HttpStatusCode.NotFound)
                 }
             } catch (e: Exception){
-                call.respondText(text = "Please insert right form of ID (Int), starting from 1", status = HttpStatusCode.BadRequest)
+                call.respondText(text = "Please insert right form of shortcut", status = HttpStatusCode.BadRequest)
             }
         }
 
-        get("{id}/batteries"){
+        get("{shortcut}/batteries"){
             try {
-                val id = call.parameters["id"]?.toInt() ?: return@get call.respond(HttpStatusCode.BadRequest)
-                val typeWithBatteries = typesDAO.getTypeByIdWithBatteries(id)
+                val shortcut = call.parameters["shortcut"] ?: return@get call.respond(HttpStatusCode.BadRequest)
+                val typeWithBatteries = typesDAO.getTypeByShortcutWithBatteries(shortcut)
                 if (typeWithBatteries != null){
                     call.respond(typeWithBatteries)
                 } else {
-                    call.respondText(text = "Type with ID $id not found", status = HttpStatusCode.NotFound)
+                    call.respondText(text = "Type with shortcut $shortcut not found", status = HttpStatusCode.NotFound)
                 }
 
             } catch (e: Exception){
-                call.respondText(text = "Please insert right form of ID (Int), starting from 1", status = HttpStatusCode.BadRequest)
+                call.respondText(text = "Please insert right form of shortcut", status = HttpStatusCode.BadRequest)
             }
         }
 
@@ -55,28 +53,28 @@ fun Route.types(typesDAO: TypesDao){
             }
         }
 
-        put("{id}"){
+        put("{shortcut}"){
             try {
-                val id = call.parameters["id"]?.toInt() ?: return@put call.respond(HttpStatusCode.BadRequest)
+                val shortcut = call.parameters["shortcut"] ?: return@put call.respond(HttpStatusCode.BadRequest)
                 val type = call.receive<Type>()
-                val updatedType = typesDAO.updateType(type.copy(id = id))
+                val updatedType = typesDAO.updateType(type)
                 if (updatedType != null){
-                    call.respond(HttpStatusCode.OK, mapOf("id" to id))
+                    call.respond(HttpStatusCode.OK, mapOf("id" to type))
                 } else {
-                    call.respondText(text = "Type with ID $id not found", status = HttpStatusCode.NotFound)
+                    call.respondText(text = "Type with shortcut $shortcut not found", status = HttpStatusCode.NotFound)
                 }
             } catch (e: Exception){
-                call.respondText(text = "Please insert right form of ID (Int), starting from 1", status = HttpStatusCode.BadRequest)
+                call.respondText(text = "Please insert right form of shortcut", status = HttpStatusCode.BadRequest)
             }
         }
 
-        delete("{id}"){
+        delete("{shortcut}"){
             try {
-                val id = call.parameters["id"]?.toInt() ?: return@delete call.respond(HttpStatusCode.BadRequest)
-                typesDAO.deleteType(id)
+                val shortcut = call.parameters["shortcut"] ?: return@delete call.respond(HttpStatusCode.BadRequest)
+                typesDAO.deleteType(shortcut)
                 call.respond(HttpStatusCode.OK)
             } catch (e: Exception){
-                call.respondText(text = "Please insert right form of ID (Int), starting from 1", status = HttpStatusCode.BadRequest)
+                call.respondText(text = "Please insert right form of shortcut", status = HttpStatusCode.BadRequest)
             }
         }
 

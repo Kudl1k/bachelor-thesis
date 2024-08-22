@@ -21,7 +21,7 @@ data class Charger(
 
 
 @Serializable
-data class ChargerWithTypes(
+data class ChargerWithTypesAndSizes(
     val id: Int? = null,
     val name: String,
     val tty: String,
@@ -33,5 +33,6 @@ data class ChargerWithTypes(
     val dtr: Boolean,
     val slots: Int,
     @Serializable(with = TimestampSerializer::class) val created_at: Timestamp,
-    val types: List<Type?> = emptyList()
+    val types: List<Type?> = emptyList(),
+    val sizes: List<Size?> = emptyList()
 )

@@ -2,16 +2,15 @@ package cz.kudladev.data.repository
 
 import cz.kudladev.data.Batteries
 import cz.kudladev.data.DatabaseBuilder.dbQuery
+import cz.kudladev.data.Sizes
 import cz.kudladev.data.Types
-import cz.kudladev.data.models.Battery
+import cz.kudladev.data.models.Size
 import cz.kudladev.data.models.Type
 import cz.kudladev.data.models.TypeBatteries
 import cz.kudladev.domain.repository.TypesDao
 import cz.kudladev.util.ResultRowParser
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.statements.InsertStatement
-import java.sql.Timestamp
 
 class TypesDaoImpl(): TypesDao {
 
@@ -26,10 +25,10 @@ class TypesDaoImpl(): TypesDao {
         }
     }
 
-    override suspend fun getTypeById(id: Int): Type? {
+    override suspend fun getTypeByShortcut(shortcut: String): Type? {
         return try {
             dbQuery {
-                Types.selectAll().where { Types.idType eq id }.map { ResultRowParser.resultRowToType(it) }.singleOrNull()
+                Types.selectAll().where { Types.shortcut eq shortcut }.map { ResultRowParser.resultRowToType(it) }.singleOrNull()
             }
         } catch (e: Throwable) {
             println(e)
@@ -37,11 +36,11 @@ class TypesDaoImpl(): TypesDao {
         }
     }
 
-    override suspend fun getTypeByIdWithBatteries(id: Int): TypeBatteries? {
+    override suspend fun getTypeByShortcutWithBatteries(shortcut: String): TypeBatteries? {
         return try {
             dbQuery {
-                val result = (Types leftJoin Batteries).select {
-                    Types.idType eq id
+                val result = (Types leftJoin Batteries leftJoin Sizes).select {
+                    Types.shortcut eq shortcut
                 }.map { it }
 
                 if (result.isEmpty()) {
@@ -58,7 +57,6 @@ class TypesDaoImpl(): TypesDao {
                     }
 
                     TypeBatteries(
-                        id = type.id,
                         shortcut = type.shortcut,
                         name = type.name,
                         batteries = batteries
@@ -73,23 +71,8 @@ class TypesDaoImpl(): TypesDao {
 
     override suspend fun insertType(type: Type): Type? {
         return try {
-            val insertedId = dbQuery {
-                Types.insert {
-                    it[shortcut] = type.shortcut
-                    it[name] = type.name
-                } get Types.idType
-            }
-            type.copy(id = insertedId)
-        } catch (e: Throwable) {
-            println(e)
-            return null
-        }
-    }
-
-    override suspend fun updateType(type: Type): Type? {
-        return try {
             dbQuery {
-                Types.update({ Types.idType eq type.id!! }) {
+                Types.insert {
                     it[shortcut] = type.shortcut
                     it[name] = type.name
                 }
@@ -101,11 +84,26 @@ class TypesDaoImpl(): TypesDao {
         }
     }
 
-    override suspend fun deleteType(id: Int): Type? {
+    override suspend fun updateType(type: Type): Type? {
         return try {
-            val type = getTypeById(id) ?: throw IllegalArgumentException("No type found for id $id")
             dbQuery {
-                Types.deleteWhere { Types.idType eq id }
+                Types.update({ Types.shortcut eq type.shortcut }) {
+                    it[shortcut] = type.shortcut
+                    it[name] = type.name
+                }
+            }
+            type
+        } catch (e: Throwable) {
+            println(e)
+            return null
+        }
+    }
+
+    override suspend fun deleteType(shortcut: String): Type? {
+        return try {
+            val type = getTypeByShortcut(shortcut) ?: throw IllegalArgumentException("No type found for shortcut $shortcut")
+            dbQuery {
+                Types.deleteWhere { Types.shortcut eq shortcut }
             }
             type
         } catch (e: Throwable) {

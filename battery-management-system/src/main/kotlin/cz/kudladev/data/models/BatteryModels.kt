@@ -9,7 +9,7 @@ import java.sql.Timestamp
 data class Battery(
     val id: Int? = null,
     val type: Type,
-    val size: String,
+    val size: Size,
     val factory_capacity: Int,
     val voltage: Int,
     val last_charged_capacity: Int?,

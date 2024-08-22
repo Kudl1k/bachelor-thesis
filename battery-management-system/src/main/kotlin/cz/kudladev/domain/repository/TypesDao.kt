@@ -7,14 +7,14 @@ interface TypesDao {
 
     suspend fun getAllTypes(): List<Type?>
 
-    suspend fun getTypeById(id: Int): Type?
+    suspend fun getTypeByShortcut(shortcut: String): Type?
 
-    suspend fun getTypeByIdWithBatteries(id: Int): TypeBatteries?
+    suspend fun getTypeByShortcutWithBatteries(shortcut: String): TypeBatteries?
 
     suspend fun insertType(type: Type): Type?
 
     suspend fun updateType(type: Type): Type?
 
-    suspend fun deleteType(id: Int): Type?
+    suspend fun deleteType(shortcut: String): Type?
 
 }

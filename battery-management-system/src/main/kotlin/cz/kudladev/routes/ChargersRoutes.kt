@@ -53,10 +53,10 @@ fun Route.chargers(chargersDao: ChargersDao){
                 call.respondText(text = "Please insert right form of ID (Int), starting from 1", status = HttpStatusCode.BadRequest)
             }
         }
-        get("type/{typeId}"){
+        get("type/{type}"){
             try {
-                val typeId = call.parameters["typeId"]?.toInt() ?: return@get call.respond(HttpStatusCode.BadRequest)
-                call.respond(chargersDao.getChargersByType(typeId))
+                val type = call.parameters["typeId"] ?: return@get call.respond(HttpStatusCode.BadRequest)
+                call.respond(chargersDao.getChargersByType(type))
             } catch (e: Exception) {
                 call.respondText(text = "Please insert right form of ID (Int), starting from 1", status = HttpStatusCode.BadRequest)
             }
@@ -64,7 +64,7 @@ fun Route.chargers(chargersDao: ChargersDao){
         post("{chargerId}/type/{typeId}"){
             try {
                 val chargerId = call.parameters["chargerId"]?.toInt() ?: return@post call.respond(HttpStatusCode.BadRequest)
-                val typeId = call.parameters["typeId"]?.toInt() ?: return@post call.respond(HttpStatusCode.BadRequest)
+                val typeId = call.parameters["typeId"] ?: return@post call.respond(HttpStatusCode.BadRequest)
                 val charger = chargersDao.addTypeToCharger(chargerId, typeId)
                 if (charger != null) {
                     call.respond(charger)
@@ -78,7 +78,7 @@ fun Route.chargers(chargersDao: ChargersDao){
         delete("{chargerId}/type/{typeId}"){
             try {
                 val chargerId = call.parameters["chargerId"]?.toInt() ?: return@delete call.respond(HttpStatusCode.BadRequest)
-                val typeId = call.parameters["typeId"]?.toInt() ?: return@delete call.respond(HttpStatusCode.BadRequest)
+                val typeId = call.parameters["typeId"] ?: return@delete call.respond(HttpStatusCode.BadRequest)
                 val charger = chargersDao.removeTypeFromCharger(chargerId, typeId)
                 if (charger != null) {
                     call.respond(charger)
@@ -87,6 +87,40 @@ fun Route.chargers(chargersDao: ChargersDao){
                 }
             } catch (e: Exception) {
                 call.respondText(text = "Please insert right form of ID (Int), starting from 1", status = HttpStatusCode.BadRequest)
+            }
+        }
+        post("{chargerId}/size/{sizeName}") {
+            try {
+                val chargerId = call.parameters["chargerId"]?.toInt() ?: return@post call.respond(HttpStatusCode.BadRequest)
+                val sizeName = call.parameters["sizeName"] ?: return@post call.respond(HttpStatusCode.BadRequest)
+                val charger = chargersDao.addSizeToCharger(chargerId, sizeName)
+                if (charger != null) {
+                    call.respond(charger)
+                } else {
+                    call.respondText(text = "Charger with ID $chargerId not found", status = HttpStatusCode.NotFound)
+                }
+            } catch (e: Exception) {
+                call.respondText(
+                    text = "Please insert right form of ID (Int), starting from 1",
+                    status = HttpStatusCode.BadRequest
+                )
+            }
+        }
+        delete("{chargerId}/size/{sizeName}") {
+            try {
+                val chargerId = call.parameters["chargerId"]?.toInt() ?: return@delete call.respond(HttpStatusCode.BadRequest)
+                val sizeName = call.parameters["sizeName"] ?: return@delete call.respond(HttpStatusCode.BadRequest)
+                val charger = chargersDao.removeSizeFromCharger(chargerId, sizeName)
+                if (charger != null) {
+                    call.respond(charger)
+                } else {
+                    call.respondText(text = "Charger with ID $chargerId not found", status = HttpStatusCode.NotFound)
+                }
+            } catch (e: Exception) {
+                call.respondText(
+                    text = "Please insert right form of ID (Int), starting from 1",
+                    status = HttpStatusCode.BadRequest
+                )
             }
         }
     }

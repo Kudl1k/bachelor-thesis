@@ -4,15 +4,12 @@ import kotlinx.serialization.Serializable
 
 
 @Serializable
-data class Type(
-    val shortcut: String,
+data class Size(
     val name: String
 )
 
 @Serializable
-data class TypeBatteries(
-    val shortcut: String,
+data class SizeWithBatteries(
     val name: String,
     val batteries: List<Battery>
 )
-
