@@ -20,7 +20,7 @@ export function CustomMenubar() {
         } else if (path.startsWith("/chargers")) {
             setActiveButton("Akumulatory");
         } else {
-            setActiveButton("");
+            setActiveButton("Start");
         }
     }, [location.pathname]);
 

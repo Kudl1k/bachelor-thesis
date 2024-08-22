@@ -1,6 +1,5 @@
 // src/pages/battery/BatteryAddPage.tsx
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchTypeData, Type } from "@/models/TypeData";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
@@ -31,14 +30,8 @@ export function BatteryAddPage() {
             </div>
             <div className="flex justify-center">
                 <div className="w-full xl:w-1/4 lg:w-3/6 md:w-4/6 ps-4 pe-4 pt-4">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Create a new battery</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <BatteryAddFormSchema types={types}/>
-                        </CardContent>
-                    </Card>
+                  <BatteryAddFormSchema types={types}/>
+
                 </div>
             </div>
         </>

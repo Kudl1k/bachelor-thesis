@@ -22,7 +22,7 @@ export function HamburgerNavbarButton({activeButton}: HamburgerNavbarButtonProps
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
-                <DropdownMenuItem>
+                <DropdownMenuItem className="">
                     <NavBarButton
                     text="Dashboard"
                     link="/"

@@ -50,7 +50,7 @@ export function BaterryPage() {
             <div className="flex justify-center">
                 <div className="flex justify-end w-full xl:w-4/6 ps-4 pe-4 pt-4">
                 <div>
-                    <Link className={buttonVariants({ variant: "default" })} to={"/battery/add"} >Add new battery</Link>
+                    <Link className={buttonVariants({ variant: "default" })} to={"/add?tab=battery"} >Add new battery</Link>
                 </div>
                 </div>
             </div>
