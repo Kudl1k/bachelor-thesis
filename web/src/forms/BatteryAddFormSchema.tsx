@@ -24,6 +24,8 @@ import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { TypeFormCombobox } from "@/components/comboboxes/TypeCombobox"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { SizeFormCombobox } from "@/components/comboboxes/SizeCombobox"
+import { Size } from "@/models/SizeData"
 
 const batteryAddFormSchema = z.object({
     type: z.string(),
@@ -35,9 +37,10 @@ const batteryAddFormSchema = z.object({
 
 interface BatteryAddFormProps {
     types: Type[] | [];
+    sizes: Size[] | [];
 }
 
-export function BatteryAddFormSchema({types}: BatteryAddFormProps) {
+export function BatteryAddFormSchema({types,sizes}: BatteryAddFormProps) {
     const [openDialog, setOpenDialog] = useState(false)
     const [battery, setBattery] = useState<BatteryInsert | null>(null)
     const navigate = useNavigate()
@@ -91,7 +94,7 @@ export function BatteryAddFormSchema({types}: BatteryAddFormProps) {
                             <TypeFormCombobox
                                 fieldName="type"
                                 label="Type"
-                                description="This is a combobox form field."
+                                description=""
                                 types={types}
                                 fieldValue={field.value}
                                 setValue={form.setValue}
@@ -101,16 +104,14 @@ export function BatteryAddFormSchema({types}: BatteryAddFormProps) {
                         control={form.control}
                         name="size"
                         render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Size</FormLabel>
-                                <FormControl>
-                                    <Input type="text" placeholder="AA" {...field} />
-                                </FormControl>
-                                <FormDescription>
-                                    Battery size in format AA, AAA, etc.
-                                </FormDescription>
-                                <FormMessage />
-                            </FormItem>
+                            <SizeFormCombobox
+                                fieldName="size"
+                                label="Size"
+                                description=""
+                                sizes={sizes}
+                                fieldValue={field.value}
+                                setValue={form.setValue}
+                            />
                         )} />
                     <FormField
                         control={form.control}

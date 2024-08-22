@@ -1,6 +1,7 @@
 package cz.kudladev.domain.repository
 
 import cz.kudladev.data.models.Charger
+import cz.kudladev.data.models.ChargerInsert
 import cz.kudladev.data.models.ChargerWithTypesAndSizes
 
 interface ChargersDao {
@@ -9,7 +10,7 @@ interface ChargersDao {
 
     suspend fun getChargerById(id: Int): ChargerWithTypesAndSizes?
 
-    suspend fun createCharger(charger: Charger): Charger?
+    suspend fun createCharger(charger: ChargerInsert): ChargerWithTypesAndSizes?
 
     suspend fun updateCharger(charger: Charger): Charger?
 

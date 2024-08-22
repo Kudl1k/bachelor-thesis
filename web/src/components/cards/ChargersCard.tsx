@@ -1,25 +1,34 @@
+import { Charger } from "@/models/ChargerData";
 import { Button } from "../ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "../ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../ui/card";
+import { Badge } from "../ui/badge";
 
 
 
+interface ChargersCardProps {
+    charger: Charger
+}
 
-
-export function ChargersCard() {
+export function ChargersCard({charger}: ChargersCardProps) {
 
     return (
         <Card className="shadow-md">
             <CardHeader>
-                <CardTitle>Conrad Charge Manager 2010</CardTitle>
-                <CardDescription>
-                    <p>Charges 4 batteries at once</p>
-                </CardDescription>
+                <CardTitle>{charger.name}</CardTitle>
             </CardHeader>
             <CardContent>
-                <p className="font-semibold">Supported types</p>
-                <p className="italic">Ni-MH,Li-Ion</p>
-                <p className="font-semibold">Supported sizes</p>
-                <p className="italic">AA,AAA,18650</p>
+                <div className="pb-3">
+                    <span className="font-semibold">Types: </span>
+                    {charger.types.map((type) => (
+                        <Badge className="ms-1" key={type.shortcut} variant="outline">{type.shortcut}</Badge>
+                    ))}
+                </div>
+                <div>
+                    <span className="font-semibold">Sizes:</span>
+                    {charger.sizes.map((size) => (
+                        <Badge className="ms-1" key={size.name} variant="outline">{size.name}</Badge>
+                    ))}
+                </div>
             </CardContent>
             <CardFooter>
                 <div className="flex justify-between w-full">

@@ -5,8 +5,8 @@ import { StartPage } from "./pages/start/StartPage"
 import Layout from "./pages/Layout";
 import { BaterryPage } from "./pages/battery/BaterryPage";
 import { ChargersPage } from "./pages/chargers/ChargersPage";
-import { BatteryAddPage } from "./pages/battery/BatteryAddPage";
 import { FormsAddPage } from "./pages/FormsAddPage";
+import { SetupPage } from "./pages/start/SetupPage";
  
 
 
@@ -18,9 +18,9 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<StartPage />} />
           <Route path="battery" element={<BaterryPage/>}/>
-          <Route path="battery/add" element={<BatteryAddPage/>}/>
           <Route path="chargers" element={<ChargersPage/>}/>
           <Route path="add" element={<FormsAddPage/>}/>
+          <Route path="setup" element={<SetupPage/>}/>
         </Route>
       </Routes>
     </BrowserRouter>

@@ -3,6 +3,7 @@ package cz.kudladev.data.repository
 import cz.kudladev.data.*
 import cz.kudladev.data.DatabaseBuilder.dbQuery
 import cz.kudladev.data.models.Charger
+import cz.kudladev.data.models.ChargerInsert
 import cz.kudladev.data.models.ChargerWithTypesAndSizes
 import cz.kudladev.data.models.Size
 import cz.kudladev.domain.repository.ChargersDao
@@ -58,7 +59,7 @@ class ChargersDaoImpl : ChargersDao {
                         } else {
                             null
                         }
-                    }
+                    }.toSet()
                     ChargerWithTypesAndSizes(
                         id = charger.id,
                         name = charger.name,
@@ -82,7 +83,7 @@ class ChargersDaoImpl : ChargersDao {
         }
     }
 
-    override suspend fun createCharger(charger: Charger): Charger? {
+    override suspend fun createCharger(charger: ChargerInsert): ChargerWithTypesAndSizes? {
         return try {
             val timestamp = Clock.systemUTC().instant()
             val insertedId = dbQuery {
@@ -99,7 +100,17 @@ class ChargersDaoImpl : ChargersDao {
                     it[createdAt] = timestamp
                 } get Chargers.idCharger
             }
-            charger.copy(id = insertedId, created_at = Timestamp.from(timestamp))
+            for (type in charger.types) {
+                if (type != null) {
+                    addTypeToCharger(insertedId, type)
+                }
+            }
+            for (size in charger.sizes) {
+                if (size != null) {
+                    addSizeToCharger(insertedId, size)
+                }
+            }
+            getChargerById(insertedId)
         } catch (e: Exception) {
             println(e)
             null

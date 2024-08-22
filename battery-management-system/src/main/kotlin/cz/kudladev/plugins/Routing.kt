@@ -12,6 +12,7 @@ import org.koin.ktor.ext.inject
 
 fun Application.configureRouting() {
     val typesDao by inject<TypesDao>()
+    val sizesDao by inject<SizeDao>()
     val batteriesDao by inject<BatteriesDao>()
     val chargersDao by inject<ChargersDao>()
     val chargerRecordsDao by inject<ChargeRecordsDao>()
@@ -23,6 +24,7 @@ fun Application.configureRouting() {
             call.respondText("Hello World!")
         }
         types(typesDao)
+        sizes(sizesDao)
         batteries(batteriesDao)
         chargers(chargersDao)
         chargerrecords(chargerRecordsDao)

@@ -1,12 +1,17 @@
 package cz.kudladev.routes
 
 import cz.kudladev.data.models.Charger
+import cz.kudladev.data.models.ChargerInsert
+import cz.kudladev.data.models.ChargerWithTypesAndSizes
 import cz.kudladev.domain.repository.ChargersDao
+import cz.kudladev.system.getAvailablePorts
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import jssc.SerialPort
+import jssc.SerialPortList
 
 fun Route.chargers(chargersDao: ChargersDao){
     route("/chargers"){
@@ -28,10 +33,11 @@ fun Route.chargers(chargersDao: ChargersDao){
         }
         post {
             try {
-                val charger = call.receive<Charger>()
+                val charger = call.receive<ChargerInsert>()
                 val id = chargersDao.createCharger(charger)
                 call.respond(HttpStatusCode.Created, mapOf("id" to id))
             } catch (e: Exception) {
+                println(e)
                 call.respondText(text = "Please fill all fields $e", status = HttpStatusCode.BadRequest)
             }
         }
@@ -122,6 +128,9 @@ fun Route.chargers(chargersDao: ChargersDao){
                     status = HttpStatusCode.BadRequest
                 )
             }
+        }
+        get("/ports"){
+            call.respond(getAvailablePorts())
         }
     }
 }

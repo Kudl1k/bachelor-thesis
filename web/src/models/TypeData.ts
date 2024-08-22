@@ -1,5 +1,4 @@
 export interface Type {
-    id: number;
     shortcut: string;
     name: string;
 }

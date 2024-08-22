@@ -64,7 +64,7 @@ object ResultRowParser {
             } else {
                 null
             }
-        }
+        }.toSet()
 
 
         return ChargerWithTypesAndSizes(

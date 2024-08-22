@@ -1,3 +1,4 @@
+import { Size } from "./SizeData";
 import { Type } from "./TypeData";
 
 
@@ -5,7 +6,7 @@ import { Type } from "./TypeData";
 export interface Battery {
   id: number;
   type: Type;
-  size: string;
+  size: Size;
   factory_capacity: number;
   voltage: number;
   last_charged_capacity: null;

@@ -7,7 +7,11 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs"
 import { BatteryAddFormSchema } from "@/forms/BatteryAddFormSchema";
+import { ChargerAddFormSchema } from "@/forms/ChargerAddFormSchema";
+import { SizeAddFormSchema } from "@/forms/SizeAddFromSchema";
 import { TypeAddFormSchema } from "@/forms/TypesAddFormSchema";
+import { fetchPorts } from "@/models/ChargerData";
+import { fetchSizeData, Size } from "@/models/SizeData";
 import { Type, fetchTypeData } from "@/models/TypeData";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -17,14 +21,18 @@ import { useSearchParams } from "react-router-dom";
 
 export function FormsAddPage() {
   const [types, setTypes] = useState<Type[] | null>(null);
+  const [sizes, setSizes] = useState<Size[] | null>(null);  
+  const [ttys, setTtys] = useState<string[] | null>(null);
   const [searchParams] = useSearchParams();
   const defaultTab = searchParams.get('tab') || 'type';
 
   useEffect(() => {
       fetchTypeData(setTypes);
+      fetchSizeData(setSizes);
+      fetchPorts(setTtys);
   }, []);
 
-  if (!types) {
+  if (!types || !sizes || !ttys) {
       return Loading();
   }
 
@@ -42,13 +50,13 @@ export function FormsAddPage() {
             <TypeAddFormSchema/>
         </TabsContent>
         <TabsContent value="size"> 
-            
+            <SizeAddFormSchema/>
         </TabsContent>
         <TabsContent value="battery">
-          <BatteryAddFormSchema types={types}/>
+          <BatteryAddFormSchema types={types} sizes={sizes}/>
         </TabsContent>
         <TabsContent value="charger">
-            
+            <ChargerAddFormSchema types={types} sizes={sizes} ttys={ttys} />
         </TabsContent>
       </Tabs>
     </div>
