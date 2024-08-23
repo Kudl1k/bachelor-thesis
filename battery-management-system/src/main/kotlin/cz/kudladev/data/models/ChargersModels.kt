@@ -51,3 +51,9 @@ data class ChargerInsert(
     val types: List<String?> = emptyList(),
     val sizes: List<String?> = emptyList()
 )
+
+@Serializable
+data class SearchCharger(
+    val types: List<String> = emptyList(),
+    val sizes: List<String> = emptyList()
+)

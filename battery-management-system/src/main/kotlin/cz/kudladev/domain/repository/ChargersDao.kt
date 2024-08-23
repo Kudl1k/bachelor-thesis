@@ -3,12 +3,15 @@ package cz.kudladev.domain.repository
 import cz.kudladev.data.models.Charger
 import cz.kudladev.data.models.ChargerInsert
 import cz.kudladev.data.models.ChargerWithTypesAndSizes
+import cz.kudladev.data.models.SearchCharger
 
 interface ChargersDao {
 
     suspend fun getAllChargers(): List<ChargerWithTypesAndSizes>
 
     suspend fun getChargerById(id: Int): ChargerWithTypesAndSizes?
+
+    suspend fun getChargerByTypesAndSizes(searchCharger: SearchCharger): List<ChargerWithTypesAndSizes>
 
     suspend fun createCharger(charger: ChargerInsert): ChargerWithTypesAndSizes?
 

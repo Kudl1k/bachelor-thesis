@@ -3,6 +3,7 @@ package cz.kudladev.routes
 import cz.kudladev.data.models.Charger
 import cz.kudladev.data.models.ChargerInsert
 import cz.kudladev.data.models.ChargerWithTypesAndSizes
+import cz.kudladev.data.models.SearchCharger
 import cz.kudladev.domain.repository.ChargersDao
 import cz.kudladev.system.getAvailablePorts
 import io.ktor.http.*
@@ -29,6 +30,14 @@ fun Route.chargers(chargersDao: ChargersDao){
                 }
             } catch (e: Exception) {
                 call.respondText(text = "Please insert right form of ID (Int), starting from 1", status = HttpStatusCode.BadRequest)
+            }
+        }
+        post("/search"){
+            try {
+                val searchCharger = call.receive<SearchCharger>()
+                call.respond(chargersDao.getChargerByTypesAndSizes(searchCharger))
+            } catch (e: Exception) {
+                call.respondText(text = "Please fill all fields", status = HttpStatusCode.BadRequest)
             }
         }
         post {

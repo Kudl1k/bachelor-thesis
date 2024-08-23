@@ -2,10 +2,7 @@ package cz.kudladev.data.repository
 
 import cz.kudladev.data.*
 import cz.kudladev.data.DatabaseBuilder.dbQuery
-import cz.kudladev.data.models.Charger
-import cz.kudladev.data.models.ChargerInsert
-import cz.kudladev.data.models.ChargerWithTypesAndSizes
-import cz.kudladev.data.models.Size
+import cz.kudladev.data.models.*
 import cz.kudladev.domain.repository.ChargersDao
 import cz.kudladev.util.ResultRowParser
 import org.jetbrains.exposed.sql.*
@@ -80,6 +77,66 @@ class ChargersDaoImpl : ChargersDao {
         } catch (e: Exception) {
             println(e)
             null
+        }
+    }
+
+    override suspend fun getChargerByTypesAndSizes(
+        searchCharger: SearchCharger
+    ): List<ChargerWithTypesAndSizes> {
+        return try {
+            dbQuery {
+                val result = (Chargers innerJoin ChargerTypes innerJoin Types innerJoin ChargerSizes innerJoin Sizes)
+                    .select {
+                        (ChargerTypes.typeShortcut inList searchCharger.types) and
+                                (ChargerSizes.sizeName inList searchCharger.sizes)
+                    }
+                    .toList()
+                if (result.isEmpty()) {
+                    emptyList()
+                } else {
+                    result.groupBy { it[Chargers.idCharger] }
+                        .mapNotNull { (chargerId, rows) ->
+                            val charger = ResultRowParser.resultRowToCharger(rows.first())
+                            val types = rows.mapNotNull { row ->
+                                if (row[Types.shortcut] != null) {
+                                    ResultRowParser.resultRowToType(row)
+                                } else {
+                                    null
+                                }
+                            }.toSet()
+                            val sizes = rows.mapNotNull { row ->
+                                if (row[Sizes.name] != null) {
+                                    Size(name = row[Sizes.name])
+                                } else {
+                                    null
+                                }
+                            }.toSet()
+                            if (types.map { it.shortcut }.containsAll(searchCharger.types) &&
+                                sizes.map { it.name }.containsAll(searchCharger.sizes)) {
+                                ChargerWithTypesAndSizes(
+                                    id = charger.id,
+                                    name = charger.name,
+                                    tty = charger.tty,
+                                    baudRate = charger.baudRate,
+                                    dataBits = charger.dataBits,
+                                    stopBits = charger.stopBits,
+                                    parity = charger.parity,
+                                    rts = charger.rts,
+                                    dtr = charger.dtr,
+                                    slots = charger.slots,
+                                    created_at = charger.created_at!!,
+                                    types = types.toList(),
+                                    sizes = sizes
+                                )
+                            } else {
+                                null
+                            }
+                        }
+                }
+            }
+        } catch (e: Exception) {
+            println(e)
+            emptyList()
         }
     }
 
