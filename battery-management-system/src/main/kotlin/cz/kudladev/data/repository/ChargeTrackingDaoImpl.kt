@@ -23,14 +23,14 @@ class ChargeTrackingDaoImpl: ChargeTrackingDao {
         }
     }
 
-    override suspend fun getChargeTrackingById(id: Int): ChargeTrackingID? {
+    override suspend fun getChargeTrackingById(id: Int): List<ChargeTrackingID>? {
         return try {
             dbQuery {
                 ChargeTracking.select {
                     ChargeTracking.idChargeRecord eq id
                 }.map {
                     ResultRowParser.resultRowToChargeTracking(it)
-                }.singleOrNull()
+                }
             }
         } catch (e: Exception) {
             null
@@ -73,16 +73,5 @@ class ChargeTrackingDaoImpl: ChargeTrackingDao {
         }
     }
 
-    override suspend fun deleteChargeTracking(id: Int): ChargeTrackingID? {
-        return try {
-            val chargeTracking = getChargeTrackingById(id)
-            dbQuery {
-                ChargeTracking.deleteWhere { ChargeTracking.idChargeRecord eq id } > 0
-            }
-            chargeTracking
-        } catch (e: Exception) {
-            println(e)
-            null
-        }
-    }
+
 }

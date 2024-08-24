@@ -62,5 +62,8 @@ fun Route.chargerrecords(chargeRecordsDao: ChargeRecordsDao){
                 call.respondText(text = "Please insert right form of ID (Int), starting from 1", status = HttpStatusCode.BadRequest)
             }
         }
+        get("records/notended") {
+            call.respond(chargeRecordsDao.getNotEndedChargeRecords())
+        }
     }
 }

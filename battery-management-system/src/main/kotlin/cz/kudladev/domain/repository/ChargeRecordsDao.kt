@@ -11,4 +11,6 @@ interface ChargeRecordsDao {
     suspend fun deleteChargeRecord(id: Int): ChargeRecord
 
     suspend fun endChargeRecord(id: Int, capacity: Int): ChargeRecord
+
+    suspend fun getNotEndedChargeRecords(): List<ChargeRecord>
 }

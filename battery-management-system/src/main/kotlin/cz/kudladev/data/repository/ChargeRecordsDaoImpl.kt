@@ -134,4 +134,26 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
             throw e
         }
     }
+
+    override suspend fun getNotEndedChargeRecords(): List<ChargeRecord> {
+        return try {
+            dbQuery {
+                ChargeRecords
+                    .select { ChargeRecords.finishedAt eq null }
+                    .map { row ->
+                        val charger = Chargers
+                            .select { Chargers.idCharger eq row[ChargeRecords.idCharger] }
+                            .first().let {
+                                ResultRowParser.resultRowToCharger(it)
+                            }
+                        val battery = (Batteries innerJoin Types innerJoin Sizes).selectAll().where { Batteries.idBattery eq row[ChargeRecords.idBattery] }.map { ResultRowParser.resultRowToBattery(it) }.singleOrNull()
+                            ?: throw IllegalArgumentException("No battery found for id ${row[ChargeRecords.idBattery]}")
+                        ResultRowParser.resultRowToChargerRecord(charger, battery, row)
+                    }
+            }
+        } catch (e: Exception) {
+            println(e)
+            emptyList()
+        }
+    }
 }

@@ -6,9 +6,7 @@ import cz.kudladev.data.models.StartChargeTracking
 import cz.kudladev.domain.repository.ChargeRecordsDao
 import cz.kudladev.domain.repository.ChargeTrackingDao
 import cz.kudladev.domain.repository.ChargersDao
-import cz.kudladev.system.isRunning
-import cz.kudladev.system.job
-import cz.kudladev.system.startTracking
+import cz.kudladev.system.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -65,24 +63,21 @@ fun Route.chargetrackings(
                 call.respondText(text = "Please fill all fields", status = HttpStatusCode.BadRequest)
             }
         }
-        delete("{id}/tracking") {
-            try {
-                val id = call.parameters["id"]?.toInt() ?: return@delete call.respond(HttpStatusCode.BadRequest)
-                chargeTrackingDao.deleteChargeTracking(id)
-                call.respond(HttpStatusCode.OK)
-            } catch (e: Exception) {
-                call.respondText(
-                    text = "Please insert right form of ID (Int), starting from 1",
-                    status = HttpStatusCode.BadRequest
-                )
-            }
-        }
         post("{id}/tracking/start") {
             val id = call.parameters["id"]?.toInt() ?: return@post call.respond(HttpStatusCode.BadRequest)
             val charger = chargersDao.getChargerById(id) ?: return@post call.respond(HttpStatusCode.BadRequest)
             val batteries = call.receive<StartChargeTracking>()
             if (job == null || job?.isCancelled == true) {
                 isRunning = true
+                openPort = openPort(
+                    portName = charger.tty,
+                    baudRate = charger.baudRate,
+                    dataBits = charger.dataBits,
+                    stopBits = charger.stopBits,
+                    parity = charger.parity,
+                    rts = charger.rts,
+                    dtr = charger.dtr
+                )
                 job = CoroutineScope(Dispatchers.Default).launch {
                     startTracking(
                         charger,
@@ -98,8 +93,7 @@ fun Route.chargetrackings(
         }
         get("{id}/tracking/stop") {
             if (job != null && job?.isActive == true) {
-                isRunning = false
-                job?.cancel()
+                stopTracking()
                 call.respondText("Process stopped", status = HttpStatusCode.OK)
             } else {
                 call.respondText("No process running", status = HttpStatusCode.BadRequest)
