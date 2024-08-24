@@ -25,3 +25,9 @@ data class BatteryInsert(
     val factory_capacity: Int,
     val voltage: Int
 )
+
+@Serializable
+data class BatteryWithSlot(
+    val id: Int,
+    val slot: Int,
+)

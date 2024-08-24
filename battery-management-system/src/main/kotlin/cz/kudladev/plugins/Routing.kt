@@ -28,6 +28,6 @@ fun Application.configureRouting() {
         batteries(batteriesDao)
         chargers(chargersDao)
         chargerrecords(chargerRecordsDao)
-        chargetrackings(chargerTrackingDao)
+        chargetrackings(chargerTrackingDao,chargerRecordsDao,chargersDao)
     }
 }

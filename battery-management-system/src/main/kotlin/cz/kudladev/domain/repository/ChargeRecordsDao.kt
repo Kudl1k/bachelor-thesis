@@ -9,4 +9,6 @@ interface ChargeRecordsDao {
     suspend fun createChargeRecord(chargeRecord: ChargeRecordInsert): ChargeRecord
     suspend fun updateChargeRecord(chargeRecord: ChargeRecord): ChargeRecord
     suspend fun deleteChargeRecord(id: Int): ChargeRecord
+
+    suspend fun endChargeRecord(id: Int, capacity: Int): ChargeRecord
 }

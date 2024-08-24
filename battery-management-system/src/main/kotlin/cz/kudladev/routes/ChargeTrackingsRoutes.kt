@@ -1,7 +1,11 @@
 package cz.kudladev.routes
 
+import cz.kudladev.data.models.ChargeRecordInsert
 import cz.kudladev.data.models.ChargeTrackingID
+import cz.kudladev.data.models.StartChargeTracking
+import cz.kudladev.domain.repository.ChargeRecordsDao
 import cz.kudladev.domain.repository.ChargeTrackingDao
+import cz.kudladev.domain.repository.ChargersDao
 import cz.kudladev.system.isRunning
 import cz.kudladev.system.job
 import cz.kudladev.system.startTracking
@@ -14,7 +18,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-fun Route.chargetrackings(chargeTrackingDao: ChargeTrackingDao){
+fun Route.chargetrackings(
+    chargeTrackingDao: ChargeTrackingDao,
+    chargerRecordsDao: ChargeRecordsDao,
+    chargersDao: ChargersDao
+){
     route("/chargers") {
         get("tracking") {
             try {
@@ -69,12 +77,19 @@ fun Route.chargetrackings(chargeTrackingDao: ChargeTrackingDao){
                 )
             }
         }
-        get("{id}/tracking/start") {
-            val id = call.parameters["id"]?.toInt() ?: return@get call.respond(HttpStatusCode.BadRequest)
+        post("{id}/tracking/start") {
+            val id = call.parameters["id"]?.toInt() ?: return@post call.respond(HttpStatusCode.BadRequest)
+            val charger = chargersDao.getChargerById(id) ?: return@post call.respond(HttpStatusCode.BadRequest)
+            val batteries = call.receive<StartChargeTracking>()
             if (job == null || job?.isCancelled == true) {
                 isRunning = true
                 job = CoroutineScope(Dispatchers.Default).launch {
-
+                    startTracking(
+                        charger,
+                        batteries.batteries,
+                        chargeTrackingDao,
+                        chargerRecordsDao
+                    )
                 }
                 call.respondText("Process started", status = HttpStatusCode.OK)
             } else {

@@ -27,6 +27,7 @@ fun openPort(
         rts,
         dtr
     )
+    println(port.isOpened)
     return port
 }
 

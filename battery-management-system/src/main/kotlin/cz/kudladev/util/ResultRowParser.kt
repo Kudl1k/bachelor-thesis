@@ -84,12 +84,7 @@ object ResultRowParser {
         )
     }
 
-    fun resultRowToChargerRecord(row: ResultRow): ChargeRecord {
-        val charger = resultRowToCharger(row)
-        println(charger)
-        val battery = resultRowToBattery(row)
-        println(battery)
-
+    fun resultRowToChargerRecord(charger: Charger,battery: Battery,row: ResultRow): ChargeRecord {
         return ChargeRecord(
             idChargeRecord = row[ChargeRecords.idChargeRecord],
             program = row[ChargeRecords.program],
