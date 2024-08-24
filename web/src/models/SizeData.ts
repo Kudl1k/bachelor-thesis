@@ -1,0 +1,38 @@
+
+
+
+export interface Size {
+    name: string;
+}
+
+
+
+export async function fetchSizeData(setSizeData: (data: Size[]) => void) {
+    try {
+      const response = await fetch("http://127.0.0.1:8080/sizes");
+        if (!response.ok) {
+            throw new Error("Network response was not ok");
+        }
+        const data: Size[] = await response.json();
+        setSizeData(data);
+    }
+    catch (error) {
+        console.error("Failed to fetch size data:", error);
+    }
+}
+
+export async function insertSizeData(sizeInsert: Size): Promise<Size | null> {
+    try {
+        const response = await fetch("http://127.0.0.1:8080/sizes", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(sizeInsert),
+        });
+        return response.json();
+    } catch (error) {
+        console.error("Failed to insert size data:", error);
+        return null;
+    }
+}

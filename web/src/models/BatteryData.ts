@@ -21,6 +21,16 @@ export interface BatteryInsert {
   voltage: number,
 }
 
+export interface BatteryColumnType {
+    id: number;
+    type: string;
+    size: string;
+    factory_capacity: number;
+    voltage: number;
+    last_charged_capacity: string;
+    last_time_charged_at: string;
+}
+
 
 export async function fetchBatteryData(setBatteryData: (data: Battery[]) => void) {
     try {
