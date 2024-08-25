@@ -73,5 +73,20 @@ class ChargeTrackingDaoImpl: ChargeTrackingDao {
         }
     }
 
+    override suspend fun getLastChargeTrackingById(id: Int): ChargeTrackingID? {
+        return try {
+            dbQuery {
+                ChargeTracking.select {
+                    ChargeTracking.idChargeRecord eq id
+                }.orderBy(ChargeTracking.timestamp, SortOrder.DESC).limit(1).map {
+                    ResultRowParser.resultRowToChargeTracking(it)
+                }.firstOrNull()
+            }
+        } catch (e: Exception) {
+            println(e)
+            null
+        }
+    }
+
 
 }

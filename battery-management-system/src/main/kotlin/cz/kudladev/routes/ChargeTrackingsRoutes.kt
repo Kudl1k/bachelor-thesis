@@ -1,5 +1,7 @@
 package cz.kudladev.routes
 
+import cz.kudladev.data.ChargeTracking
+import cz.kudladev.data.DatabaseBuilder.dbQuery
 import cz.kudladev.data.models.ChargeRecordInsert
 import cz.kudladev.data.models.ChargeTrackingID
 import cz.kudladev.data.models.StartChargeTracking
@@ -12,15 +14,21 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import io.ktor.server.websocket.*
+import io.ktor.websocket.*
+import kotlinx.coroutines.*
+import org.jetbrains.exposed.dao.EntityChange
+import org.jetbrains.exposed.dao.EntityHook
+import org.jetbrains.exposed.sql.transactions.transaction
 
 fun Route.chargetrackings(
     chargeTrackingDao: ChargeTrackingDao,
     chargerRecordsDao: ChargeRecordsDao,
     chargersDao: ChargersDao
 ){
+
+    val clients = mutableSetOf<DefaultWebSocketSession>()
+
     route("/chargers") {
         get("tracking") {
             try {
@@ -99,5 +107,33 @@ fun Route.chargetrackings(
                 call.respondText("No process running", status = HttpStatusCode.BadRequest)
             }
         }
+        webSocket("{id}/tracking/last") {
+            val id = call.parameters["id"]?.toInt() ?: return@webSocket close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Invalid ID"))
+            clients.add(this)
+            var action: (EntityChange) -> Unit
+            try {
+                send(Frame.Text("Connection established."))
+
+                // Use coroutine scope to launch the action
+                action = EntityHook.subscribe { entity ->
+                    if (entity.entityClass == ChargeTracking::class) {
+                        launch {
+                            clients.forEach { client ->
+                                client.send(Frame.Text("Updated ChargeTracking: $entity"))
+                            }
+                        }
+                    }
+                }
+
+                for (frame in incoming) {
+                    // Handle incoming frames if necessary
+                }
+            } finally {
+                clients.remove(this)
+
+            }
+        }
     }
+
+
 }

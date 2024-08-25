@@ -9,5 +9,6 @@ interface ChargeTrackingDao {
     suspend fun createChargeTracking(chargeTracking: ChargeTrackingID): ChargeTrackingID?
     suspend fun updateChargeTracking(chargeTracking: ChargeTrackingID): ChargeTrackingID?
 
+    suspend fun getLastChargeTrackingById(id: Int): ChargeTrackingID?
 
 }

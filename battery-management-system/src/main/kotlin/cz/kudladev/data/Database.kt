@@ -16,7 +16,7 @@ object DatabaseBuilder {
         val database = Database.connect(jdbcURL, driverClassName, user, password)
 
         transaction {
-            SchemaUtils.create(Types,Batteries,Chargers,ChargerTypes,ChargerSizes,ChargeRecords,ChargeTracking)
+            SchemaUtils.create(Types, Batteries, Chargers, ChargerTypes, ChargerSizes, ChargeRecords, ChargeTracking)
         }
 
 
