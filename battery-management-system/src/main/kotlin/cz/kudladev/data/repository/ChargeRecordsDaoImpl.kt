@@ -2,10 +2,7 @@ package cz.kudladev.data.repository
 
 import cz.kudladev.data.*
 import cz.kudladev.data.DatabaseBuilder.dbQuery
-import cz.kudladev.data.models.Battery
-import cz.kudladev.data.models.ChargeRecord
-import cz.kudladev.data.models.ChargeRecordInsert
-import cz.kudladev.data.models.Charger
+import cz.kudladev.data.models.*
 import cz.kudladev.domain.repository.ChargeRecordsDao
 import cz.kudladev.util.ResultRowParser
 import org.jetbrains.exposed.sql.*
@@ -47,8 +44,7 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
                             .first().let {
                                 ResultRowParser.resultRowToCharger(it)
                             }
-                        println(charger)
-                        val battery = (Batteries innerJoin Types innerJoin Sizes).selectAll().where { Batteries.idBattery eq id }.map { ResultRowParser.resultRowToBattery(it) }.singleOrNull()
+                        val battery = (Batteries innerJoin Types innerJoin Sizes).selectAll().where { Batteries.idBattery eq row[ChargeRecords.idBattery] }.map { ResultRowParser.resultRowToBattery(it) }.singleOrNull()
                             ?: throw IllegalArgumentException("No battery found for id ${row[ChargeRecords.idBattery]}")
                         println(battery)
                         ResultRowParser.resultRowToChargerRecord(charger, battery, row)
@@ -81,7 +77,7 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
                     it[chargedCapacity] = null
                     it[idBattery] = chargeRecord.battery_id
                     it[idCharger] = chargeRecord.charger_id
-                } get ChargeRecords.idChargeRecord
+                }get ChargeRecords.idChargeRecord
             }
             getChargeRecordById(insertedId)!!
         } catch (e: Exception) {
@@ -135,11 +131,12 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
         }
     }
 
-    override suspend fun getNotEndedChargeRecords(): List<ChargeRecord> {
+    override suspend fun getNotEndedChargeRecordsWithTracking(): List<ChargeRecordWithTracking> {
         return try {
             dbQuery {
                 ChargeRecords
                     .select { ChargeRecords.finishedAt eq null }
+                    .orderBy(ChargeRecords.slot to SortOrder.ASC)
                     .map { row ->
                         val charger = Chargers
                             .select { Chargers.idCharger eq row[ChargeRecords.idCharger] }
@@ -148,7 +145,10 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
                             }
                         val battery = (Batteries innerJoin Types innerJoin Sizes).selectAll().where { Batteries.idBattery eq row[ChargeRecords.idBattery] }.map { ResultRowParser.resultRowToBattery(it) }.singleOrNull()
                             ?: throw IllegalArgumentException("No battery found for id ${row[ChargeRecords.idBattery]}")
-                        ResultRowParser.resultRowToChargerRecord(charger, battery, row)
+                        val tracking = ChargeTracking
+                            .select { ChargeTracking.idChargeRecord eq row[ChargeRecords.idChargeRecord] }
+                            .map { ResultRowParser.resultRowToChargeTracking(it) }
+                        ResultRowParser.resultRowToChargerRecordWithTracking(charger, battery, row, tracking)
                     }
             }
         } catch (e: Exception) {

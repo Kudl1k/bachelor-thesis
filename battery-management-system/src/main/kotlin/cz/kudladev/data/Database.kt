@@ -8,12 +8,14 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 object DatabaseBuilder {
 
+    lateinit var database: Database
+
     fun init() {
         val driverClassName = "org.postgresql.Driver"
         val jdbcURL = "jdbc:postgresql://localhost:5432/battery"
         val user = "admin"
         val password = "admin"
-        val database = Database.connect(jdbcURL, driverClassName, user, password)
+        database = Database.connect(jdbcURL, driverClassName, user, password)
 
         transaction {
             SchemaUtils.create(Types, Batteries, Chargers, ChargerTypes, ChargerSizes, ChargeRecords, ChargeTracking)

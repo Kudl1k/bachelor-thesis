@@ -1,6 +1,7 @@
 package cz.kudladev.routes
 
 import cz.kudladev.data.ChargeTracking
+import cz.kudladev.data.DatabaseBuilder
 import cz.kudladev.data.DatabaseBuilder.dbQuery
 import cz.kudladev.data.models.ChargeRecordInsert
 import cz.kudladev.data.models.ChargeTrackingID
@@ -9,7 +10,9 @@ import cz.kudladev.domain.repository.ChargeRecordsDao
 import cz.kudladev.domain.repository.ChargeTrackingDao
 import cz.kudladev.domain.repository.ChargersDao
 import cz.kudladev.system.*
+import cz.kudladev.util.ResultRowParser
 import io.ktor.http.*
+import io.ktor.network.sockets.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -17,17 +20,35 @@ import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.channels.consumeEach
 import org.jetbrains.exposed.dao.EntityChange
 import org.jetbrains.exposed.dao.EntityHook
+import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.SortOrder
+import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.transactions.TransactionManager
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.postgresql.PGNotification
+import org.postgresql.jdbc.PgConnection
+import java.sql.DriverManager
+import java.sql.Timestamp
 
 fun Route.chargetrackings(
     chargeTrackingDao: ChargeTrackingDao,
     chargerRecordsDao: ChargeRecordsDao,
     chargersDao: ChargersDao
 ){
+    val dbUrl = "jdbc:postgresql://localhost:5432/battery"
+    val dbUser = "admin"
+    val dbPassword = "admin"
 
-    val clients = mutableSetOf<DefaultWebSocketSession>()
+    Database.connect(dbUrl, user = dbUser, password = dbPassword)
+
 
     route("/chargers") {
         get("tracking") {
@@ -108,32 +129,41 @@ fun Route.chargetrackings(
             }
         }
         webSocket("{id}/tracking/last") {
-            val id = call.parameters["id"]?.toInt() ?: return@webSocket close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Invalid ID"))
-            clients.add(this)
-            var action: (EntityChange) -> Unit
-            try {
-                send(Frame.Text("Connection established."))
+            // Directly obtain PostgreSQL connection using DriverManager
+            val dbConnection = withContext(Dispatchers.IO) {
+                DriverManager.getConnection(dbUrl, dbUser, dbPassword).unwrap(PgConnection::class.java)
+            }
 
-                // Use coroutine scope to launch the action
-                action = EntityHook.subscribe { entity ->
-                    if (entity.entityClass == ChargeTracking::class) {
-                        launch {
-                            clients.forEach { client ->
-                                client.send(Frame.Text("Updated ChargeTracking: $entity"))
-                            }
-                        }
+            // Launch a coroutine to listen for notifications
+            launch(Dispatchers.IO) {
+                listenForNotifications(dbConnection) { notification ->
+                    // Send the notification to WebSocket clients
+                    if (isActive) {  // Ensure the coroutine is still active
+                        outgoing.send(Frame.Text(notification))
                     }
                 }
+            }
 
-                for (frame in incoming) {
-                    // Handle incoming frames if necessary
+            // Keep the connection open for incoming WebSocket frames (optional)
+            incoming.consumeEach { frame ->
+                if (frame is Frame.Text) {
+                    // Handle incoming frames if needed
                 }
-            } finally {
-                clients.remove(this)
-
             }
         }
     }
+}
 
 
+suspend fun listenForNotifications(connection: PgConnection, onNotification: suspend (String) -> Unit) {
+    val statement = connection.createStatement()
+    statement.execute("LISTEN tracking")
+
+    while (true) {
+        val notifications: Array<PGNotification> = connection.notifications ?: continue
+        for (notification in notifications) {
+            onNotification(notification.parameter)  // Handle the notification using the suspending lambda
+        }
+        Thread.sleep(100)  // Sleep to prevent a busy-wait loop (can be adjusted)
+    }
 }

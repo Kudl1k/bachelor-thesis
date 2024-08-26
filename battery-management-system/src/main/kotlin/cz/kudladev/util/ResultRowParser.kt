@@ -97,6 +97,20 @@ object ResultRowParser {
         )
     }
 
+    fun resultRowToChargerRecordWithTracking(charger: Charger,battery: Battery,row: ResultRow, tracking: List<ChargeTrackingID>): ChargeRecordWithTracking {
+        return ChargeRecordWithTracking(
+            idChargeRecord = row[ChargeRecords.idChargeRecord],
+            program = row[ChargeRecords.program],
+            slot = row[ChargeRecords.slot],
+            startedAt = Timestamp.from(row[ChargeRecords.startedAt]),
+            finishedAt = row[ChargeRecords.finishedAt]?.let { Timestamp.from(it) },
+            chargedCapacity = row[ChargeRecords.chargedCapacity],
+            charger = charger,
+            battery = battery,
+            tracking = tracking
+        )
+    }
+
     fun resultRowToChargeTracking(row: ResultRow): ChargeTrackingID{
         return ChargeTrackingID(
             timestamp = Timestamp.from(row[ChargeTracking.timestamp]),

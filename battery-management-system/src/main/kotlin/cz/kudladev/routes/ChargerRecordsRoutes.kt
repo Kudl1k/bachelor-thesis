@@ -63,7 +63,11 @@ fun Route.chargerrecords(chargeRecordsDao: ChargeRecordsDao){
             }
         }
         get("records/notended") {
-            call.respond(chargeRecordsDao.getNotEndedChargeRecords())
+            try {
+                call.respond(chargeRecordsDao.getNotEndedChargeRecordsWithTracking())
+            } catch (e: Exception) {
+                call.respondText(text = "Error: $e", status = HttpStatusCode.BadRequest)
+            }
         }
     }
 }

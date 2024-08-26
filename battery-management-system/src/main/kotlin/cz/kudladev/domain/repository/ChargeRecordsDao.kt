@@ -2,6 +2,7 @@ package cz.kudladev.domain.repository
 
 import cz.kudladev.data.models.ChargeRecord
 import cz.kudladev.data.models.ChargeRecordInsert
+import cz.kudladev.data.models.ChargeRecordWithTracking
 
 interface ChargeRecordsDao {
     suspend fun getAllChargeRecords(): List<ChargeRecord>
@@ -12,5 +13,5 @@ interface ChargeRecordsDao {
 
     suspend fun endChargeRecord(id: Int, capacity: Int): ChargeRecord
 
-    suspend fun getNotEndedChargeRecords(): List<ChargeRecord>
+    suspend fun getNotEndedChargeRecordsWithTracking(): List<ChargeRecordWithTracking>
 }
