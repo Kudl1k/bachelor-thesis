@@ -1,6 +1,5 @@
 package cz.kudladev
 
-import cz.kudladev.data.DatabaseBuilder
 import cz.kudladev.plugins.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*

@@ -1,158 +1,270 @@
-import { BatteryWithSlot } from "./BatteryData";
+import { Battery, BatteryWithSlot } from "./BatteryData";
 import { Size } from "./SizeData";
 import { Type } from "./TypeData";
 
-
-export interface Charger{
-    id: number;
-    name: string;
-    tty: string;
-    baudRate: number;
-    dataBits: number;
-    stopBits: number;
-    parity: number;
-    rts: boolean;
-    dtr: boolean;
-    slots: number;
-    created_at: string;
-    types: Type[];
-    sizes: Size[]
+export interface Charger {
+  id: number;
+  name: string;
+  tty: string;
+  baudRate: number;
+  dataBits: number;
+  stopBits: number;
+  parity: number;
+  rts: boolean;
+  dtr: boolean;
+  slots: number;
+  created_at: string;
+  types: Type[];
+  sizes: Size[];
 }
 
 export interface ChargerInsert {
-    name: string;
-    tty: string;
-    baudRate: number;
-    dataBits: number;
-    stopBits: number;
-    parity: number;
-    rts: boolean;
-    dtr: boolean;
-    slots: number;
-    types: string[];
-    sizes: string[];
+  name: string;
+  tty: string;
+  baudRate: number;
+  dataBits: number;
+  stopBits: number;
+  parity: number;
+  rts: boolean;
+  dtr: boolean;
+  slots: number;
+  types: string[];
+  sizes: string[];
 }
 
 export interface ChargerColumnType {
-    id: number;
-    name: string;
-    tty: string;
-    slots: number;
-    types: string[];
-    sizes: string[];
+  id: number;
+  name: string;
+  tty: string;
+  slots: number;
+  types: string[];
+  sizes: string[];
 }
 
 export interface ChargerSearch {
-    types: string[];
-    sizes: string[];
+  types: string[];
+  sizes: string[];
 }
 
 export interface Tracking {
-    id_charger: number;
-    batteries: BatteryWithSlot[];
+  id_charger: number;
+  batteries: BatteryWithSlot[];
 }
 
-export async function fetchChargerData(setChargerData: (data: Charger[]) => void) {
-    try {
-      const response = await fetch("http://127.0.0.1:8080/chargers");
-        if (!response.ok) {
-            throw new Error("Network response was not ok");
-        }
-        const data: Charger[] = await response.json();
-        setChargerData(data);
-    }
-    catch (error) {
-        console.error("Failed to fetch charger data:", error);
-    }
+export interface ChargeRecord {
+  idChargeRecord: number;
+  program: string;
+  slot: number;
+  startedAt: string;
+  finishedAt: string;
+  capacity: number;
+  charger: Charger;
+  battery: Battery;
+  tracking: TrackingRecord[];
 }
 
-export async function insertChargerData(chargerInsert: ChargerInsert): Promise<Charger | null> {
-    try {
-        const response = await fetch("http://127.0.0.1:8080/chargers",{
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(chargerInsert),
-        });
-        if (!response.ok) {
-            throw new Error("Network response was not ok");
-        }
-        const createdCharger: Charger = await response.json();
-        console.log("Charger data inserted:", createdCharger);
-        return createdCharger;
-    }
-    catch (error) {
-        console.error("Failed to insert charger data:", error);
-        return null;
-    }
+export interface TrackingRecord {
+  timestamp: string;
+  id_charge_record: number;
+  capacity: number;
+  voltage: number;
+  current: number;
 }
 
-export async function searchChargerData(search: ChargerSearch, setChargerData: (data: Charger[]) => void) {
-    try {
-        const response = await fetch("http://127.0.0.1:8080/chargers/search", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(search),
-        });
-        if (!response.ok) {
-            throw new Error("Network response was not ok");
-        }
-        const data: Charger[] = await response.json();
-        setChargerData(data);
+export async function fetchChargerData(
+  setChargerData: (data: Charger[]) => void
+) {
+  try {
+    const response = await fetch("http://127.0.0.1:8080/chargers");
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
     }
-    catch (error) {
-        console.error("Failed to search charger data:", error);
-    }
+    const data: Charger[] = await response.json();
+    setChargerData(data);
+  } catch (error) {
+    console.error("Failed to fetch charger data:", error);
+  }
 }
 
-export async function fetchPorts(setTtys: (data: string[]) => void){
-    try {
-        const response = await fetch("http://127.0.0.1:8080/chargers/ports");
-        if (!response.ok) {
-            throw new Error("Network response was not ok");
-        }
-        const data: string[] = await response.json();
-        setTtys(data);
+export async function insertChargerData(
+  chargerInsert: ChargerInsert
+): Promise<Charger | null> {
+  try {
+    const response = await fetch("http://127.0.0.1:8080/chargers", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(chargerInsert),
+    });
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
     }
-    catch (error) {
-        console.error("Failed to fetch ports:", error);
-    }
+    const createdCharger: Charger = await response.json();
+    console.log("Charger data inserted:", createdCharger);
+    return createdCharger;
+  } catch (error) {
+    console.error("Failed to insert charger data:", error);
+    return null;
+  }
 }
 
-export async function startTracking(tracking: Tracking){
-    try {
-        const response = await fetch(`http://127.0.0.1:8080/chargers/${tracking.id_charger}/tracking/start`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(tracking),
-        });
-        if (!response.ok) {
-            throw new Error("Network response was not ok");
-        }
-        console.log("Tracking started");
+export async function searchChargerData(
+  search: ChargerSearch,
+  setChargerData: (data: Charger[]) => void
+) {
+  try {
+    const response = await fetch("http://127.0.0.1:8080/chargers/search", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(search),
+    });
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
     }
-    catch (error) {
-        console.error("Failed to start tracking:", error);
-    }
+    const data: Charger[] = await response.json();
+    setChargerData(data);
+  } catch (error) {
+    console.error("Failed to search charger data:", error);
+  }
 }
 
-export async function stopTracking(id_charger: number){
-    try {
-        const response = await fetch(`http://127.0.0.1:8080/chargers/${id_charger}/tracking/start`, {
-            method: "GET",
-        });
-        if (!response.ok) {
-            throw new Error("Network response was not ok");
-        }
-        console.log("Tracking stopped");
+export async function fetchPorts(setTtys: (data: string[]) => void) {
+  try {
+    const response = await fetch("http://127.0.0.1:8080/chargers/ports");
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
     }
-    catch (error) {
-        console.error("Failed to stop tracking:", error);
-    }
+    const data: string[] = await response.json();
+    setTtys(data);
+  } catch (error) {
+    console.error("Failed to fetch ports:", error);
+  }
 }
 
+export async function startTracking(tracking: Tracking) {
+  try {
+    const response = await fetch(
+      `http://127.0.0.1:8080/chargers/${tracking.id_charger}/tracking/start`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(tracking),
+      }
+    );
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    console.log("Tracking started");
+  } catch (error) {
+    console.error("Failed to start tracking:", error);
+  }
+}
+
+export async function stopTracking(id_charger: number) {
+  try {
+    const response = await fetch(
+      `http://127.0.0.1:8080/chargers/${id_charger}/tracking/start`,
+      {
+        method: "GET",
+      }
+    );
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    console.log("Tracking stopped");
+  } catch (error) {
+    console.error("Failed to stop tracking:", error);
+  }
+}
+
+export async function fetchNotEndedChargeRecord(
+  setChargeRecord: (data: ChargeRecord[]) => void
+) {
+  try {
+    const response = await fetch(
+      "http://127.0.0.1:8080/chargers/records/notended"
+    );
+    {
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const data: ChargeRecord[] = await response.json();
+      setChargeRecord(data);
+    }
+  } catch (error) {
+    console.error("Failed to fetch not ended charge record:", error);
+  }
+}
+
+export async function fetchTrackingRecord(
+  id_charge_record: number,
+  setTrackingRecord: (data: TrackingRecord[]) => void
+) {
+  try {
+    const response = await fetch(
+      `http://127.0.0.1:8080/chargers/records/${id_charge_record}/tracking`
+    );
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    const data: TrackingRecord[] = await response.json();
+    setTrackingRecord(data);
+  } catch (error) {
+    console.error("Failed to fetch tracking record:", error);
+  }
+}
+
+export async function websocketTracking(
+  id_charger: number,
+  previousData: ChargeRecord[],
+  setChargeRecords: (data: ChargeRecord[] | null) => void
+) {
+  const ws = new WebSocket(
+    `ws://localhost:8080/chargers/${id_charger}/tracking/last`
+  );
+  ws.onopen = () => {
+    console.log("Connected to websocket");
+  };
+  ws.onmessage = (event) => {
+    const data: TrackingRecord = JSON.parse(event.data);
+    console.log("Received data:", data);
+
+    // Convert timestamp to desired format
+    const date = new Date(data.timestamp);
+    const formattedDate = date
+      .toLocaleString("de-DE", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      })
+      .replace(",", "");
+
+    data.timestamp = formattedDate;
+    console.log("Formatted data:", data);
+
+    const updatedData = previousData.map((record) => {
+      if (record.idChargeRecord === data.id_charge_record) {
+        return {
+          ...record,
+          tracking: [...record.tracking, data],
+        };
+      }
+      return record;
+    });
+    setChargeRecords([...updatedData]);
+  };
+  ws.onclose = () => {
+    console.log("Disconnected from websocket");
+  };
+  ws.onerror = (error) => {
+    console.error("Websocket error:", error);
+  };
+}

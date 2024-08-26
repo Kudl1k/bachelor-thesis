@@ -41,6 +41,7 @@ dependencies {
     // Database
     implementation("com.h2database:h2:$h2_version")
     implementation("org.postgresql:postgresql:$postgres_version")
+    implementation("com.zaxxer:HikariCP:5.0.1")
 
     // Koin
     implementation("io.insert-koin:koin-ktor:$koin_version")

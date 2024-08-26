@@ -1,8 +1,5 @@
 package cz.kudladev.routes
 
-import cz.kudladev.data.ChargeTracking
-import cz.kudladev.data.DatabaseBuilder
-import cz.kudladev.data.DatabaseBuilder.dbQuery
 import cz.kudladev.data.models.ChargeRecordInsert
 import cz.kudladev.data.models.ChargeTrackingID
 import cz.kudladev.data.models.StartChargeTracking
@@ -25,7 +22,9 @@ import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.consumeEach
 import org.jetbrains.exposed.dao.EntityChange
+import org.jetbrains.exposed.dao.EntityChangeType
 import org.jetbrains.exposed.dao.EntityHook
+import org.jetbrains.exposed.dao.toEntity
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SortOrder
@@ -37,6 +36,8 @@ import org.postgresql.PGNotification
 import org.postgresql.jdbc.PgConnection
 import java.sql.DriverManager
 import java.sql.Timestamp
+
+val clients = mutableSetOf<DefaultWebSocketServerSession>()
 
 fun Route.chargetrackings(
     chargeTrackingDao: ChargeTrackingDao,
@@ -83,15 +84,6 @@ fun Route.chargetrackings(
                 call.respondText(text = "Please fill all fields", status = HttpStatusCode.BadRequest)
             }
         }
-        put("tracking") {
-            try {
-                val chargeTracking = call.receive<ChargeTrackingID>()
-                chargeTrackingDao.updateChargeTracking(chargeTracking)
-                call.respond(HttpStatusCode.OK)
-            } catch (e: Exception) {
-                call.respondText(text = "Please fill all fields", status = HttpStatusCode.BadRequest)
-            }
-        }
         post("{id}/tracking/start") {
             val id = call.parameters["id"]?.toInt() ?: return@post call.respond(HttpStatusCode.BadRequest)
             val charger = chargersDao.getChargerById(id) ?: return@post call.respond(HttpStatusCode.BadRequest)
@@ -129,27 +121,7 @@ fun Route.chargetrackings(
             }
         }
         webSocket("{id}/tracking/last") {
-            // Directly obtain PostgreSQL connection using DriverManager
-            val dbConnection = withContext(Dispatchers.IO) {
-                DriverManager.getConnection(dbUrl, dbUser, dbPassword).unwrap(PgConnection::class.java)
-            }
 
-            // Launch a coroutine to listen for notifications
-            launch(Dispatchers.IO) {
-                listenForNotifications(dbConnection) { notification ->
-                    // Send the notification to WebSocket clients
-                    if (isActive) {  // Ensure the coroutine is still active
-                        outgoing.send(Frame.Text(notification))
-                    }
-                }
-            }
-
-            // Keep the connection open for incoming WebSocket frames (optional)
-            incoming.consumeEach { frame ->
-                if (frame is Frame.Text) {
-                    // Handle incoming frames if needed
-                }
-            }
         }
     }
 }

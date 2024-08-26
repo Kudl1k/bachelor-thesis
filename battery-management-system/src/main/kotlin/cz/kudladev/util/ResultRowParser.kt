@@ -1,7 +1,13 @@
 package cz.kudladev.util
 
 import cz.kudladev.data.*
+import cz.kudladev.data.entities.*
 import cz.kudladev.data.models.*
+import cz.kudladev.data.models.Battery
+import cz.kudladev.data.models.ChargeRecord
+import cz.kudladev.data.models.Charger
+import cz.kudladev.data.models.Size
+import cz.kudladev.data.models.Type
 import org.jetbrains.exposed.sql.ResultRow
 import java.sql.Timestamp
 
@@ -9,20 +15,20 @@ object ResultRowParser {
 
     fun resultRowToType(row: ResultRow): Type {
         return Type(
-            shortcut = row[Types.shortcut],
+            shortcut = row[Types.id].value,
             name = row[Types.name] ?: ""
         )
     }
 
     fun resultRowToBattery(row: ResultRow): Battery {
         return Battery(
-            id = row[Batteries.idBattery],
+            id = row[Batteries.id].value,
             type = Type(
-                shortcut = row[Types.shortcut],
+                shortcut = row[Types.id].value,
                 name = row[Types.name]
             ),
             size = Size(
-                name = row[Sizes.name]
+                name = row[Sizes.name].value
             ),
             factory_capacity = row[Batteries.factoryCapacity],
             voltage = row[Batteries.voltage],
@@ -34,7 +40,7 @@ object ResultRowParser {
 
     fun resultRowToCharger(row: ResultRow): Charger {
         return Charger(
-            id = row[Chargers.idCharger],
+            id = row[Chargers.id].value,
             name = row[Chargers.name],
             tty = row[Chargers.tty],
             baudRate = row[Chargers.baudRate],
@@ -86,7 +92,7 @@ object ResultRowParser {
 
     fun resultRowToChargerRecord(charger: Charger,battery: Battery,row: ResultRow): ChargeRecord {
         return ChargeRecord(
-            idChargeRecord = row[ChargeRecords.idChargeRecord],
+            idChargeRecord = row[ChargeRecords.id].value,
             program = row[ChargeRecords.program],
             slot = row[ChargeRecords.slot],
             startedAt = Timestamp.from(row[ChargeRecords.startedAt]),
@@ -99,7 +105,7 @@ object ResultRowParser {
 
     fun resultRowToChargerRecordWithTracking(charger: Charger,battery: Battery,row: ResultRow, tracking: List<ChargeTrackingID>): ChargeRecordWithTracking {
         return ChargeRecordWithTracking(
-            idChargeRecord = row[ChargeRecords.idChargeRecord],
+            idChargeRecord = row[ChargeRecords.id].value,
             program = row[ChargeRecords.program],
             slot = row[ChargeRecords.slot],
             startedAt = Timestamp.from(row[ChargeRecords.startedAt]),
@@ -113,17 +119,17 @@ object ResultRowParser {
 
     fun resultRowToChargeTracking(row: ResultRow): ChargeTrackingID{
         return ChargeTrackingID(
-            timestamp = Timestamp.from(row[ChargeTracking.timestamp]),
-            charge_record_id = row[ChargeTracking.idChargeRecord],
-            capacity = row[ChargeTracking.capacity],
-            voltage = row[ChargeTracking.voltage],
-            current = row[ChargeTracking.current]
+            timestamp = Timestamp.from(row[ChargeTrackings.id].value),
+            charge_record_id = row[ChargeTrackings.idChargeRecord],
+            capacity = row[ChargeTrackings.capacity],
+            voltage = row[ChargeTrackings.voltage],
+            current = row[ChargeTrackings.current]
         )
     }
 
     fun resultRowToSize(row: ResultRow): Size {
         return Size(
-            name = row[Sizes.name],
+            name = row[Sizes.name].value,
         )
     }
 

@@ -1,12 +1,15 @@
 package cz.kudladev.data.repository
 
-import cz.kudladev.data.*
-import cz.kudladev.data.DatabaseBuilder.dbQuery
+import DatabaseBuilder.dbQuery
+import cz.kudladev.data.entities.*
 import cz.kudladev.data.models.*
+import cz.kudladev.data.models.ChargeRecord
 import cz.kudladev.domain.repository.ChargeRecordsDao
+import cz.kudladev.util.EntityParser
 import cz.kudladev.util.ResultRowParser
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import java.sql.Time
 import java.sql.Timestamp
 import java.time.Clock
 
@@ -14,18 +17,13 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
     override suspend fun getAllChargeRecords(): List<ChargeRecord> {
         return try {
             dbQuery {
-                ChargeRecords
-                    .selectAll()
-                    .map { row ->
-                        val charger = Chargers
-                            .select { Chargers.idCharger eq row[ChargeRecords.idCharger] }
-                            .first().let {
-                                ResultRowParser.resultRowToCharger(it)
-                            }
-                        val battery = (Batteries innerJoin Types innerJoin Sizes).selectAll().where { Batteries.idBattery eq row[ChargeRecords.idBattery] }.map { ResultRowParser.resultRowToBattery(it) }.singleOrNull()
-                            ?: throw IllegalArgumentException("No battery found for id ${row[ChargeRecords.idBattery]}")
-                        ResultRowParser.resultRowToChargerRecord(charger, battery, row)
-                    }
+                ChargeRecordEntity.all().map {
+                    val charger = ChargerEntity.findById(it.chargerEntity.id.value) ?: throw IllegalArgumentException("No charger found for id ${it.chargerEntity.id.value}")
+                    val battery = BatteryEntity.findById(it.batteryEntity.id.value) ?: throw IllegalArgumentException("No battery found for id ${it.batteryEntity.id.value}")
+                    val size = SizeEntity.findById(battery.sizeEntity.id.value) ?: throw IllegalArgumentException("No size found for id ${battery.sizeEntity.id.value}")
+                    val type = TypeEntity.findById(battery.typeEntity.id.value) ?: throw IllegalArgumentException("No type found for id ${battery.typeEntity.id.value}")
+                    EntityParser.toChargeRecord(it, EntityParser.toCharger(charger), EntityParser.toBattery(battery,EntityParser.toType(type),EntityParser.toSize(size)) )
+                }
             }
         } catch (e: Exception) {
             println(e)
@@ -36,19 +34,11 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
     override suspend fun getChargeRecordById(id: Int): ChargeRecord? {
         return try {
             dbQuery {
-                ChargeRecords
-                    .select { ChargeRecords.idChargeRecord eq id }
-                    .map { row ->
-                        val charger = Chargers
-                            .select { Chargers.idCharger eq row[ChargeRecords.idCharger] }
-                            .first().let {
-                                ResultRowParser.resultRowToCharger(it)
-                            }
-                        val battery = (Batteries innerJoin Types innerJoin Sizes).selectAll().where { Batteries.idBattery eq row[ChargeRecords.idBattery] }.map { ResultRowParser.resultRowToBattery(it) }.singleOrNull()
-                            ?: throw IllegalArgumentException("No battery found for id ${row[ChargeRecords.idBattery]}")
-                        println(battery)
-                        ResultRowParser.resultRowToChargerRecord(charger, battery, row)
-                    }.firstOrNull()
+                ChargeRecordEntity.findById(id)?.let {
+                    val size = SizeEntity.findById(it.batteryEntity.sizeEntity.id.value) ?: throw IllegalArgumentException("No size found for id ${it.batteryEntity.sizeEntity.id.value}")
+                    val type = TypeEntity.findById(it.batteryEntity.typeEntity.id.value) ?: throw IllegalArgumentException("No type found for id ${it.batteryEntity.typeEntity.id.value}")
+                    EntityParser.toChargeRecord(it, EntityParser.toCharger(it.chargerEntity), EntityParser.toBattery(it.batteryEntity, EntityParser.toType(type),EntityParser.toSize(size)) )
+                }
             }
         } catch (e: Exception) {
             null
@@ -58,26 +48,16 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
     override suspend fun createChargeRecord(chargeRecord: ChargeRecordInsert): ChargeRecord {
         val time = Clock.systemUTC().instant()
         return try {
-            if (chargeRecord.battery_id == null) {
-                throw IllegalArgumentException("Battery id is null")
-            }
-            if (chargeRecord.charger_id == null) {
-                throw IllegalArgumentException("Charger id is null")
-            }
             val insertedId = dbQuery {
-                Batteries.selectAll().where { Batteries.idBattery eq chargeRecord.battery_id }.singleOrNull()
-                    ?: throw IllegalArgumentException("No battery found for id ${chargeRecord.battery_id}")
-                Chargers.selectAll().where { Chargers.idCharger eq chargeRecord.charger_id }.singleOrNull()
-                    ?: throw IllegalArgumentException("No charger found for id ${chargeRecord.charger_id}")
-                ChargeRecords.insert {
-                    it[program] = chargeRecord.program
-                    it[slot] = chargeRecord.slot
-                    it[startedAt] = time
-                    it[finishedAt] = null
-                    it[chargedCapacity] = null
-                    it[idBattery] = chargeRecord.battery_id
-                    it[idCharger] = chargeRecord.charger_id
-                }get ChargeRecords.idChargeRecord
+                ChargeRecordEntity.new {
+                    program = chargeRecord.program
+                    slot = chargeRecord.slot
+                    startedAt = time
+                    finishedAt = null
+                    chargedCapacity = null
+                    chargerEntity = ChargerEntity.findById(chargeRecord.charger_id) ?: throw IllegalArgumentException("No charger found for id ${chargeRecord.charger_id}")
+                    batteryEntity = BatteryEntity.findById(chargeRecord.battery_id) ?: throw IllegalArgumentException("No battery found for id ${chargeRecord.battery_id}")
+                }.id.value
             }
             getChargeRecordById(insertedId)!!
         } catch (e: Exception) {
@@ -88,14 +68,14 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
     override suspend fun updateChargeRecord(chargeRecord: ChargeRecord): ChargeRecord {
         return try {
             dbQuery {
-                ChargeRecords.update({ ChargeRecords.idChargeRecord eq chargeRecord.idChargeRecord!! }) {
-                    it[program] = chargeRecord.program
-                    it[slot] = chargeRecord.slot
-                    it[startedAt] = chargeRecord.startedAt.toInstant()
-                    it[finishedAt] = chargeRecord.finishedAt?.toInstant()
-                    it[chargedCapacity] = chargeRecord.chargedCapacity
-                    it[idBattery] = chargeRecord.battery.id!!
-                    it[idCharger] = chargeRecord.charger.id!!
+                ChargeRecordEntity.findById(chargeRecord.idChargeRecord!!)?.let {
+                    it.program = chargeRecord.program
+                    it.slot = chargeRecord.slot
+                    it.startedAt = chargeRecord.startedAt.toInstant()
+                    it.finishedAt = chargeRecord.finishedAt?.toInstant()
+                    it.chargedCapacity = chargeRecord.chargedCapacity
+                    it.chargerEntity = chargeRecord.charger.id?.let { it1 -> ChargerEntity.findById(it1) } ?: throw IllegalArgumentException("No charger found for id ${chargeRecord.charger.id}")
+                    it.batteryEntity = chargeRecord.battery.id?.let { it1 -> BatteryEntity.findById(it1) } ?: throw IllegalArgumentException("No battery found for id ${chargeRecord.battery.id}")
                 }
             }
             chargeRecord
@@ -108,7 +88,7 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
         return try {
             val chargeRecord = getChargeRecordById(id) ?: throw IllegalArgumentException("No charge record found for id $id")
             dbQuery {
-                ChargeRecords.deleteWhere { ChargeRecords.idChargeRecord eq id }
+                ChargeRecordEntity.findById(id)?.delete()
             }
             chargeRecord
         } catch (e: Exception) {
@@ -120,9 +100,9 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
         return try {
             val chargeRecord = getChargeRecordById(id) ?: throw IllegalArgumentException("No charge record found for id $id")
             dbQuery {
-                ChargeRecords.update({ ChargeRecords.idChargeRecord eq id }) {
-                    it[finishedAt] = Clock.systemUTC().instant()
-                    it[chargedCapacity] = capacity
+                ChargeRecordEntity.findById(id)?.let {
+                    it.finishedAt = Clock.systemUTC().instant()
+                    it.chargedCapacity = capacity
                 }
             }
             getChargeRecordById(id)!!
@@ -134,22 +114,24 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
     override suspend fun getNotEndedChargeRecordsWithTracking(): List<ChargeRecordWithTracking> {
         return try {
             dbQuery {
-                ChargeRecords
-                    .select { ChargeRecords.finishedAt eq null }
-                    .orderBy(ChargeRecords.slot to SortOrder.ASC)
-                    .map { row ->
-                        val charger = Chargers
-                            .select { Chargers.idCharger eq row[ChargeRecords.idCharger] }
-                            .first().let {
-                                ResultRowParser.resultRowToCharger(it)
-                            }
-                        val battery = (Batteries innerJoin Types innerJoin Sizes).selectAll().where { Batteries.idBattery eq row[ChargeRecords.idBattery] }.map { ResultRowParser.resultRowToBattery(it) }.singleOrNull()
-                            ?: throw IllegalArgumentException("No battery found for id ${row[ChargeRecords.idBattery]}")
-                        val tracking = ChargeTracking
-                            .select { ChargeTracking.idChargeRecord eq row[ChargeRecords.idChargeRecord] }
-                            .map { ResultRowParser.resultRowToChargeTracking(it) }
-                        ResultRowParser.resultRowToChargerRecordWithTracking(charger, battery, row, tracking)
-                    }
+                ChargeRecordEntity.find { ChargeRecords.finishedAt eq null }.map { it ->
+                    val charger = ChargerEntity.findById(it.chargerEntity.id.value) ?: throw IllegalArgumentException("No charger found for id ${it.chargerEntity.id.value}")
+                    val battery = BatteryEntity.findById(it.batteryEntity.id.value) ?: throw IllegalArgumentException("No battery found for id ${it.batteryEntity.id.value}")
+                    val size = SizeEntity.findById(battery.sizeEntity.id.value) ?: throw IllegalArgumentException("No size found for id ${battery.sizeEntity.id.value}")
+                    val type = TypeEntity.findById(battery.typeEntity.id.value) ?: throw IllegalArgumentException("No type found for id ${battery.typeEntity.id.value}")
+                    val tracking = ChargeTrackingEntity.find { ChargeTrackings.idChargeRecord eq it.id.value }.map { EntityParser.toChargeTracking(it) }
+                    ChargeRecordWithTracking(
+                        idChargeRecord = it.id.value,
+                        program = it.program,
+                        slot = it.slot,
+                        startedAt = Timestamp.from(it.startedAt),
+                        finishedAt = Timestamp.from(it.finishedAt),
+                        chargedCapacity = it.chargedCapacity,
+                        charger = EntityParser.toCharger(charger),
+                        battery = EntityParser.toBattery(battery, EntityParser.toType(type), EntityParser.toSize(size)),
+                        tracking = tracking
+                    )
+                }
             }
         } catch (e: Exception) {
             println(e)

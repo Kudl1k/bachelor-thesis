@@ -68,14 +68,7 @@ fun Route.chargers(chargersDao: ChargersDao){
                 call.respondText(text = "Please insert right form of ID (Int), starting from 1", status = HttpStatusCode.BadRequest)
             }
         }
-        get("type/{type}"){
-            try {
-                val type = call.parameters["typeId"] ?: return@get call.respond(HttpStatusCode.BadRequest)
-                call.respond(chargersDao.getChargersByType(type))
-            } catch (e: Exception) {
-                call.respondText(text = "Please insert right form of ID (Int), starting from 1", status = HttpStatusCode.BadRequest)
-            }
-        }
+
         post("{chargerId}/type/{typeId}"){
             try {
                 val chargerId = call.parameters["chargerId"]?.toInt() ?: return@post call.respond(HttpStatusCode.BadRequest)

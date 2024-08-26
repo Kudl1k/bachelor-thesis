@@ -1,10 +1,12 @@
 package cz.kudladev.data.repository
 
-import cz.kudladev.data.*
-import cz.kudladev.data.DatabaseBuilder.dbQuery
+import DatabaseBuilder.dbQuery
+import cz.kudladev.data.entities.*
 import cz.kudladev.data.models.*
+import cz.kudladev.data.models.Charger
+import cz.kudladev.data.models.Size
 import cz.kudladev.domain.repository.ChargersDao
-import cz.kudladev.util.ResultRowParser
+import cz.kudladev.util.EntityParser
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import java.sql.Timestamp
@@ -14,16 +16,27 @@ class ChargersDaoImpl : ChargersDao {
     override suspend fun getAllChargers(): List<ChargerWithTypesAndSizes> {
         return try {
             dbQuery {
-                val result = (Chargers leftJoin ChargerTypes leftJoin Types leftJoin ChargerSizes leftJoin Sizes)
-                    .selectAll()
-                    .toList()
-                if (result.isEmpty()) {
-                    emptyList()
-                } else {
-                    result.groupBy { it[Chargers.idCharger] }
-                        .map { (chargerId, rows) ->
-                            ResultRowParser.resultRowToChargerWithTypes(rows)
-                        }
+                val chargers = Chargers.selectAll().map { ChargerEntity.wrapRow(it) }
+
+                // Fetch related Types and Sizes for each Charger
+                chargers.map { chargerEntity ->
+                    // Fetch related types
+                    val types = (ChargerTypes innerJoin Types)
+                        .select { ChargerTypes.idCharger eq chargerEntity.id.value }
+                        .map { TypeEntity.wrapRow(it) }
+                        .map { Type(it.id.value, it.name) }
+                    println(types)
+
+                    // Fetch related sizes
+                    val sizes = (ChargerSizes innerJoin Sizes)
+                        .select { ChargerSizes.idCharger eq chargerEntity.id.value }
+                        .map { SizeEntity.wrapRow(it) }
+                        .map { Size(it.id.value) }
+                        .toSet()
+                    println(sizes)
+
+                    // Map to ChargerWithTypesAndSizes
+                    EntityParser.toChargerWithTypesAndSizes(chargerEntity, types, sizes)
                 }
             }
         } catch (e: Exception) {
@@ -35,44 +48,29 @@ class ChargersDaoImpl : ChargersDao {
     override suspend fun getChargerById(id: Int): ChargerWithTypesAndSizes? {
         return try {
             dbQuery {
-                val result = (Chargers leftJoin ChargerTypes leftJoin Types leftJoin ChargerSizes leftJoin Sizes)
-                    .selectAll()
-                    .where { Chargers.idCharger eq id }
-                    .toList()
-                if (result.isEmpty()) {
-                    null
-                } else {
-                    val charger = ResultRowParser.resultRowToCharger(result.first())
-                    val types = result.mapNotNull { row ->
-                        if (row[Types.shortcut] != null) {
-                            ResultRowParser.resultRowToType(row)
-                        } else {
-                            null
-                        }
-                    }
-                    val sizes = result.mapNotNull { row ->
-                        if (row[Sizes.name] != null) {
-                            Size(name = row[Sizes.name])
-                        } else {
-                            null
-                        }
-                    }.toSet()
-                    ChargerWithTypesAndSizes(
-                        id = charger.id,
-                        name = charger.name,
-                        tty = charger.tty,
-                        baudRate = charger.baudRate,
-                        dataBits = charger.dataBits,
-                        stopBits = charger.stopBits,
-                        parity = charger.parity,
-                        rts = charger.rts,
-                        dtr = charger.dtr,
-                        slots = charger.slots,
-                        created_at = charger.created_at!!,
-                        types = types,
-                        sizes = sizes
-                    )
-                }
+                val chargerRow = Chargers.select { Chargers.id eq id }.singleOrNull() ?: return@dbQuery null
+                val chargerEntity = ChargerEntity.wrapRow(chargerRow)
+                println(chargerEntity)
+
+                // Fetch related types
+                println(ChargerTypes leftJoin Types)
+                val types = (ChargerTypes leftJoin Types)
+                    .select { ChargerTypes.idCharger eq id }
+                    .map { TypeEntity.wrapRow(it) }
+                    .map { Type(it.id.value, it.name) }
+
+                println(types)
+
+                // Fetch related sizes
+                val sizes = (ChargerSizes leftJoin Sizes)
+                    .select { ChargerSizes.idCharger eq id }
+                    .map { SizeEntity.wrapRow(it) }
+                    .map { Size(it.name.value) }
+                    .toSet()
+
+                println(sizes)
+
+                EntityParser.toChargerWithTypesAndSizes(chargerEntity, types, sizes)
             }
         } catch (e: Exception) {
             println(e)
@@ -85,53 +83,61 @@ class ChargersDaoImpl : ChargersDao {
     ): List<ChargerWithTypesAndSizes> {
         return try {
             dbQuery {
-                val result = (Chargers innerJoin ChargerTypes innerJoin Types innerJoin ChargerSizes innerJoin Sizes)
-                    .select {
-                        (ChargerTypes.typeShortcut inList searchCharger.types) and
-                                (ChargerSizes.sizeName inList searchCharger.sizes)
-                    }
-                    .toList()
-                if (result.isEmpty()) {
-                    emptyList()
-                } else {
-                    result.groupBy { it[Chargers.idCharger] }
-                        .mapNotNull { (chargerId, rows) ->
-                            val charger = ResultRowParser.resultRowToCharger(rows.first())
-                            val types = rows.mapNotNull { row ->
-                                if (row[Types.shortcut] != null) {
-                                    ResultRowParser.resultRowToType(row)
-                                } else {
-                                    null
-                                }
-                            }.toSet()
-                            val sizes = rows.mapNotNull { row ->
-                                if (row[Sizes.name] != null) {
-                                    Size(name = row[Sizes.name])
-                                } else {
-                                    null
-                                }
-                            }.toSet()
-                            if (types.map { it.shortcut }.containsAll(searchCharger.types) &&
-                                sizes.map { it.name }.containsAll(searchCharger.sizes)) {
-                                ChargerWithTypesAndSizes(
-                                    id = charger.id,
-                                    name = charger.name,
-                                    tty = charger.tty,
-                                    baudRate = charger.baudRate,
-                                    dataBits = charger.dataBits,
-                                    stopBits = charger.stopBits,
-                                    parity = charger.parity,
-                                    rts = charger.rts,
-                                    dtr = charger.dtr,
-                                    slots = charger.slots,
-                                    created_at = charger.created_at!!,
-                                    types = types.toList(),
-                                    sizes = sizes
-                                )
-                            } else {
-                                null
-                            }
+                // Start the query on the Chargers table
+                val query = Chargers
+                    .leftJoin(ChargerTypes)
+                    .leftJoin(ChargerSizes)
+                    .selectAll()
+                    .apply {
+                        // If types are provided, filter by them
+                        if (searchCharger.types.isNotEmpty()) {
+                            andWhere { ChargerTypes.typeShortcut inList searchCharger.types }
                         }
+                        // If sizes are provided, filter by them
+                        if (searchCharger.sizes.isNotEmpty()) {
+                            andWhere { ChargerSizes.sizeName inList searchCharger.sizes }
+                        }
+                    }
+
+                // Execute the query and map the results to ChargerWithTypesAndSizes
+                query.map { row ->
+                    val chargerId = row[Chargers.id].value
+                    val chargerName = row[Chargers.name]
+                    val chargerTty = row[Chargers.tty]
+                    val chargerBaudRate = row[Chargers.baudRate]
+                    val chargerDataBits = row[Chargers.dataBits]
+                    val chargerStopBits = row[Chargers.stopBits]
+                    val chargerParity = row[Chargers.parity]
+                    val chargerRts = row[Chargers.rts]
+                    val chargerDtr = row[Chargers.dtr]
+                    val chargerSlots = row[Chargers.slots]
+                    val chargerCreatedAt = row[Chargers.createdAt]
+
+                    // Fetch associated types and sizes for the charger
+                    val types = ChargerTypes
+                        .select { ChargerTypes.idCharger eq chargerId }
+                        .map { TypeEntity.findById(it[ChargerTypes.typeShortcut]) }
+
+                    val sizes = ChargerSizes
+                        .select { ChargerSizes.idCharger eq chargerId }
+                        .map { SizeEntity.findById(it[ChargerSizes.sizeName]) }
+
+                    // Map to ChargerWithTypesAndSizes
+                    ChargerWithTypesAndSizes(
+                        id = chargerId,
+                        name = chargerName,
+                        tty = chargerTty,
+                        baudRate = chargerBaudRate,
+                        dataBits = chargerDataBits,
+                        stopBits = chargerStopBits,
+                        parity = chargerParity,
+                        rts = chargerRts,
+                        dtr = chargerDtr,
+                        slots = chargerSlots,
+                        created_at = Timestamp.from(chargerCreatedAt),
+                        types = types.filterNotNull().map { EntityParser.toType(it) }, // Handle nulls
+                        sizes = sizes.filterNotNull().map { EntityParser.toSize(it) }.toSet() // Handle nulls
+                    )
                 }
             }
         } catch (e: Exception) {
@@ -142,32 +148,33 @@ class ChargersDaoImpl : ChargersDao {
 
     override suspend fun createCharger(charger: ChargerInsert): ChargerWithTypesAndSizes? {
         return try {
-            val timestamp = Clock.systemUTC().instant()
             val insertedId = dbQuery {
-                Chargers.insert {
-                    it[name] = charger.name
-                    it[tty] = charger.tty
-                    it[baudRate] = charger.baudRate
-                    it[dataBits] = charger.dataBits
-                    it[stopBits] = charger.stopBits
-                    it[parity] = charger.parity
-                    it[rts] = charger.rts
-                    it[dtr] = charger.dtr
-                    it[slots] = charger.slots
-                    it[createdAt] = timestamp
-                } get Chargers.idCharger
+                ChargerEntity.new {
+                    name = charger.name
+                    tty = charger.tty
+                    baudRate = charger.baudRate
+                    dataBits = charger.dataBits
+                    stopBits = charger.stopBits
+                    parity = charger.parity
+                    rts = charger.rts
+                    dtr = charger.dtr
+                    slots = charger.slots
+                    createdAt = Clock.systemUTC().instant()
+                }.id
             }
             for (type in charger.types) {
                 if (type != null) {
-                    addTypeToCharger(insertedId, type)
+                    println(insertedId.value)
+                    println(type)
+                    addTypeToCharger(insertedId.value, type)
                 }
             }
             for (size in charger.sizes) {
                 if (size != null) {
-                    addSizeToCharger(insertedId, size)
+                    addSizeToCharger(insertedId.value, size)
                 }
             }
-            getChargerById(insertedId)
+            getChargerById(insertedId.value)
         } catch (e: Exception) {
             println(e)
             null
@@ -177,18 +184,18 @@ class ChargersDaoImpl : ChargersDao {
     override suspend fun updateCharger(charger: Charger): Charger? {
         return try {
             val updatedId = dbQuery {
-                Chargers.update({ Chargers.idCharger eq charger.id!! }) {
-                    it[name] = charger.name
-                    it[tty] = charger.tty
-                    it[baudRate] = charger.baudRate
-                    it[dataBits] = charger.dataBits
-                    it[stopBits] = charger.stopBits
-                    it[parity] = charger.parity
-                    it[rts] = charger.rts
-                    it[dtr] = charger.dtr
-                    it[slots] = charger.slots
-                    it[createdAt] = charger.created_at?.toInstant()!!
-                }
+                ChargerEntity.findById(charger.id ?: throw IllegalArgumentException("Charger id must not be null"))?.apply {
+                    name = charger.name
+                    tty = charger.tty
+                    baudRate = charger.baudRate
+                    dataBits = charger.dataBits
+                    stopBits = charger.stopBits
+                    parity = charger.parity
+                    rts = charger.rts
+                    dtr = charger.dtr
+                    slots = charger.slots
+                    createdAt = charger.created_at?.toInstant() ?: Clock.systemUTC().instant()
+                }?.id?.value ?: throw IllegalArgumentException("No charger found for id ${charger.id}")
             }
             charger.copy(id = updatedId)
         } catch (e: Exception) {
@@ -200,7 +207,8 @@ class ChargersDaoImpl : ChargersDao {
     override suspend fun deleteCharger(id: Int): Boolean {
         return try {
             dbQuery {
-                Chargers.deleteWhere { Chargers.idCharger eq id } > 0
+                ChargerEntity.findById(id)?.delete() ?: false
+                true
             }
         } catch (e: Exception) {
             println(e)
@@ -208,27 +216,6 @@ class ChargersDaoImpl : ChargersDao {
         }
     }
 
-    override suspend fun getChargersByType(shortcut: String): List<ChargerWithTypesAndSizes> {
-        return try {
-            dbQuery {
-                val result = (Chargers innerJoin ChargerTypes innerJoin Types innerJoin Sizes)
-                    .selectAll()
-                    .where { ChargerTypes.typeShortcut eq shortcut }
-                    .toList()
-                if (result.isEmpty()) {
-                    emptyList()
-                } else {
-                    result.groupBy { it[Chargers.idCharger] }
-                        .map { (chargerId, rows) ->
-                            ResultRowParser.resultRowToChargerWithTypes(rows)
-                        }
-                }
-            }
-        } catch (e: Exception) {
-            println(e)
-            emptyList()
-        }
-    }
 
     override suspend fun addTypeToCharger(chargerId: Int, shortcut: String): ChargerWithTypesAndSizes? {
         return try {

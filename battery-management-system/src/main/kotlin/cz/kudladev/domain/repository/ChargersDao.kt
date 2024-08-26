@@ -19,8 +19,6 @@ interface ChargersDao {
 
     suspend fun deleteCharger(id: Int): Boolean
 
-    suspend fun getChargersByType(shortcut: String): List<ChargerWithTypesAndSizes>
-
     suspend fun addTypeToCharger(chargerId: Int, shortcut: String): ChargerWithTypesAndSizes?
 
     suspend fun removeTypeFromCharger(chargerId: Int, shortcut: String): ChargerWithTypesAndSizes?

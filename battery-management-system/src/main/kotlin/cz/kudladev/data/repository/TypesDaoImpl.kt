@@ -1,13 +1,15 @@
 package cz.kudladev.data.repository
 
-import cz.kudladev.data.Batteries
-import cz.kudladev.data.DatabaseBuilder.dbQuery
-import cz.kudladev.data.Sizes
-import cz.kudladev.data.Types
+import DatabaseBuilder.dbQuery
+import cz.kudladev.data.entities.Batteries
+import cz.kudladev.data.entities.Sizes
+import cz.kudladev.data.entities.TypeEntity
+import cz.kudladev.data.entities.Types
 import cz.kudladev.data.models.Size
 import cz.kudladev.data.models.Type
 import cz.kudladev.data.models.TypeBatteries
 import cz.kudladev.domain.repository.TypesDao
+import cz.kudladev.util.EntityParser
 import cz.kudladev.util.ResultRowParser
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -17,7 +19,7 @@ class TypesDaoImpl(): TypesDao {
     override suspend fun getAllTypes(): List<Type?> {
         return try {
             dbQuery {
-                Types.selectAll().map { ResultRowParser.resultRowToType(it) }
+                TypeEntity.all().map { EntityParser.toType(it) }
             }
         } catch (e: Throwable) {
             println(e)
@@ -28,7 +30,7 @@ class TypesDaoImpl(): TypesDao {
     override suspend fun getTypeByShortcut(shortcut: String): Type? {
         return try {
             dbQuery {
-                Types.selectAll().where { Types.shortcut eq shortcut }.map { ResultRowParser.resultRowToType(it) }.singleOrNull()
+                TypeEntity.findById(shortcut)?.let { EntityParser.toType(it) }
             }
         } catch (e: Throwable) {
             println(e)
@@ -49,7 +51,7 @@ class TypesDaoImpl(): TypesDao {
                     val type = ResultRowParser.resultRowToType(result.first())
                     print(result.first())
                     val batteries = result.mapNotNull { row ->
-                        if (row[Batteries.idBattery] != null) {
+                        if (row[Batteries.id] != null) {
                             ResultRowParser.resultRowToBattery(row)
                         } else {
                             null
@@ -72,9 +74,8 @@ class TypesDaoImpl(): TypesDao {
     override suspend fun insertType(type: Type): Type? {
         return try {
             dbQuery {
-                Types.insert {
-                    it[shortcut] = type.shortcut
-                    it[name] = type.name
+                TypeEntity.new(type.shortcut) {
+                    name = type.name
                 }
             }
             type
@@ -87,9 +88,8 @@ class TypesDaoImpl(): TypesDao {
     override suspend fun updateType(type: Type): Type? {
         return try {
             dbQuery {
-                Types.update({ Types.shortcut eq type.shortcut }) {
-                    it[shortcut] = type.shortcut
-                    it[name] = type.name
+                TypeEntity.findById(type.shortcut)?.apply {
+                    name = type.name
                 }
             }
             type
@@ -103,7 +103,7 @@ class TypesDaoImpl(): TypesDao {
         return try {
             val type = getTypeByShortcut(shortcut) ?: throw IllegalArgumentException("No type found for shortcut $shortcut")
             dbQuery {
-                Types.deleteWhere { Types.shortcut eq shortcut }
+                TypeEntity.findById(shortcut)?.delete()
             }
             type
         } catch (e: Throwable) {
