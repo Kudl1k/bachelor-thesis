@@ -103,7 +103,7 @@ object ResultRowParser {
         )
     }
 
-    fun resultRowToChargerRecordWithTracking(charger: Charger,battery: Battery,row: ResultRow, tracking: List<ChargeTrackingID>): ChargeRecordWithTracking {
+    fun resultRowToChargerRecordWithTracking(charger: Charger,battery: Battery,row: ResultRow, tracking: List<FormatedChargeTracking>): ChargeRecordWithTracking {
         return ChargeRecordWithTracking(
             idChargeRecord = row[ChargeRecords.id].value,
             program = row[ChargeRecords.program],

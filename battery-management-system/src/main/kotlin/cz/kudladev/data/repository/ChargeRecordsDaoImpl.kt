@@ -122,7 +122,7 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
                     val battery = BatteryEntity.findById(it.batteryEntity.id.value) ?: throw IllegalArgumentException("No battery found for id ${it.batteryEntity.id.value}")
                     val size = SizeEntity.findById(battery.sizeEntity.id.value) ?: throw IllegalArgumentException("No size found for id ${battery.sizeEntity.id.value}")
                     val type = TypeEntity.findById(battery.typeEntity.id.value) ?: throw IllegalArgumentException("No type found for id ${battery.typeEntity.id.value}")
-                    val tracking = ChargeTrackingEntity.find { ChargeTrackings.idChargeRecord eq it.id.value }.map { EntityParser.toChargeTracking(it) }
+                    val tracking = ChargeTrackingEntity.find { ChargeTrackings.idChargeRecord eq it.id.value }.map { EntityParser.toFormatedChargeTracking(it) }
                     ChargeRecordWithTracking(
                         idChargeRecord = it.id.value,
                         program = it.program,

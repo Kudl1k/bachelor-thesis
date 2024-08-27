@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Battery, BatteryWithSlot } from "./BatteryData";
 import { Size } from "./SizeData";
 import { Type } from "./TypeData";
@@ -65,7 +66,7 @@ export interface ChargeRecord {
 
 export interface TrackingRecord {
   timestamp: string;
-  id_charge_record: number;
+  charge_record_id: number;
   capacity: number;
   voltage: number;
   current: number;
@@ -219,52 +220,51 @@ export async function fetchTrackingRecord(
   }
 }
 
-export async function websocketTracking(
-  id_charger: number,
-  previousData: ChargeRecord[],
-  setChargeRecords: (data: ChargeRecord[] | null) => void
-) {
-  const ws = new WebSocket(
-    `ws://localhost:8080/chargers/${id_charger}/tracking/last`
-  );
-  ws.onopen = () => {
-    console.log("Connected to websocket");
-  };
-  ws.onmessage = (event) => {
-    const data: TrackingRecord = JSON.parse(event.data);
-    console.log("Received data:", data);
+export interface useWebSocketTrackingProps {
+  id_charger: number;
+  setChargeRecords: React.Dispatch<React.SetStateAction<ChargeRecord[]>>;
+}
 
-    // Convert timestamp to desired format
-    const date = new Date(data.timestamp);
-    const formattedDate = date
-      .toLocaleString("de-DE", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      })
-      .replace(",", "");
+export function useWebSocketTracking({
+  id_charger,
+  setChargeRecords,
+}: useWebSocketTrackingProps) {
+  useEffect(() => {
+    const ws = new WebSocket(
+      `ws://localhost:8080/chargers/${id_charger}/tracking/last`
+    );
 
-    data.timestamp = formattedDate;
-    console.log("Formatted data:", data);
+    ws.onopen = () => {
+      console.log("Connected to websocket");
+    };
 
-    const updatedData = previousData.map((record) => {
-      if (record.idChargeRecord === data.id_charge_record) {
-        return {
-          ...record,
-          tracking: [...record.tracking, data],
-        };
-      }
-      return record;
-    });
-    setChargeRecords([...updatedData]);
-  };
-  ws.onclose = () => {
-    console.log("Disconnected from websocket");
-  };
-  ws.onerror = (error) => {
-    console.error("Websocket error:", error);
-  };
+    ws.onmessage = (event) => {
+      const data: TrackingRecord = JSON.parse(event.data);
+      console.log("Received data:", data);
+
+      setChargeRecords((prevRecords) => {
+        return prevRecords.map((record) => {
+          if (Number(record.idChargeRecord) === Number(data.charge_record_id)) {
+            return {
+              ...record,
+              tracking: [...record.tracking, data],
+            };
+          }
+          return record;
+        });
+      });
+    };
+
+    ws.onclose = () => {
+      console.log("Disconnected from websocket");
+    };
+
+    ws.onerror = (error) => {
+      console.error("Websocket error:", error);
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, [id_charger, setChargeRecords]);
 }

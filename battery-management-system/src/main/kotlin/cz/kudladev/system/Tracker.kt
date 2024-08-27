@@ -1,6 +1,7 @@
 package cz.kudladev.system
 
 import cz.kudladev.data.models.*
+import cz.kudladev.domain.repository.BatteriesDao
 import cz.kudladev.domain.repository.ChargeRecordsDao
 import cz.kudladev.domain.repository.ChargeTrackingDao
 import jssc.SerialPort
@@ -11,14 +12,24 @@ var isRunning = false
 var job: Job? = null
 var openPort: SerialPort? = null
 
+data class SlotState(
+    val slot: Int,
+    val running: Boolean
+)
+
 suspend fun startTracking(
     charger: ChargerWithTypesAndSizes,
     batteryWithSlot: List<BatteryWithSlot>,
     chargeTrackingDao: ChargeTrackingDao,
-    chargeRecordsDao: ChargeRecordsDao
+    chargeRecordsDao: ChargeRecordsDao,
+    batteriesDao: BatteriesDao
 ){
+    if (!openPort?.isOpened!!) {
+
+    }
     val slots = charger.slots
-    var counter = 0
+    var slotsCounter = 0
+    var slotStates = mutableListOf<SlotState>()
     var last_capacity = 0
 
     val chargeRecords = mutableListOf<ChargeRecord>()
@@ -30,24 +41,22 @@ suspend fun startTracking(
             battery_id = battery.id!!,
             charger_id = charger.id!!
         )
-        println(chargeRecord)
+        slotStates.add(SlotState(battery.slot, true))
         chargeRecords.add(chargeRecordsDao.createChargeRecord(chargeRecord))
     }
 
     while (isRunning) {
-        if (counter == slots) {
+        if (slotsCounter == slots) {
             Thread.sleep(5000)
-            counter = 0
+            slotsCounter = 0
         } else {
-            counter++
+            slotsCounter++
         }
-        val data = openPort?.let {
-            readFromPort(
-                port = it,
-                bytes = 34,
-                idCharger = charger.id!!,
-            )
-        }
+        val data = readFromPort(
+            openPort!!,
+            34,
+            charger.id!!
+        )
         when (chargeRecords[0].program) {
             "C" -> {
                 for (battery in batteryWithSlot){
@@ -71,9 +80,18 @@ suspend fun startTracking(
                             chargeTracking = chargeTracking
                         )
                     } else if(data.current == 0 && data.slot == battery.slot){
-                        println("There is no current in the slot. Ending program.")
-                        chargeRecordsDao.endChargeRecord(chargerId, last_capacity)
+                        slotStates = slotStates.map {
+                            if (it.slot == battery.slot){
+                                chargeRecordsDao.endChargeRecord(chargerId, last_capacity)
+                                SlotState(it.slot, false)
+                            } else {
+                                it
+                            }
+                        }.toMutableList()
                     }
+                }
+                if (slotStates.all { !it.running }){
+                    isRunning = false
                 }
             }
             "D" -> {
@@ -81,9 +99,11 @@ suspend fun startTracking(
                 println("Slot: ${data?.slot}; Current: ${data?.current}; Voltage: ${data?.voltage}; Discharged: ${data?.discharged}")
             }
         }
-
     }
+    stopTracking()
 }
+
+
 
 fun stopTracking() {
     isRunning = false

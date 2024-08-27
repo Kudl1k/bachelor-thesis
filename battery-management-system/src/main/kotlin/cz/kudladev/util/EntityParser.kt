@@ -90,4 +90,14 @@ object EntityParser {
         )
     }
 
+    fun toFormatedChargeTracking(chargeTrackingEntity: ChargeTrackingEntity): FormatedChargeTracking{
+        return FormatedChargeTracking(
+            timestamp = Timestamp.from(chargeTrackingEntity.timestamp.value),
+            charge_record_id = chargeTrackingEntity.chargeRecordEntity.id.value,
+            capacity = convertChargedOrDischargedCapacityToMilliAmpHour(chargeTrackingEntity.capacity),
+            voltage = convertVoltageToVolt(chargeTrackingEntity.voltage),
+            current = convertCurrentToAmpere(chargeTrackingEntity.current)
+        )
+    }
+
 }

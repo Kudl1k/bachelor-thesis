@@ -3,6 +3,7 @@ package cz.kudladev.data.models
 import cz.kudladev.util.TimestampSerializer
 import kotlinx.serialization.Serializable
 import java.sql.Timestamp
+import java.text.Normalizer.Form
 
 
 @Serializable
@@ -36,5 +37,5 @@ data class ChargeRecordWithTracking(
     val chargedCapacity: Int? = null,
     val charger: Charger,
     val battery: Battery,
-    val tracking: List<ChargeTrackingID>
+    val tracking: List<FormatedChargeTracking>
 )

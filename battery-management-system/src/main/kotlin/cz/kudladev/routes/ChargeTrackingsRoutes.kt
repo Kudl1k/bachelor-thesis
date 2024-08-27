@@ -1,8 +1,10 @@
 package cz.kudladev.routes
 
+import DatabaseBuilder
 import cz.kudladev.data.models.ChargeRecordInsert
 import cz.kudladev.data.models.ChargeTrackingID
 import cz.kudladev.data.models.StartChargeTracking
+import cz.kudladev.domain.repository.BatteriesDao
 import cz.kudladev.domain.repository.ChargeRecordsDao
 import cz.kudladev.domain.repository.ChargeTrackingDao
 import cz.kudladev.domain.repository.ChargersDao
@@ -42,13 +44,10 @@ val clients = mutableSetOf<DefaultWebSocketServerSession>()
 fun Route.chargetrackings(
     chargeTrackingDao: ChargeTrackingDao,
     chargerRecordsDao: ChargeRecordsDao,
-    chargersDao: ChargersDao
+    chargersDao: ChargersDao,
+    batteriesDao: BatteriesDao
 ){
-    val dbUrl = "jdbc:postgresql://localhost:5432/battery"
-    val dbUser = "admin"
-    val dbPassword = "admin"
 
-    Database.connect(dbUrl, user = dbUser, password = dbPassword)
 
 
     route("/chargers") {
@@ -99,12 +98,17 @@ fun Route.chargetrackings(
                     rts = charger.rts,
                     dtr = charger.dtr
                 )
+                if (openPort?.isOpened == false) {
+                    call.respondText("Port is not opened", status = HttpStatusCode.BadRequest)
+                    return@post
+                }
                 job = CoroutineScope(Dispatchers.Default).launch {
                     startTracking(
                         charger,
                         batteries.batteries,
                         chargeTrackingDao,
-                        chargerRecordsDao
+                        chargerRecordsDao,
+                        batteriesDao
                     )
                 }
                 call.respondText("Process started", status = HttpStatusCode.OK)
@@ -121,21 +125,17 @@ fun Route.chargetrackings(
             }
         }
         webSocket("{id}/tracking/last") {
-
+            val subscription = DatabaseBuilder.broadcastChannel.openSubscription()
+            try {
+                for (message in subscription) {
+                    send(message)
+                }
+            } catch (e: ClosedReceiveChannelException) {
+                println("Channel closed")
+            } finally {
+                subscription.cancel()
+            }
         }
     }
 }
 
-
-suspend fun listenForNotifications(connection: PgConnection, onNotification: suspend (String) -> Unit) {
-    val statement = connection.createStatement()
-    statement.execute("LISTEN tracking")
-
-    while (true) {
-        val notifications: Array<PGNotification> = connection.notifications ?: continue
-        for (notification in notifications) {
-            onNotification(notification.parameter)  // Handle the notification using the suspending lambda
-        }
-        Thread.sleep(100)  // Sleep to prevent a busy-wait loop (can be adjusted)
-    }
-}
