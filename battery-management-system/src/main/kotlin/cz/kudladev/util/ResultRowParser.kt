@@ -120,7 +120,7 @@ object ResultRowParser {
     fun resultRowToChargeTracking(row: ResultRow): ChargeTrackingID{
         return ChargeTrackingID(
             timestamp = Timestamp.from(row[ChargeTrackings.id].value),
-            charge_record_id = row[ChargeTrackings.idChargeRecord],
+            charge_record_id = row[ChargeTrackings.idChargeRecord].value,
             capacity = row[ChargeTrackings.capacity],
             voltage = row[ChargeTrackings.voltage],
             current = row[ChargeTrackings.current]

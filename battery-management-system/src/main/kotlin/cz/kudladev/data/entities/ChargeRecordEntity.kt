@@ -12,8 +12,8 @@ object ChargeRecords : IntIdTable("charge_record") {
     val startedAt = timestamp("started_at")
     val finishedAt = timestamp("finished_at").nullable()
     val chargedCapacity = integer("charged_capacity").nullable()
-    val idCharger = integer("id_charger").references(Chargers.id)
-    val idBattery = integer("id_battery").references(Batteries.id)
+    val idCharger = reference("id_charger", Chargers)
+    val idBattery = reference("id_battery", Batteries)
 }
 
 class ChargeRecordEntity(id: EntityID<Int>) : IntEntity(id) {

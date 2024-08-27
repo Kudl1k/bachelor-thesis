@@ -49,14 +49,16 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
         val time = Clock.systemUTC().instant()
         return try {
             val insertedId = dbQuery {
+                val charger = ChargerEntity.find(Chargers.id eq chargeRecord.charger_id).singleOrNull() ?: throw IllegalArgumentException("No charger found for id ${chargeRecord.charger_id}")
+                val battery = BatteryEntity.find(Batteries.id eq chargeRecord.battery_id).singleOrNull() ?: throw IllegalArgumentException("No battery found for id ${chargeRecord.battery_id}")
                 ChargeRecordEntity.new {
                     program = chargeRecord.program
                     slot = chargeRecord.slot
                     startedAt = time
                     finishedAt = null
                     chargedCapacity = null
-                    chargerEntity = ChargerEntity.findById(chargeRecord.charger_id) ?: throw IllegalArgumentException("No charger found for id ${chargeRecord.charger_id}")
-                    batteryEntity = BatteryEntity.findById(chargeRecord.battery_id) ?: throw IllegalArgumentException("No battery found for id ${chargeRecord.battery_id}")
+                    chargerEntity = charger
+                    batteryEntity = battery
                 }.id.value
             }
             getChargeRecordById(insertedId)!!
@@ -84,7 +86,7 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
         }
     }
 
-    override suspend fun deleteChargeRecord(id: Int): ChargeRecord {
+    override suspend fun deleteChargeRecord(id: Int): ChargeRecord? {
         return try {
             val chargeRecord = getChargeRecordById(id) ?: throw IllegalArgumentException("No charge record found for id $id")
             dbQuery {
@@ -92,22 +94,23 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
             }
             chargeRecord
         } catch (e: Exception) {
-            throw e
+            println(e)
+            null
         }
     }
 
-    override suspend fun endChargeRecord(id: Int, capacity: Int): ChargeRecord {
+    override suspend fun endChargeRecord(id: Int, capacity: Int): ChargeRecord? {
         return try {
-            val chargeRecord = getChargeRecordById(id) ?: throw IllegalArgumentException("No charge record found for id $id")
             dbQuery {
                 ChargeRecordEntity.findById(id)?.let {
                     it.finishedAt = Clock.systemUTC().instant()
                     it.chargedCapacity = capacity
                 }
             }
-            getChargeRecordById(id)!!
+            getChargeRecordById(id)
         } catch (e: Exception) {
-            throw e
+            println(e)
+            null
         }
     }
 
@@ -125,7 +128,7 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
                         program = it.program,
                         slot = it.slot,
                         startedAt = Timestamp.from(it.startedAt),
-                        finishedAt = Timestamp.from(it.finishedAt),
+                        finishedAt = it.finishedAt?.let { Timestamp.from(it) },
                         chargedCapacity = it.chargedCapacity,
                         charger = EntityParser.toCharger(charger),
                         battery = EntityParser.toBattery(battery, EntityParser.toType(type), EntityParser.toSize(size)),

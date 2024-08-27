@@ -8,6 +8,7 @@ import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import cz.kudladev.data.entities.*
+import org.jetbrains.exposed.dao.toEntity
 
 object DatabaseBuilder {
 
@@ -28,8 +29,10 @@ object DatabaseBuilder {
         }
 
         EntityHook.subscribe { change ->
-            if (change.entityClass == ChargeTrackingEntity::class && change.changeType == EntityChangeType.Created) {
-                println("ChargeTracking created: ${change}")
+            if (change.entityClass.isAssignableTo(ChargeTrackingEntity) && change.changeType == EntityChangeType.Created) {
+                println("ChargeTracking created: ${change.toEntity(ChargeTrackingEntity)}")
+            } else {
+                println("Entity change detected: ${change.entityClass} - ${change.changeType}")
             }
         }
     }

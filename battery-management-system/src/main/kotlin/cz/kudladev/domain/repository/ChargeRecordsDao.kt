@@ -9,9 +9,9 @@ interface ChargeRecordsDao {
     suspend fun getChargeRecordById(id: Int): ChargeRecord?
     suspend fun createChargeRecord(chargeRecord: ChargeRecordInsert): ChargeRecord
     suspend fun updateChargeRecord(chargeRecord: ChargeRecord): ChargeRecord
-    suspend fun deleteChargeRecord(id: Int): ChargeRecord
+    suspend fun deleteChargeRecord(id: Int): ChargeRecord?
 
-    suspend fun endChargeRecord(id: Int, capacity: Int): ChargeRecord
+    suspend fun endChargeRecord(id: Int, capacity: Int): ChargeRecord?
 
     suspend fun getNotEndedChargeRecordsWithTracking(): List<ChargeRecordWithTracking>
 }

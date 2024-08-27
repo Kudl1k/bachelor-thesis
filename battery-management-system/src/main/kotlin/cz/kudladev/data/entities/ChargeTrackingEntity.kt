@@ -11,7 +11,7 @@ import java.time.Instant
 // Charge_Tracking Table
 object ChargeTrackings : IdTable<Instant>("charge_tracking") {
     override val id = timestamp("timestamp").entityId()
-    val idChargeRecord = integer("id_charge_record").references(ChargeRecords.id)
+    val idChargeRecord = reference("id_charge_record", ChargeRecords)
     val capacity = integer("capacity")
     val voltage = integer("voltage")
     val current = integer("current")
