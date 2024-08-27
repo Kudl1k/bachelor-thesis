@@ -1,7 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -12,13 +9,22 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import {
+  FormControl,
+  FormDescription,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { FormControl, FormItem, FormLabel, FormDescription, FormMessage } from "@/components/ui/form";
-import { Path, UseFormSetValue } from "react-hook-form";
+import { cn } from "@/lib/utils";
 import { Type } from "@/models/TypeData";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { useState } from "react";
+import { Path, UseFormSetValue } from "react-hook-form";
 
 interface ComboboxProps<T extends { type: string }> {
   fieldName: Path<T>;
@@ -35,7 +41,7 @@ export function TypeFormCombobox<T extends { type: string }>({
   description,
   types,
   fieldValue,
-  setValue
+  setValue,
 }: ComboboxProps<T>) {
   const [open, setOpen] = useState(false);
 
@@ -54,7 +60,7 @@ export function TypeFormCombobox<T extends { type: string }>({
               )}
             >
               {fieldValue
-                ? types.find((type) => type.name === fieldValue)?.name
+                ? types.find((type) => type.shortcut === fieldValue)?.shortcut
                 : `Select ${label}`}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
@@ -68,20 +74,22 @@ export function TypeFormCombobox<T extends { type: string }>({
               <CommandGroup>
                 {types.map((type) => (
                   <CommandItem
-                    value={type.name}
+                    value={type.shortcut}
                     key={type.shortcut}
                     onSelect={() => {
-                      setValue(fieldName, type.name as any);
+                      setValue(fieldName, type.shortcut as any);
                       setOpen(false);
                     }}
                   >
                     <Check
                       className={cn(
                         "mr-2 h-4 w-4",
-                        type.name === fieldValue ? "opacity-100" : "opacity-0"
+                        type.shortcut === fieldValue
+                          ? "opacity-100"
+                          : "opacity-0"
                       )}
                     />
-                    {type.name}
+                    {type.shortcut}
                   </CommandItem>
                 ))}
               </CommandGroup>

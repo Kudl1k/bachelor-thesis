@@ -11,15 +11,14 @@ import {
 import {
   ChargeRecord,
   fetchNotEndedChargeRecord,
-  websocketTracking,
+  useWebSocketTracking,
 } from "@/models/ChargerData";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
 export function StartPage() {
-  const [chargeRecords, setChargeRecords] = useState<ChargeRecord[] | null>(
-    null
-  );
+  const [chargeRecords, setChargeRecords] = useState<ChargeRecord[]>([]);
+  const [chargerId, setChargerId] = useState<number | null>(null);
   const hasFetched = useRef(false);
 
   useEffect(() => {
@@ -30,15 +29,16 @@ export function StartPage() {
   }, []);
 
   useEffect(() => {
-    if (chargeRecords && chargeRecords.length > 0) {
-      websocketTracking(
-        chargeRecords[0].idChargeRecord,
-        chargeRecords,
-        setChargeRecords
-      );
+    if (chargeRecords.length > 0) {
+      setChargerId(chargeRecords[0].charger.id);
     }
-    console.log("StartPage useEffect - chargeRecords updated:", chargeRecords);
   }, [chargeRecords]);
+
+  // Use the WebSocket tracking hook conditionally
+  useWebSocketTracking({
+    id_charger: chargerId ?? 0,
+    setChargeRecords,
+  });
 
   return (
     <>
@@ -82,13 +82,6 @@ export function StartPage() {
                 {chargeRecords.map((record) => (
                   <CarouselItem key={`carousel-item-${record.idChargeRecord}`}>
                     <Card>
-                      <CardHeader>
-                        <h1 className="text-2xl font-bold">
-                          #{record.battery.id} - {record.battery.type.shortcut}{" "}
-                          - {record.battery.size.name} -{" "}
-                          {record.battery.factory_capacity}mAh
-                        </h1>
-                      </CardHeader>
                       <CardContent>
                         <ChargeRecordChart
                           key={record.idChargeRecord}
