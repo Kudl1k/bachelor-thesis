@@ -33,9 +33,10 @@ const chartConfig = {
 
 export interface ChargeRecordChartProps {
   data: ChargeRecord;
+  className?: string;
 }
 
-export function ChargeRecordChart({ data }: ChargeRecordChartProps) {
+export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
   useEffect(() => {
     console.log("ChargeRecordChart data updated:", data);
   }, [data]);
@@ -46,10 +47,13 @@ export function ChargeRecordChart({ data }: ChargeRecordChartProps) {
     if (timeRange === "full") {
       return true;
     }
-    const now = new Date();
+    const lastRecordTime =
+      data.tracking.length > 0
+        ? parseCustomDate(data.tracking[data.tracking.length - 1].timestamp)
+        : new Date();
     const recordTime = parseCustomDate(record.timestamp);
     console.log("recordTime", recordTime);
-    const diff = now.getTime() - recordTime.getTime();
+    const diff = lastRecordTime.getTime() - recordTime.getTime();
     if (timeRange === "5m") {
       return diff <= 5 * 60 * 1000;
     }
@@ -134,7 +138,7 @@ export function ChargeRecordChart({ data }: ChargeRecordChartProps) {
       <ChartContainer
         key={data.idChargeRecord}
         config={chartConfig}
-        className="min-h-[200px] w-full "
+        className={`min-h-[200px] w-full ${className}`}
       >
         <LineChart accessibilityLayer data={filteredData}>
           <CartesianGrid vertical={false} />

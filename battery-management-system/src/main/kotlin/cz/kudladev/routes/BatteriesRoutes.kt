@@ -27,6 +27,21 @@ fun Route.batteries(batteriesDao: BatteriesDao) {
                 call.respondText(text = "Please insert right form of ID (Int), starting from 1", status = HttpStatusCode.BadRequest)
             }
         }
+        get("{id}/info") {
+            try {
+                val id = call.parameters["id"]?.toInt() ?: return@get call.respond(HttpStatusCode.BadRequest)
+                val batteryInfo = batteriesDao.getBatteryInfo(id)
+                if (batteryInfo != null) {
+                    println("not null")
+                    call.respond(batteryInfo)
+                } else {
+                    println("null")
+                    call.respondText(text = "Battery with ID $id not found", status = HttpStatusCode.NotFound)
+                }
+            } catch (e: Exception) {
+                call.respondText(text = "Please insert right form of ID (Int), starting from 1", status = HttpStatusCode.BadRequest)
+            }
+        }
         post {
             try {
                 val battery = call.receive<BatteryInsert>()

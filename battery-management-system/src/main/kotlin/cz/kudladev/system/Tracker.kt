@@ -83,6 +83,10 @@ suspend fun startTracking(
                         slotStates = slotStates.map {
                             if (it.slot == battery.slot){
                                 chargeRecordsDao.endChargeRecord(chargerId, last_capacity)
+                                batteriesDao.updateBatteryLastChargingCapacity(
+                                    battery.id,
+                                    last_capacity
+                                )
                                 SlotState(it.slot, false)
                             } else {
                                 it

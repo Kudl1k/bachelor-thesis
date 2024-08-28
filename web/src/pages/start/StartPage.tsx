@@ -34,7 +34,6 @@ export function StartPage() {
     }
   }, [chargeRecords]);
 
-  // Use the WebSocket tracking hook conditionally
   useWebSocketTracking({
     id_charger: chargerId ?? 0,
     setChargeRecords,

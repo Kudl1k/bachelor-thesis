@@ -58,10 +58,20 @@ export interface ChargeRecord {
   slot: number;
   startedAt: string;
   finishedAt: string;
-  capacity: number;
+  chargedCapacity: number | null;
   charger: Charger;
   battery: Battery;
   tracking: TrackingRecord[];
+}
+
+export interface ChargeRecordColumnType {
+  idChargeRecord: number;
+  charger: Charger;
+  slot: number;
+  program: string;
+  startedAt: string;
+  finishedAt: string;
+  chargedCapacity: number | null;
 }
 
 export interface TrackingRecord {
@@ -81,6 +91,7 @@ export async function fetchChargerData(
       throw new Error("Network response was not ok");
     }
     const data: Charger[] = await response.json();
+    console.log("Charger data fetched:", data);
     setChargerData(data);
   } catch (error) {
     console.error("Failed to fetch charger data:", error);

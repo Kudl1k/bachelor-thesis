@@ -2,6 +2,7 @@ package cz.kudladev.data.models
 
 import cz.kudladev.util.TimestampSerializer
 import kotlinx.serialization.Serializable
+import java.sql.Time
 import java.sql.Timestamp
 
 
@@ -30,4 +31,17 @@ data class BatteryInsert(
 data class BatteryWithSlot(
     val id: Int,
     val slot: Int,
+)
+
+@Serializable
+data class BatteryInfo(
+    val id: Int,
+    val type: Type,
+    val size: Size,
+    val factory_capacity: Int,
+    val voltage: Int,
+    val last_charged_capacity: Int?,
+    @Serializable(with = TimestampSerializer::class) val last_time_charged_at: Timestamp?,
+    @Serializable(with = TimestampSerializer::class) val created_at: Timestamp?,
+    val charge_records: List<ChargeRecordWithTracking>
 )

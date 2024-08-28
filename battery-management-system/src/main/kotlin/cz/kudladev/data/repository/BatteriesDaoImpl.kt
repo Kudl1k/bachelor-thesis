@@ -3,10 +3,13 @@ package cz.kudladev.data.repository
 import DatabaseBuilder.dbQuery
 import cz.kudladev.data.entities.*
 import cz.kudladev.data.models.Battery
+import cz.kudladev.data.models.BatteryInfo
 import cz.kudladev.data.models.BatteryInsert
+import cz.kudladev.data.models.ChargeRecordWithTracking
 import cz.kudladev.domain.repository.BatteriesDao
 import cz.kudladev.util.EntityParser
 import org.jetbrains.exposed.sql.*
+import java.sql.Timestamp
 import java.time.Clock
 
 class BatteriesDaoImpl: BatteriesDao {
@@ -107,6 +110,63 @@ class BatteriesDaoImpl: BatteriesDao {
             battery
         } catch (e: Exception) {
             println(e)
+            null
+        }
+    }
+
+    override suspend fun updateBatteryLastChargingCapacity(id: Int, capacity: Int): Battery? {
+        return try {
+            val battery = getBatteryById(id) ?: throw IllegalArgumentException("No battery found for id $id")
+            dbQuery {
+                BatteryEntity.findById(id)?.apply {
+                    lastChargedCapacity = capacity
+                    lastTimeChargedAt = Clock.systemUTC().instant()
+                }
+            }
+            getBatteryById(id)
+        } catch (e: Exception) {
+            println(e)
+            null
+        }
+    }
+
+    override suspend fun getBatteryInfo(id: Int): BatteryInfo? {
+        return try {
+            dbQuery {
+                val battery = getBatteryById(id) ?: return@dbQuery null
+
+
+                val chargeRecords = ChargeRecordEntity.find { ChargeRecords.idBattery eq id }.map {
+                    val charger = ChargerEntity.findById(it.chargerEntity.id.value) ?: throw IllegalArgumentException("No charger found for id ${it.chargerEntity.id.value}")
+                    val tracking = ChargeTrackingEntity.find { ChargeTrackings.idChargeRecord eq it.id.value }.orderBy(ChargeTrackings.id to SortOrder.ASC).map { EntityParser.toFormatedChargeTracking(it) }
+                    val result = ChargeRecordWithTracking(
+                        idChargeRecord = it.id.value,
+                        program = it.program,
+                        slot = it.slot,
+                        startedAt = Timestamp.from(it.startedAt),
+                        finishedAt = it.finishedAt?.let { Timestamp.from(it) },
+                        chargedCapacity = it.chargedCapacity,
+                        charger = EntityParser.toCharger(charger),
+                        battery = battery,
+                        tracking = tracking
+                    )
+                    result
+                }
+                val result = BatteryInfo(
+                    id = battery.id!!,
+                    type = battery.type,
+                    size = battery.size,
+                    factory_capacity = battery.factory_capacity,
+                    voltage = battery.voltage,
+                    last_charged_capacity = battery.last_charged_capacity,
+                    last_time_charged_at = battery.last_time_charged_at,
+                    created_at = battery.created_at,
+                    charge_records = chargeRecords
+                )
+                result
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
             null
         }
     }

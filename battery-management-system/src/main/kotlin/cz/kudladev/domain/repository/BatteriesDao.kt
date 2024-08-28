@@ -1,6 +1,7 @@
 package cz.kudladev.domain.repository
 
 import cz.kudladev.data.models.Battery
+import cz.kudladev.data.models.BatteryInfo
 import cz.kudladev.data.models.BatteryInsert
 
 
@@ -15,5 +16,9 @@ interface BatteriesDao {
     suspend fun updateBattery(battery: Battery): Battery?
 
     suspend fun deleteBattery(id: Int): Battery?
+
+    suspend fun updateBatteryLastChargingCapacity(id: Int, capacity: Int): Battery?
+
+    suspend fun getBatteryInfo(id: Int): BatteryInfo?
 
 }
