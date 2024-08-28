@@ -1,4 +1,5 @@
 import { ChargeRecord } from "./ChargerData";
+import { DEFAULTURL } from "./Default";
 import { Size } from "./SizeData";
 import { Type } from "./TypeData";
 
@@ -51,7 +52,7 @@ export async function fetchBatteryData(
   setBatteryData: (data: Battery[]) => void
 ) {
   try {
-    const response = await fetch("http://127.0.0.1:8080/batteries");
+    const response = await fetch(`${DEFAULTURL}/batteries`);
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
@@ -67,7 +68,7 @@ export async function insertBatteryData(
   batteryInsert: BatteryInsert
 ): Promise<Battery | null> {
   try {
-    const response = await fetch("http://127.0.0.1:8080/batteries", {
+    const response = await fetch(`${DEFAULTURL}/batteries`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -93,7 +94,7 @@ export async function fetchBatteryInfo(
   setBatteryData: (data: BatteryInfo) => void
 ) {
   try {
-    const response = await fetch(`http://127.0.0.1:8080/batteries/${id}/info`);
+    const response = await fetch(`${DEFAULTURL}/batteries/${id}/info`);
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Battery, BatteryWithSlot } from "./BatteryData";
+import { DEFAULTURL } from "./Default";
 import { Size } from "./SizeData";
 import { Type } from "./TypeData";
 
@@ -64,16 +65,6 @@ export interface ChargeRecord {
   tracking: TrackingRecord[];
 }
 
-export interface ChargeRecordColumnType {
-  idChargeRecord: number;
-  charger: Charger;
-  slot: number;
-  program: string;
-  startedAt: string;
-  finishedAt: string;
-  chargedCapacity: number | null;
-}
-
 export interface TrackingRecord {
   timestamp: string;
   charge_record_id: number;
@@ -86,7 +77,7 @@ export async function fetchChargerData(
   setChargerData: (data: Charger[]) => void
 ) {
   try {
-    const response = await fetch("http://127.0.0.1:8080/chargers");
+    const response = await fetch(`${DEFAULTURL}/chargers`);
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
@@ -102,7 +93,7 @@ export async function insertChargerData(
   chargerInsert: ChargerInsert
 ): Promise<Charger | null> {
   try {
-    const response = await fetch("http://127.0.0.1:8080/chargers", {
+    const response = await fetch(`${DEFAULTURL}/chargers`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -126,7 +117,7 @@ export async function searchChargerData(
   setChargerData: (data: Charger[]) => void
 ) {
   try {
-    const response = await fetch("http://127.0.0.1:8080/chargers/search", {
+    const response = await fetch(`${DEFAULTURL}/chargers`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -145,7 +136,7 @@ export async function searchChargerData(
 
 export async function fetchPorts(setTtys: (data: string[]) => void) {
   try {
-    const response = await fetch("http://127.0.0.1:8080/chargers/ports");
+    const response = await fetch(`${DEFAULTURL}/chargers/ports`);
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
@@ -159,7 +150,7 @@ export async function fetchPorts(setTtys: (data: string[]) => void) {
 export async function startTracking(tracking: Tracking) {
   try {
     const response = await fetch(
-      `http://127.0.0.1:8080/chargers/${tracking.id_charger}/tracking/start`,
+      `${DEFAULTURL}/chargers/${tracking.id_charger}/tracking/start`,
       {
         method: "POST",
         headers: {
@@ -180,7 +171,7 @@ export async function startTracking(tracking: Tracking) {
 export async function stopTracking(id_charger: number) {
   try {
     const response = await fetch(
-      `http://127.0.0.1:8080/chargers/${id_charger}/tracking/start`,
+      `${DEFAULTURL}/chargers/${id_charger}/tracking/start`,
       {
         method: "GET",
       }
@@ -198,9 +189,7 @@ export async function fetchNotEndedChargeRecord(
   setChargeRecord: (data: ChargeRecord[]) => void
 ) {
   try {
-    const response = await fetch(
-      "http://127.0.0.1:8080/chargers/records/notended"
-    );
+    const response = await fetch(`${DEFAULTURL}/chargers/records/notended`);
     {
       if (!response.ok) {
         throw new Error("Network response was not ok");
@@ -219,7 +208,7 @@ export async function fetchTrackingRecord(
 ) {
   try {
     const response = await fetch(
-      `http://127.0.0.1:8080/chargers/records/${id_charge_record}/tracking`
+      `${DEFAULTURL}/chargers/records/${id_charge_record}/tracking`
     );
     if (!response.ok) {
       throw new Error("Network response was not ok");
