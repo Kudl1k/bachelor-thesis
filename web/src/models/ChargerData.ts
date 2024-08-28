@@ -117,7 +117,7 @@ export async function searchChargerData(
   setChargerData: (data: Charger[]) => void
 ) {
   try {
-    const response = await fetch(`${DEFAULTURL}/chargers`, {
+    const response = await fetch(`${DEFAULTURL}/chargers/search`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
