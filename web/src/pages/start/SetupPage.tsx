@@ -252,6 +252,7 @@ export function SetupPage() {
                         setSelectedIds={handleBatterySelectionChange}
                         setSelectedId={() => {}}
                         multiRowSelection
+                        idname="id"
                       />
                     </div>
                     <div className="flex w-full justify-end pe-8">
@@ -284,6 +285,7 @@ export function SetupPage() {
                         setSelectedId={handleChargerSelectionChange}
                         setSelectedIds={() => {}}
                         multiRowSelection={false}
+                        idname="id"
                       />
                     </div>
                     <div className="flex w-full justify-end ps-8 pe-8">
