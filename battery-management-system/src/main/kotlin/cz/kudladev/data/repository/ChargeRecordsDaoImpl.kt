@@ -131,7 +131,7 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
                         finishedAt = it.finishedAt?.let { Timestamp.from(it) },
                         chargedCapacity = it.chargedCapacity,
                         charger = EntityParser.toCharger(charger),
-                        battery = EntityParser.toBattery(battery, EntityParser.toType(type), EntityParser.toSize(size)),
+                        battery = EntityParser.toFormatedBattery(battery, EntityParser.toType(type), EntityParser.toSize(size)),
                         tracking = tracking
                     )
                 }

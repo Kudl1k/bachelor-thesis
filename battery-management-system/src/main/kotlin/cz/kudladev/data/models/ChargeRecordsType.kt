@@ -36,6 +36,20 @@ data class ChargeRecordWithTracking(
     @Serializable(with = TimestampSerializer::class) val finishedAt: Timestamp? = null,
     val chargedCapacity: Int? = null,
     val charger: Charger,
-    val battery: Battery,
+    val battery: BatteryFormated,
+    val tracking: List<FormatedChargeTracking>
+)
+
+
+@Serializable
+data class ChargeRecordWithTrackingFormated(
+    val idChargeRecord: Int? = null,
+    val program: String,
+    val slot: Int,
+    @Serializable(with = TimestampSerializer::class) val startedAt: Timestamp,
+    @Serializable(with = TimestampSerializer::class) val finishedAt: Timestamp? = null,
+    val chargedCapacity: Float? = null,
+    val charger: Charger,
+    val battery: BatteryFormated,
     val tracking: List<FormatedChargeTracking>
 )

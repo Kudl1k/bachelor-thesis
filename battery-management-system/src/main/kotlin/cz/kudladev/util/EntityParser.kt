@@ -14,7 +14,22 @@ object EntityParser {
             size = size,
             factory_capacity = entity.factoryCapacity,
             voltage = entity.voltage,
+            shop_link = entity.shopLink,
             last_charged_capacity = entity.lastChargedCapacity,
+            last_time_charged_at = entity.lastTimeChargedAt?.let { Timestamp.from(it) },
+            created_at = Timestamp.from(entity.createdAt)
+        )
+    }
+
+    fun toFormatedBattery(entity: BatteryEntity, type: Type, size: Size): BatteryFormated {
+        return BatteryFormated(
+            id = entity.id.value,
+            type = type,
+            size = size,
+            factory_capacity = entity.factoryCapacity,
+            voltage = convertVoltageToVolt(entity.voltage),
+            shop_link = entity.shopLink,
+            last_charged_capacity = entity.lastChargedCapacity?.let { convertChargedOrDischargedCapacityToMilliAmpHour(it) },
             last_time_charged_at = entity.lastTimeChargedAt?.let { Timestamp.from(it) },
             created_at = Timestamp.from(entity.createdAt)
         )

@@ -6,6 +6,7 @@ import cz.kudladev.domain.repository.ChargeRecordsDao
 import cz.kudladev.domain.repository.ChargeTrackingDao
 import jssc.SerialPort
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 
 
 var isRunning = false
@@ -48,7 +49,7 @@ suspend fun startTracking(
 
     while (isRunning) {
         if (slotsCounter == slots) {
-            Thread.sleep(5000)
+            delay(5000)
             slotsCounter = 0
         } else {
             slotsCounter++

@@ -35,7 +35,7 @@ object DatabaseBuilder {
         Database.connect(hikariDataSource)
 
         transaction {
-            SchemaUtils.create(Types, Sizes, Batteries, Chargers, ChargerTypes, ChargerSizes, ChargeRecords, ChargeTrackings)
+            SchemaUtils.createMissingTablesAndColumns(Types, Sizes, Batteries, Chargers, ChargerTypes, ChargerSizes, ChargeRecords, ChargeTrackings)
         }
 
         EntityHook.subscribe { change ->

@@ -32,6 +32,7 @@ object ResultRowParser {
             ),
             factory_capacity = row[Batteries.factoryCapacity],
             voltage = row[Batteries.voltage],
+            shop_link = row[Batteries.shop_link],
             last_charged_capacity = row[Batteries.lastChargedCapacity],
             last_time_charged_at = row[Batteries.lastTimeChargedAt]?.let { Timestamp.from(it) },
             created_at = Timestamp.from(row[Batteries.createdAt])
@@ -103,7 +104,7 @@ object ResultRowParser {
         )
     }
 
-    fun resultRowToChargerRecordWithTracking(charger: Charger,battery: Battery,row: ResultRow, tracking: List<FormatedChargeTracking>): ChargeRecordWithTracking {
+    fun resultRowToChargerRecordWithTracking(charger: Charger,battery: BatteryFormated,row: ResultRow, tracking: List<FormatedChargeTracking>): ChargeRecordWithTracking {
         return ChargeRecordWithTracking(
             idChargeRecord = row[ChargeRecords.id].value,
             program = row[ChargeRecords.program],

@@ -12,6 +12,7 @@ object Batteries : IntIdTable("battery") {
     val size = reference("size", Sizes) // Use reference for foreign key
     val factoryCapacity = integer("factory_capacity")
     val voltage = integer("voltage")
+    val shop_link = varchar("shop_link", 255).nullable()
     val lastChargedCapacity = integer("last_charged_capacity").nullable()
     val lastTimeChargedAt = timestamp("last_time_charged_at").nullable()
     val createdAt = timestamp("created_at")
@@ -24,6 +25,7 @@ class BatteryEntity(id: EntityID<Int>) : IntEntity(id) {
     var sizeEntity by SizeEntity referencedOn Batteries.size
     var factoryCapacity by Batteries.factoryCapacity
     var voltage by Batteries.voltage
+    var shopLink by Batteries.shop_link
     var lastChargedCapacity by Batteries.lastChargedCapacity
     var lastTimeChargedAt by Batteries.lastTimeChargedAt
     var createdAt by Batteries.createdAt
