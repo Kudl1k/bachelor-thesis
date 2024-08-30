@@ -43,6 +43,10 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
 
   const [timeRange, setTimeRange] = useState("full");
 
+  if (data.tracking.length === 0) {
+    return null;
+  }
+
   const filteredData = data.tracking.filter((record) => {
     if (timeRange === "full") {
       return true;

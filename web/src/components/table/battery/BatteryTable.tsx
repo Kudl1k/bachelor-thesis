@@ -28,24 +28,30 @@ import { DataTablePagination } from "../Pagination";
 import { DataTableViewOptions } from "../ViewOptions";
 
 interface DataTableProps<TData, TValue> {
+  searchbarname: string;
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   setSelectedIds?: (selectedIds: number[]) => void;
   setSelectedId: (selectedId: number) => void;
   multiRowSelection?: boolean;
   idname: string;
+  sortiddesc: boolean;
 }
 
 export function DataTable<TData, TValue>({
+  searchbarname,
   columns,
   data,
   setSelectedIds,
   setSelectedId,
   multiRowSelection,
   idname,
+  sortiddesc,
 }: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: idname, desc: sortiddesc },
+  ]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
 
@@ -88,10 +94,11 @@ export function DataTable<TData, TValue>({
     <div>
       <div className="flex items-center py-4">
         <Input
-          placeholder="Filter batteries by id"
-          value={(table.getColumn("id")?.getFilterValue() as string) ?? ""}
+          placeholder={`Filter ${searchbarname} by id...`}
+          value={(table.getColumn(idname)?.getFilterValue() as string) ?? ""}
           onChange={(event) => {
-            table.getColumn("id")?.setFilterValue(event.target.value);
+            console.log(event.target.value);
+            table.getColumn(idname)?.setFilterValue(event.target.value);
           }}
           className="max-w-sm"
         />

@@ -27,8 +27,8 @@ export interface BatteryColumnType {
   size: string;
   factory_capacity: number;
   voltage: number;
-  last_charged_capacity: string | null;
-  last_time_charged_at: string | null;
+  last_charged_capacity: string;
+  last_time_charged_at: string;
 }
 
 export interface BatteryWithSlot {

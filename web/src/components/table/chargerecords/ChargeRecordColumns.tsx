@@ -15,7 +15,7 @@ export const ChargeRecordColumns: ColumnDef<ChargeRecord>[] = [
     ),
   },
   {
-    accessorKey: "id",
+    accessorKey: "idChargeRecord",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="ID" />
     ),

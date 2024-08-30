@@ -141,6 +141,7 @@ export async function fetchPorts(setTtys: (data: string[]) => void) {
       throw new Error("Network response was not ok");
     }
     const data: string[] = await response.json();
+    console.log("Ports fetched:", data);
     setTtys(data);
   } catch (error) {
     console.error("Failed to fetch ports:", error);
@@ -267,4 +268,22 @@ export function useWebSocketTracking({
       ws.close();
     };
   }, [id_charger, setChargeRecords]);
+}
+
+export async function updatePort(charge_id: number, port: string) {
+  try {
+    const response = await fetch(`${DEFAULTURL}/chargers/${charge_id}/port`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: port,
+    });
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    console.log("Port updated");
+  } catch (error) {
+    console.error("Failed to update port:", error);
+  }
 }

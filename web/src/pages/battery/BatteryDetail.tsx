@@ -75,12 +75,14 @@ export default function BatteryDetail() {
           <CardContent>
             <div className="container mx-auto">
               <DataTable
+                searchbarname="charge records"
                 columns={ChargeRecordColumns}
                 data={batteryData.charge_records || []}
                 setSelectedId={handleChargerSelectionChange}
                 setSelectedIds={() => {}}
                 multiRowSelection={false}
                 idname="idChargeRecord"
+                sortiddesc={true}
               />
             </div>
           </CardContent>
