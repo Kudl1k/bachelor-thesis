@@ -227,7 +227,7 @@ export function SetupPage() {
     return true;
   }
 
-  function handleStart() {
+  async function handleStart() {
     console.log("Starting the process");
     console.log("Selected batteries:", selectedBatteries);
     console.log("Selected charger:", selectedCharger);
@@ -247,7 +247,7 @@ export function SetupPage() {
       return;
     }
     if (selectedCharger?.tty !== port) {
-      updatePort(selectedChargerId, port);
+      await updatePort(selectedChargerId, port);
     }
     checkBatterySlotsConflicts();
     const filteredSlots = selectedSlots.filter((slot) => slot.id !== 0);

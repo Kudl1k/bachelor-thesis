@@ -54,7 +54,7 @@ export function BatteryCard({ battery }: BatteryCardProps) {
           {battery.factory_capacity} mAh
         </p>
         <p>
-          <span className="font-semibold">Voltage:</span> {battery.voltage} mV
+          <span className="font-semibold">Voltage:</span> {battery.voltage} V
         </p>
       </CardContent>
       <CardFooter>

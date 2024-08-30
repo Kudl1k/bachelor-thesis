@@ -1,7 +1,9 @@
 import { ChargeRecordChart } from "@/components/charts/ChargeRecordChart";
+import { LastRecordsChart } from "@/components/charts/LastRecordsChart";
 import { Loading } from "@/components/Loading";
 import { DataTable } from "@/components/table/battery/BatteryTable";
 import { ChargeRecordColumns } from "@/components/table/chargerecords/ChargeRecordColumns";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { BatteryInfo, fetchBatteryInfo } from "@/models/BatteryData";
 import { useEffect, useRef, useState } from "react";
@@ -52,24 +54,39 @@ export default function BatteryDetail() {
                   {batteryData.factory_capacity} mAh
                 </h2>
                 <h2 className="text-lg font-semibold">
-                  {batteryData.voltage} mV
+                  {batteryData.voltage} V
                 </h2>
                 <h2 className="text-lg font-semibold">
                   {batteryData.type.shortcut}
                 </h2>
               </div>
-              <div className="col-span-2 w-full justify-end sm:text-end md:text-end lg:text-end xl:text-end">
-                {selectedCharger && (
-                  <ChargeRecordChart
-                    data={
-                      batteryData.charge_records.find(
-                        (record) => record.idChargeRecord === selectedCharger
-                      ) || batteryData.charge_records[0]
-                    }
-                    className="max-h-[400px]"
-                  />
-                )}
+              <div className="col-span-1">
+                <LastRecordsChart data={batteryData.charge_records} />
               </div>
+            </div>
+            <div className="col-span-2 w-full justify-end sm:text-end md:text-end lg:text-end xl:text-end">
+              {selectedCharger && (
+                <ChargeRecordChart
+                  data={
+                    batteryData.charge_records.find(
+                      (record) => record.idChargeRecord === selectedCharger
+                    ) || batteryData.charge_records[0]
+                  }
+                  className="max-h-[400px]"
+                />
+              )}
+              {!selectedCharger && (
+                <div className="rounded-lg full-w shadow-md min-h-[200px] p-4">
+                  <AspectRatio ratio={16 / 9}>
+                    <div className="flex h-full w-full items-center justify-center">
+                      <h4 className="italic">
+                        Please select an record in the table to view a chart of
+                        the record.
+                      </h4>
+                    </div>
+                  </AspectRatio>
+                </div>
+              )}
             </div>
           </CardHeader>
           <CardContent>

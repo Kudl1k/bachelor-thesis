@@ -1,6 +1,7 @@
 import { ChargeRecord } from "@/models/ChargerData";
 import { useEffect, useState } from "react";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
+import { AspectRatio } from "../ui/aspect-ratio";
 import { Badge } from "../ui/badge";
 import {
   ChartConfig,
@@ -18,15 +19,15 @@ import {
 
 const chartConfig = {
   capacity: {
-    label: "Capacity (mAh)",
+    label: "Capacity",
     color: "#2563eb",
   },
   voltage: {
-    label: "Voltage (V)",
+    label: "Voltage",
     color: "#f87171",
   },
   current: {
-    label: "Current (A)",
+    label: "Current",
     color: "#34d399",
   },
 } satisfies ChartConfig;
@@ -43,8 +44,18 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
 
   const [timeRange, setTimeRange] = useState("full");
 
-  if (data.tracking.length === 0) {
-    return null;
+  if (data.tracking.length === 1) {
+    return (
+      <div className="rounded-lg full-w shadow-md min-h-[200px] p-4">
+        <AspectRatio ratio={16 / 9}>
+          <div className="flex h-full w-full items-center justify-center">
+            <h4 className="italic">
+              This record does not have any tracking data.
+            </h4>
+          </div>
+        </AspectRatio>
+      </div>
+    );
   }
 
   const filteredData = data.tracking.filter((record) => {
@@ -77,7 +88,7 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
   });
 
   return (
-    <div className="rounded-lg p-4">
+    <div className="rounded-lg p-4 mt-4 shadow-md">
       <div className="flex w-full justify-between">
         <h1 className="text-xl font-bold">Slot {data.slot}</h1>
         <Select value={timeRange} onValueChange={setTimeRange}>
@@ -109,7 +120,7 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
           </SelectContent>
         </Select>
       </div>
-      <div className="flex w-full justify-between">
+      <div className="flex w-full justify-between text-start">
         <div className="">
           <p className="font-semibold">
             ID: <span>{data.battery.id}</span>
@@ -159,8 +170,38 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
           <YAxis tickLine={false} axisLine={false} tickMargin={20} />
           <ChartTooltip
             content={
-              <ChartTooltipContent className="w-[150px]" indicator="line" />
+              <ChartTooltipContent
+                hideLabel
+                formatter={(value, name) => (
+                  <>
+                    <div
+                      className="h-2.5 w-2.5 shrink-0 rounded-[2px] bg-[--color-bg]"
+                      style={
+                        {
+                          "--color-bg": `var(--color-${name})`,
+                        } as React.CSSProperties
+                      }
+                    />
+                    <div className="flex min-w-[130px] items-center text-xs text-muted-foreground">
+                      {chartConfig[name as keyof typeof chartConfig]?.label ||
+                        name}
+                      <div className="ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums text-foreground">
+                        {value}
+                        <span className="font-normal text-muted-foreground">
+                          {name === "capacity"
+                            ? " mAh"
+                            : name === "voltage"
+                            ? " V"
+                            : " A"}
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                )}
+              />
             }
+            cursor={false}
+            defaultIndex={1}
           />
           <Line
             dataKey="capacity"

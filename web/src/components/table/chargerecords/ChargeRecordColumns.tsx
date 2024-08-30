@@ -71,5 +71,10 @@ export const ChargeRecordColumns: ColumnDef<ChargeRecord>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Charged capacity" />
     ),
+    cell: ({ row }) => {
+      const value = row.original.chargedCapacity;
+      if (value === null) return <div className="">-</div>;
+      return <div className="">{value} mAh</div>;
+    },
   },
 ];
