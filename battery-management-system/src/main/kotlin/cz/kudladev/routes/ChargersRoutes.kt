@@ -134,5 +134,24 @@ fun Route.chargers(chargersDao: ChargersDao){
         get("/ports"){
             call.respond(getAvailablePorts())
         }
+        put("{chargerId}/port"){
+            try {
+                val chargerId = call.parameters["chargerId"]?.toInt() ?: return@put call.respond(HttpStatusCode.BadRequest)
+                val port = call.receive<String>()
+                val charger = chargersDao.updatePort(chargerId, port)
+                if (charger != null) {
+                    call.respond(charger)
+                } else {
+                    call.respondText(text = "Charger with ID $chargerId not found", status = HttpStatusCode.NotFound)
+                }
+            } catch (e: Exception) {
+                call.respondText(
+                    text = "Please insert right form of ID (Int), starting from 1",
+                    status = HttpStatusCode.BadRequest
+                )
+            }
+
+        }
+
     }
 }

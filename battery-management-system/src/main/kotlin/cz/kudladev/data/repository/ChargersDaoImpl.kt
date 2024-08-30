@@ -275,5 +275,19 @@ class ChargersDaoImpl : ChargersDao {
         }
     }
 
+    override suspend fun updatePort(chargerId: Int, port: String): ChargerWithTypesAndSizes? {
+        return try {
+            dbQuery {
+                Chargers.update({ Chargers.id eq chargerId }) {
+                    it[tty] = port
+                }
+            }
+            getChargerById(chargerId)
+        } catch (e: Exception) {
+            println(e)
+            null
+        }
+    }
+
 
 }

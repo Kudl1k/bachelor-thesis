@@ -17,7 +17,7 @@ class BatteriesDaoImpl: BatteriesDao {
     override suspend fun getAllBatteries(): List<Battery> {
         return try {
             dbQuery {
-                BatteryEntity.all().map {
+                BatteryEntity.all().orderBy(Batteries.id to SortOrder.ASC).map {
                     val size = SizeEntity.findById(it.sizeEntity.id.value) ?: throw IllegalArgumentException("No size found for id ${it.sizeEntity.id.value}")
                     val type = TypeEntity.findById(it.typeEntity.id.value) ?: throw IllegalArgumentException("No type found for id ${it.typeEntity.id.value}")
 

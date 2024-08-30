@@ -27,5 +27,7 @@ interface ChargersDao {
 
     suspend fun removeSizeFromCharger(chargerId: Int, size: String): ChargerWithTypesAndSizes?
 
+    suspend fun updatePort(chargerId: Int, port: String): ChargerWithTypesAndSizes?
+
 
 }

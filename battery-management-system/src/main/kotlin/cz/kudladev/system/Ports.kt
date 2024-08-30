@@ -39,12 +39,7 @@ fun readFromPort(
     resetPort(port)
     val buffer = port.readBytes(bytes)
 
-    when (idCharger){
-        1 -> {
-            return BufferParsers.conradManagerCharger2010(buffer)
-        }
-    }
-    return null
+    return BufferParsers.conradManagerCharger2010(buffer)
 }
 
 fun resetPort(port: SerialPort) {

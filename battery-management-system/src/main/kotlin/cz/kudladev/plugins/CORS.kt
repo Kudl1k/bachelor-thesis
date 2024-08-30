@@ -10,5 +10,10 @@ fun Application.configureCORS() {
         anyHost()
         allowHeader(HttpHeaders.ContentType)
         allowHeader(HttpHeaders.Authorization)
+        methods.add(HttpMethod.Get)
+        methods.add(HttpMethod.Post)
+        methods.add(HttpMethod.Put)
+        methods.add(HttpMethod.Delete)
+
     }
 }
