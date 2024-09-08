@@ -43,12 +43,6 @@ export const ChargeRecordColumns: ColumnDef<ChargeRecord>[] = [
     },
   },
   {
-    accessorKey: "program",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Program" />
-    ),
-  },
-  {
     accessorKey: "slot",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Slot" />

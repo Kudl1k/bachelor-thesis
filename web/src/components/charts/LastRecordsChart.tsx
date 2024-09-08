@@ -20,13 +20,13 @@ export interface LastRecordsChartProps {
 }
 
 export function LastRecordsChart({ data }: LastRecordsChartProps) {
-  if (!data || data.length === 1) {
+  if (!data || data.length === 0) {
     return (
       <div className="rounded-lg full-w shadow-md min-h-[200px] p-4">
         <AspectRatio ratio={16 / 9}>
           <div className="flex h-full w-full items-center justify-center">
             <h4 className="italic">
-              This record does not have any tracking data.
+              This battery does not have any charge records.
             </h4>
           </div>
         </AspectRatio>
@@ -91,7 +91,6 @@ export function LastRecordsChart({ data }: LastRecordsChartProps) {
             />
           }
           cursor={false}
-          defaultIndex={1}
         />
         <Bar
           dataKey="chargedCapacity"

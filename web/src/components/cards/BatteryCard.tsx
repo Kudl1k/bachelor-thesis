@@ -2,15 +2,31 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Battery } from "@/models/BatteryData";
-import { CalendarPlus } from "lucide-react";
+import { Battery, truncateText } from "@/models/BatteryData";
+
+import {
+  BatteryCharging,
+  BatteryMedium,
+  Biohazard,
+  CalendarClock,
+  CalendarPlus,
+  Hash,
+  LucideLink,
+  Ruler,
+  Zap,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { Badge } from "../ui/badge";
 import { buttonVariants } from "../ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
 
 interface BatteryCardProps {
   battery: Battery;
@@ -22,43 +38,71 @@ export function BatteryCard({ battery }: BatteryCardProps) {
       <CardHeader>
         <CardTitle>
           <div className="flex justify-between items-center w-full">
-            <div>#{battery.id}</div>
-            <div>
-              <Badge variant="outline">
-                <CalendarPlus size={12} />
-                {battery.created_at}
+            <h1 className="text-2xl font-bold">
+              <div className="flex items-center gap-2">
+                <Hash className="size-7" />
+                {battery.id}
+              </div>
+            </h1>
+            <div className="flex items-center">
+              <Badge variant="outline" className="gap-2">
+                <CalendarPlus size={14} />
+                <p className="text-sm">{battery.created_at}</p>
               </Badge>
+              <div className="ml-auto">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <LucideLink size={14} />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <a href={battery.shop_link || ""} target="_blank">
+                        {truncateText(battery.shop_link || "", 30)}
+                      </a>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
             </div>
           </div>
         </CardTitle>
-        <CardDescription>
-          <p>
-            Last time charged:{" "}
-            <span> {battery.last_time_charged_at || "N/A"}</span>
-          </p>
-          <p>
-            Last charged capacity:{" "}
-            {battery.last_charged_capacity || "N/A" + " mAh"}
-          </p>
+        <CardDescription className="space-y-1">
+          <div className="flex items-center gap-2">
+            <CalendarClock />
+            {battery.last_time_charged_at || "N/A"}
+          </div>
+          <div className="flex items-center gap-2">
+            <BatteryCharging />
+            {battery.last_charged_capacity || "N/A"} mAh
+          </div>
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <p>
-          <span className="font-semibold">Type:</span> {battery.type.shortcut}
-        </p>
-        <p>
-          <span className="font-semibold">Size:</span> {battery.size.name}
-        </p>
-        <p>
-          <span className="font-semibold">Capacity:</span>{" "}
-          {battery.factory_capacity} mAh
-        </p>
-        <p>
-          <span className="font-semibold">Voltage:</span> {battery.voltage} V
-        </p>
-      </CardContent>
-      <CardFooter>
-        <div className="flex justify-between w-full">
+        <h2 className="text-lg font-semibold">
+          <div className="flex items-center gap-2">
+            <Ruler />
+            {battery.size.name}
+          </div>
+        </h2>
+        <h2 className="text-lg font-semibold">
+          <div className="flex items-center gap-2">
+            <BatteryMedium />
+            {battery.factory_capacity} mAh
+          </div>
+        </h2>
+        <h2 className="text-lg font-semibold">
+          <div className="flex items-center gap-2">
+            <Zap />
+            {battery.voltage} V
+          </div>
+        </h2>
+        <h2 className="text-lg font-semibold">
+          <div className="flex items-center gap-2">
+            <Biohazard />
+            {battery.type.shortcut}
+          </div>
+        </h2>
+        <div className="flex justify-end w-full">
           <Link
             className={buttonVariants({ variant: "secondary" })}
             to={`/battery/${battery.id}`}
@@ -66,7 +110,7 @@ export function BatteryCard({ battery }: BatteryCardProps) {
             Details
           </Link>
         </div>
-      </CardFooter>
+      </CardContent>
     </Card>
   );
 }

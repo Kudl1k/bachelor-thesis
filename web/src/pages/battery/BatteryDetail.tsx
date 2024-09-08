@@ -5,7 +5,12 @@ import { DataTable } from "@/components/table/battery/BatteryTable";
 import { ChargeRecordColumns } from "@/components/table/chargerecords/ChargeRecordColumns";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { BatteryInfo, fetchBatteryInfo } from "@/models/BatteryData";
+import {
+  BatteryInfo,
+  fetchBatteryInfo,
+  truncateText,
+} from "@/models/BatteryData";
+import { BatteryMedium, Biohazard, Hash, Link, Ruler, Zap } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 
@@ -45,19 +50,49 @@ export default function BatteryDetail() {
         <Card className="shadow-md">
           <CardHeader>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2">
-              <div className="col-span-1">
-                <h1 className="text-2xl font-bold">#{batteryData.id}</h1>
+              <div className="col-span-1 space-y-1">
+                <h1 className="text-2xl font-bold">
+                  <div className="flex items-center gap-2">
+                    <Hash />
+                    {batteryData.id}
+                  </div>
+                </h1>
                 <h2 className="text-lg font-semibold">
-                  {batteryData.size.name}
+                  <div className="flex items-center gap-2">
+                    <Ruler />
+                    {batteryData.size.name}
+                  </div>
                 </h2>
                 <h2 className="text-lg font-semibold">
-                  {batteryData.factory_capacity} mAh
+                  <div className="flex items-center gap-2">
+                    <BatteryMedium />
+                    {batteryData.factory_capacity} mAh
+                  </div>
                 </h2>
                 <h2 className="text-lg font-semibold">
-                  {batteryData.voltage} V
+                  <div className="flex items-center gap-2">
+                    <Zap />
+                    {batteryData.voltage} V
+                  </div>
                 </h2>
                 <h2 className="text-lg font-semibold">
-                  {batteryData.type.shortcut}
+                  <div className="flex items-center gap-2">
+                    <Biohazard />
+                    {batteryData.type.shortcut}
+                  </div>
+                </h2>
+                <h2 className="text-lg font-semibold ">
+                  <div className="flex items-center gap-2">
+                    <Link />
+                    <a
+                      href={batteryData.shop_link || ""}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-blue-500"
+                    >
+                      {truncateText(batteryData.shop_link || "", 30)}
+                    </a>
+                  </div>
                 </h2>
               </div>
               <div className="col-span-1">

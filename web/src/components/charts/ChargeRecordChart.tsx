@@ -1,4 +1,5 @@
 import { ChargeRecord } from "@/models/ChargerData";
+import { Battery, BatteryCharging, Hash } from "lucide-react";
 import { useEffect, useState } from "react";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import { AspectRatio } from "../ui/aspect-ratio";
@@ -44,7 +45,7 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
 
   const [timeRange, setTimeRange] = useState("full");
 
-  if (data.tracking.length === 1) {
+  if (data.tracking.length === 0) {
     return (
       <div className="rounded-lg full-w shadow-md min-h-[200px] p-4">
         <AspectRatio ratio={16 / 9}>
@@ -122,15 +123,23 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
       </div>
       <div className="flex w-full justify-between text-start">
         <div className="">
-          <p className="font-semibold">
-            ID: <span>{data.battery.id}</span>
-          </p>
-          <p className="font-semibold">
-            <span>
-              {data.tracking[data.tracking.length - 1] &&
-                getProgram(data.tracking[data.tracking.length - 1].charging)}
-            </span>
-          </p>
+          <div className="flex items-center gap-1">
+            <Hash className="" />
+            <h2 className="text-xl">{data.battery.id}</h2>
+          </div>
+          <div className="flex items-center gap-1">
+            {data.tracking[data.tracking.length - 1].charging ? (
+              <>
+                <BatteryCharging />
+                Charging
+              </>
+            ) : (
+              <>
+                <Battery />
+                Discharging
+              </>
+            )}
+          </div>
           <div>
             <Badge className="me-1">{data.battery.type.shortcut}</Badge>
             <Badge className="me-1">{data.battery.size.name}</Badge>
@@ -203,8 +212,7 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
                 )}
               />
             }
-            cursor={false}
-            defaultIndex={1}
+            cursor={true}
           />
           <Line
             dataKey="real_capacity"
@@ -231,10 +239,6 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
       </ChartContainer>
     </div>
   );
-}
-
-function getProgram(program: boolean): string {
-  return program ? "Charging" : "Discharging";
 }
 
 function parseCustomDate(dateString: string): Date {
