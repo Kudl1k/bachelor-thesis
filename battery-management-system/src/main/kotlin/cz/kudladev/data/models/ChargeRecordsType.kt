@@ -9,10 +9,10 @@ import java.text.Normalizer.Form
 @Serializable
 data class ChargeRecord(
     val idChargeRecord: Int? = null,
-    val program: String,
     val slot: Int,
     @Serializable(with = TimestampSerializer::class) val startedAt: Timestamp,
     @Serializable(with = TimestampSerializer::class) val finishedAt: Timestamp? = null,
+    val initialCapacity: Int,
     val chargedCapacity: Int? = null,
     val charger: Charger,
     val battery: Battery
@@ -21,7 +21,6 @@ data class ChargeRecord(
 
 @Serializable
 data class ChargeRecordInsert(
-    val program: String,
     val slot: Int,
     val charger_id: Int,
     val battery_id: Int
@@ -30,10 +29,10 @@ data class ChargeRecordInsert(
 @Serializable
 data class ChargeRecordWithTracking(
     val idChargeRecord: Int? = null,
-    val program: String,
     val slot: Int,
     @Serializable(with = TimestampSerializer::class) val startedAt: Timestamp,
     @Serializable(with = TimestampSerializer::class) val finishedAt: Timestamp? = null,
+    val initialCapacity: Int,
     val chargedCapacity: Int? = null,
     val charger: Charger,
     val battery: BatteryFormated,
@@ -44,10 +43,10 @@ data class ChargeRecordWithTracking(
 @Serializable
 data class ChargeRecordWithTrackingFormated(
     val idChargeRecord: Int? = null,
-    val program: String,
     val slot: Int,
     @Serializable(with = TimestampSerializer::class) val startedAt: Timestamp,
     @Serializable(with = TimestampSerializer::class) val finishedAt: Timestamp? = null,
+    val initialCapacity: Float,
     val chargedCapacity: Float? = null,
     val charger: Charger,
     val battery: BatteryFormated,

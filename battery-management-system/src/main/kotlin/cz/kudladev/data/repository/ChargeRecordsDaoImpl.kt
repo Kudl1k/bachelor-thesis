@@ -52,10 +52,10 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
                 val charger = ChargerEntity.find(Chargers.id eq chargeRecord.charger_id).singleOrNull() ?: throw IllegalArgumentException("No charger found for id ${chargeRecord.charger_id}")
                 val battery = BatteryEntity.find(Batteries.id eq chargeRecord.battery_id).singleOrNull() ?: throw IllegalArgumentException("No battery found for id ${chargeRecord.battery_id}")
                 ChargeRecordEntity.new {
-                    program = chargeRecord.program
                     slot = chargeRecord.slot
                     startedAt = time
                     finishedAt = null
+                    initialCapacity = 0
                     chargedCapacity = null
                     chargerEntity = charger
                     batteryEntity = battery
@@ -71,7 +71,6 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
         return try {
             dbQuery {
                 ChargeRecordEntity.findById(chargeRecord.idChargeRecord!!)?.let {
-                    it.program = chargeRecord.program
                     it.slot = chargeRecord.slot
                     it.startedAt = chargeRecord.startedAt.toInstant()
                     it.finishedAt = chargeRecord.finishedAt?.toInstant()
@@ -125,10 +124,10 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
                     val tracking = ChargeTrackingEntity.find { ChargeTrackings.idChargeRecord eq it.id.value }.orderBy(ChargeTrackings.id to SortOrder.ASC).map { EntityParser.toFormatedChargeTracking(it) }
                     ChargeRecordWithTracking(
                         idChargeRecord = it.id.value,
-                        program = it.program,
                         slot = it.slot,
                         startedAt = Timestamp.from(it.startedAt),
                         finishedAt = it.finishedAt?.let { Timestamp.from(it) },
+                        initialCapacity = it.initialCapacity,
                         chargedCapacity = it.chargedCapacity,
                         charger = EntityParser.toCharger(charger),
                         battery = EntityParser.toFormatedBattery(battery, EntityParser.toType(type), EntityParser.toSize(size)),

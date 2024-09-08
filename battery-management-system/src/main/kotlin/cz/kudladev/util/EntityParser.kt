@@ -85,10 +85,10 @@ object EntityParser {
     fun toChargeRecord(chargeRecordEntity: ChargeRecordEntity, charger: Charger, battery: Battery): ChargeRecord{
         return ChargeRecord(
             idChargeRecord = chargeRecordEntity.id.value,
-            program = chargeRecordEntity.program,
             slot = chargeRecordEntity.slot,
             startedAt = Timestamp.from(chargeRecordEntity.startedAt),
             finishedAt = chargeRecordEntity.finishedAt?.let { Timestamp.from(it) },
+            initialCapacity = chargeRecordEntity.initialCapacity,
             chargedCapacity = chargeRecordEntity.chargedCapacity,
             charger = charger,
             battery = battery
@@ -99,9 +99,11 @@ object EntityParser {
         return ChargeTrackingID(
             timestamp = Timestamp.from(chargeTrackingEntity.timestamp.value),
             charge_record_id = chargeTrackingEntity.chargeRecordEntity.id.value,
+            charging = chargeTrackingEntity.charging,
             voltage = chargeTrackingEntity.voltage,
             current = chargeTrackingEntity.current,
             capacity = chargeTrackingEntity.capacity,
+            real_capacity = chargeTrackingEntity.realCapacity
         )
     }
 
@@ -109,6 +111,8 @@ object EntityParser {
         return FormatedChargeTracking(
             timestamp = Timestamp.from(chargeTrackingEntity.timestamp.value),
             charge_record_id = chargeTrackingEntity.chargeRecordEntity.id.value,
+            charging = chargeTrackingEntity.charging,
+            real_capacity = convertChargedOrDischargedCapacityToMilliAmpHour(chargeTrackingEntity.realCapacity),
             capacity = convertChargedOrDischargedCapacityToMilliAmpHour(chargeTrackingEntity.capacity),
             voltage = convertVoltageToVolt(chargeTrackingEntity.voltage),
             current = convertCurrentToAmpere(chargeTrackingEntity.current)

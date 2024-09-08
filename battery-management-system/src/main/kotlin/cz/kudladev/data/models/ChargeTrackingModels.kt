@@ -8,6 +8,8 @@ import java.sql.Timestamp
 data class ChargeTrackingID(
     @Serializable(with = TimestampSerializer::class) val timestamp: Timestamp? = null,
     val charge_record_id: Int,
+    val charging: Boolean,
+    val real_capacity: Int,
     val capacity: Int,
     val voltage: Int,
     val current: Int
@@ -17,6 +19,8 @@ data class ChargeTrackingID(
 data class FormatedChargeTracking(
     @Serializable(with = TimestampSerializer::class) val timestamp: Timestamp,
     val charge_record_id: Int,
+    val charging: Boolean,
+    val real_capacity: Float,
     val capacity: Float,
     val voltage: Float,
     val current: Float

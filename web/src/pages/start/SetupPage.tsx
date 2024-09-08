@@ -462,7 +462,11 @@ export function SetupPage() {
                     <div className="flex gap-1 items-center my-1">
                       <span className="font-semibold">Slot {index + 1}: </span>
                       <Select
-                        defaultValue={"0," + (index + 1)}
+                        defaultValue={
+                          (selectedBatteries && selectedBatteries[index]?.id) +
+                            "," +
+                            (index + 1) ?? "0," + (index + 1)
+                        }
                         onValueChange={setBatterySlot}
                         key={index + 1}
                       >

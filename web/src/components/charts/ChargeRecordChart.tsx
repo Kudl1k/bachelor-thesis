@@ -18,7 +18,7 @@ import {
 } from "../ui/select";
 
 const chartConfig = {
-  capacity: {
+  real_capacity: {
     label: "Capacity",
     color: "#2563eb",
   },
@@ -126,7 +126,10 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
             ID: <span>{data.battery.id}</span>
           </p>
           <p className="font-semibold">
-            <span>{getProgram(data.program)}</span>
+            <span>
+              {data.tracking[data.tracking.length - 1] &&
+                getProgram(data.tracking[data.tracking.length - 1].charging)}
+            </span>
           </p>
           <div>
             <Badge className="me-1">{data.battery.type.shortcut}</Badge>
@@ -188,7 +191,7 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
                       <div className="ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums text-foreground">
                         {value}
                         <span className="font-normal text-muted-foreground">
-                          {name === "capacity"
+                          {name === "real_capacity"
                             ? " mAh"
                             : name === "voltage"
                             ? " V"
@@ -204,9 +207,9 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
             defaultIndex={1}
           />
           <Line
-            dataKey="capacity"
-            fill={chartConfig.capacity.color}
-            stroke="var(--color-capacity)"
+            dataKey="real_capacity"
+            fill={chartConfig.real_capacity.color}
+            stroke="var(--color-real_capacity)"
             strokeWidth={2}
             dot={false}
           />
@@ -230,17 +233,8 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
   );
 }
 
-function getProgram(program: string): string {
-  switch (program) {
-    case "C":
-      return "Charging";
-    case "discharge":
-      return "Discharging";
-    case "storage":
-      return "Storage";
-    default:
-      return "Unknown";
-  }
+function getProgram(program: boolean): string {
+  return program ? "Charging" : "Discharging";
 }
 
 function parseCustomDate(dateString: string): Date {

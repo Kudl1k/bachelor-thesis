@@ -35,7 +35,7 @@ fun readFromPort(
     port: SerialPort,
     bytes: Int,
     idCharger: Int,
-): ParserResult? {
+): ParserResult {
     resetPort(port)
     val buffer = port.readBytes(bytes)
 

@@ -94,10 +94,10 @@ object ResultRowParser {
     fun resultRowToChargerRecord(charger: Charger,battery: Battery,row: ResultRow): ChargeRecord {
         return ChargeRecord(
             idChargeRecord = row[ChargeRecords.id].value,
-            program = row[ChargeRecords.program],
             slot = row[ChargeRecords.slot],
             startedAt = Timestamp.from(row[ChargeRecords.startedAt]),
             finishedAt = row[ChargeRecords.finishedAt]?.let { Timestamp.from(it) },
+            initialCapacity = row[ChargeRecords.initialCapacity],
             chargedCapacity = row[ChargeRecords.chargedCapacity],
             charger = charger,
             battery = battery
@@ -107,10 +107,10 @@ object ResultRowParser {
     fun resultRowToChargerRecordWithTracking(charger: Charger,battery: BatteryFormated,row: ResultRow, tracking: List<FormatedChargeTracking>): ChargeRecordWithTracking {
         return ChargeRecordWithTracking(
             idChargeRecord = row[ChargeRecords.id].value,
-            program = row[ChargeRecords.program],
             slot = row[ChargeRecords.slot],
             startedAt = Timestamp.from(row[ChargeRecords.startedAt]),
             finishedAt = row[ChargeRecords.finishedAt]?.let { Timestamp.from(it) },
+            initialCapacity = row[ChargeRecords.initialCapacity],
             chargedCapacity = row[ChargeRecords.chargedCapacity],
             charger = charger,
             battery = battery,
@@ -122,6 +122,8 @@ object ResultRowParser {
         return ChargeTrackingID(
             timestamp = Timestamp.from(row[ChargeTrackings.id].value),
             charge_record_id = row[ChargeTrackings.idChargeRecord].value,
+            charging = row[ChargeTrackings.charging],
+            real_capacity = row[ChargeTrackings.realCapacity],
             capacity = row[ChargeTrackings.capacity],
             voltage = row[ChargeTrackings.voltage],
             current = row[ChargeTrackings.current]

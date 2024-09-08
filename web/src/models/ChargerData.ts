@@ -55,10 +55,10 @@ export interface Tracking {
 
 export interface ChargeRecord {
   idChargeRecord: number;
-  program: string;
   slot: number;
   startedAt: string;
   finishedAt: string;
+  initialCapacity: number;
   chargedCapacity: number | null;
   charger: Charger;
   battery: Battery;
@@ -68,6 +68,8 @@ export interface ChargeRecord {
 export interface TrackingRecord {
   timestamp: string;
   charge_record_id: number;
+  charging: boolean;
+  real_capacity: number;
   capacity: number;
   voltage: number;
   current: number;
@@ -240,16 +242,27 @@ export function useWebSocketTracking({
     };
 
     ws.onmessage = (event) => {
-      const data: TrackingRecord = JSON.parse(event.data);
+      const data = JSON.parse(event.data);
       console.log("Received data:", data);
-
       setChargeRecords((prevRecords) => {
         return prevRecords.map((record) => {
-          if (Number(record.idChargeRecord) === Number(data.charge_record_id)) {
-            return {
-              ...record,
-              tracking: [...record.tracking, data],
-            };
+          const chargeRecordId = Array.isArray(data)
+            ? data[0].charge_record_id
+            : data.charge_record_id;
+          if (Number(record.idChargeRecord) === Number(chargeRecordId)) {
+            console.log("Record found:", record);
+            if (Array.isArray(data)) {
+              console.log("Data is array");
+              return {
+                ...record,
+                tracking: data,
+              };
+            } else {
+              return {
+                ...record,
+                tracking: [...record.tracking, data],
+              };
+            }
           }
           return record;
         });

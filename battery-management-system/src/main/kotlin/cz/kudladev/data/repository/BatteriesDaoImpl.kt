@@ -140,10 +140,10 @@ class BatteriesDaoImpl: BatteriesDao {
                     val tracking = ChargeTrackingEntity.find { ChargeTrackings.idChargeRecord eq it.id.value }.orderBy(ChargeTrackings.id to SortOrder.ASC).map { EntityParser.toFormatedChargeTracking(it) }
                     val result = ChargeRecordWithTrackingFormated(
                         idChargeRecord = it.id.value,
-                        program = it.program,
                         slot = it.slot,
                         startedAt = Timestamp.from(it.startedAt),
                         finishedAt = it.finishedAt?.let { Timestamp.from(it) },
+                        initialCapacity = convertChargedOrDischargedCapacityToMilliAmpHour(it.initialCapacity),
                         chargedCapacity = it.chargedCapacity?.let { it1 ->
                             convertChargedOrDischargedCapacityToMilliAmpHour(
                                 it1

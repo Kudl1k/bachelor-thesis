@@ -12,13 +12,15 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.broadcast
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.*
 import org.jetbrains.exposed.dao.toEntity
 
 object DatabaseBuilder {
 
     private lateinit var hikariDataSource: HikariDataSource
+
 
     @OptIn(ObsoleteCoroutinesApi::class)
     val broadcastChannel = BroadcastChannel<String>(Channel.BUFFERED)
@@ -39,13 +41,17 @@ object DatabaseBuilder {
         }
 
         EntityHook.subscribe { change ->
-            if (change.entityClass.isAssignableTo(ChargeTrackingEntity)){
-
-                if (change.changeType == EntityChangeType.Created){
-                    val chargeTracking = change.toEntity(ChargeTrackingEntity) ?: return@subscribe
-                    runBlocking {
-                        broadcastChannel.send(Json.encodeToString(EntityParser.toFormatedChargeTracking(chargeTracking)))
+            if (change.entityClass.isAssignableTo(ChargeTrackingEntity)) {
+                when (change.changeType) {
+                    EntityChangeType.Created -> {
+                        val chargeTracking = change.toEntity(ChargeTrackingEntity) ?: return@subscribe
+                        runBlocking {
+                            // Send only a single record when created
+                            broadcastChannel.send(Json.encodeToString(EntityParser.toFormatedChargeTracking(chargeTracking)))
+                        }
                     }
+                    EntityChangeType.Updated -> {}
+                    EntityChangeType.Removed -> {}
                 }
             }
         }
