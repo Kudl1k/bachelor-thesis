@@ -12,5 +12,6 @@ interface ChargeTrackingDao {
     suspend fun getLastChargeTrackingById(id: Int): FormatedChargeTracking?
 
     suspend fun updateDischargeTrackingValues(id_charge_record: Int, capacity: Int): List<FormatedChargeTracking>;
+    suspend fun updateChargeTrackingValues(id_charge_record: Int, capacity: Int): List<FormatedChargeTracking>;
 
 }

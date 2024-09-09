@@ -23,6 +23,7 @@ data class SlotState(
     val last_discharged_capacity: Int,
     val initial_capacity: Int,
     var charged: Boolean,
+    var discharged: Boolean,
     var charging: Boolean,
     val running: Boolean
 )
@@ -49,11 +50,12 @@ suspend fun startTracking(
         slotStates.add(SlotState(
             battery_id = battery.id,
             slotNumber = battery.slot,
-            last_charged_capacity = 0,
-            last_discharged_capacity = 0,
+            last_charged_capacity = -1,
+            last_discharged_capacity = -1,
             initial_capacity = 0,
             charged = false,
-            charging = true,
+            discharged = false,
+            charging = false,
             running = true
         ))
         chargeRecords.add(chargeRecordsDao.createChargeRecord(chargeRecord))
@@ -81,9 +83,32 @@ suspend fun startTracking(
                 }
             }
             if (data.current!! > 0) {
-                println("Slot: ${data.slot}; Current: ${data.current}; Voltage: ${data.voltage}; Charged: ${data.charged}; Discharged: ${data.discharged}")
+                println(
+                    "Slot: ${slot.slotNumber} - Charging: ${slot.charging} - Charged: ${slot.charged} - Discharged: ${slot.discharged} - Current: ${data.current} - Voltage: ${data.voltage} - Capacity: ${data.charged} - Discharged: ${data.discharged}"
+                )
+
+                if (slot.last_charged_capacity == -1 && slot.last_discharged_capacity == -1) {
+                    slotStates = slotStates.map {
+                        if (it.slotNumber == slot.slotNumber) {
+                            SlotState(
+                                battery_id = it.battery_id,
+                                slotNumber = it.slotNumber,
+                                last_charged_capacity = if (data.charged!! > 0) data.charged else it.last_charged_capacity,
+                                last_discharged_capacity = if (data.discharged!! > 0) data.discharged else it.last_discharged_capacity,
+                                initial_capacity = 0,
+                                charged = if (data.charged > 0) true else it.charging,
+                                discharged = if (data.discharged > 0) true else it.discharged,
+                                charging = if (data.charged > 0) true else it.charging,
+                                running = true
+                            )
+                        } else {
+                            it
+                        }
+                    }.toMutableList()
+                    println("Checking mode for slot ${slot.slotNumber} - Charged: ${slot.charged} - Discharged: ${slot.discharged} - Data Discharged: ${data.discharged} - Data Charged: ${data.charged}")
+                    continue
+                }
                 if (slot.charging) {
-                    println("charging")
                     if (data.discharged != slot.last_discharged_capacity) {
                         slotStates = slotStates.map {
                             if (it.slotNumber == slot.slotNumber) {
@@ -93,8 +118,9 @@ suspend fun startTracking(
                                     last_charged_capacity = data.charged!!,
                                     last_discharged_capacity = slot.last_discharged_capacity,
                                     initial_capacity = slot.initial_capacity,
+                                    charged = true,
+                                    discharged = it.discharged,
                                     charging = false,
-                                    charged = it.charged,
                                     running = true
                                 )
                             } else {
@@ -118,7 +144,8 @@ suspend fun startTracking(
                                     last_charged_capacity = data.charged,
                                     last_discharged_capacity = data.discharged!!,
                                     initial_capacity = slot.initial_capacity,
-                                    charged = true,
+                                    charged = it.charged,
+                                    discharged = it.discharged,
                                     charging = true,
                                     running = true
                                 )
@@ -133,7 +160,6 @@ suspend fun startTracking(
                     }
                 } else {
                     if (data.charged != slot.last_charged_capacity) {
-                        println("changed to charging")
                         slotStates = slotStates.map {
                             if (it.slotNumber == slot.slotNumber) {
                                 SlotState(
@@ -143,6 +169,7 @@ suspend fun startTracking(
                                     last_discharged_capacity = data.discharged!!,
                                     initial_capacity = slot.initial_capacity,
                                     charged = it.charged,
+                                    discharged = true,
                                     charging = true,
                                     running = true
                                 )
@@ -151,6 +178,7 @@ suspend fun startTracking(
                             }
                         }.toMutableList()
                     } else {
+
                         val chargeTracking = ChargeTrackingID(
                             charge_record_id = charge_record_id,
                             charging = false,
@@ -161,41 +189,71 @@ suspend fun startTracking(
                         )
                         slotStates = slotStates.map {
                             if (it.slotNumber == slot.slotNumber) {
-                                val state: SlotState = if (it.initial_capacity < data.discharged) {
-                                    chargeTrackingDao.createChargeTracking(chargeTracking)
-                                    val updated = chargeTrackingDao.updateDischargeTrackingValues(
-                                        id_charge_record = charge_record_id,
-                                        capacity = data.discharged
-                                    )
-                                    println(updated)
-                                    DatabaseBuilder.broadcastChannel.send(Json.encodeToString(updated))
-                                    SlotState(
-                                        battery_id = it.battery_id,
-                                        slotNumber = it.slotNumber,
-                                        last_charged_capacity = data.charged,
-                                        last_discharged_capacity = data.discharged,
-                                        initial_capacity = data.discharged,
-                                        charged = it.charged,
-                                        charging = false,
-                                        running = true
-                                    )
-                                } else {
-                                    chargeTrackingDao.createChargeTracking(
-                                        chargeTracking.copy(
-                                            real_capacity = it.initial_capacity - data.discharged
+                                val state: SlotState =
+                                    if (it.initial_capacity < data.discharged && !it.charged) {
+                                        println("Discharging before charging")
+                                        chargeTrackingDao.createChargeTracking(chargeTracking)
+                                        val updated = chargeTrackingDao.updateDischargeTrackingValues(
+                                            id_charge_record = charge_record_id,
+                                            capacity = data.discharged
                                         )
-                                    )
-                                    SlotState(
-                                        battery_id = it.battery_id,
-                                        slotNumber = it.slotNumber,
-                                        last_charged_capacity = data.charged,
-                                        last_discharged_capacity = data.discharged,
-                                        initial_capacity = slot.initial_capacity,
-                                        charged = it.charged,
-                                        charging = false,
-                                        running = true
-                                    )
-                                }
+                                        println(updated)
+                                        DatabaseBuilder.broadcastChannel.send(Json.encodeToString(updated))
+                                        SlotState(
+                                            battery_id = it.battery_id,
+                                            slotNumber = it.slotNumber,
+                                            last_charged_capacity = data.charged!!,
+                                            last_discharged_capacity = data.discharged,
+                                            initial_capacity = data.discharged,
+                                            charged = it.charged,
+                                            discharged = it.discharged,
+                                            charging = false,
+                                            running = true
+                                        )
+                                    } else if(it.last_charged_capacity < data.discharged && it.charged) {
+                                        println("Discharging after charging")
+                                        chargeTrackingDao.createChargeTracking(chargeTracking)
+                                        chargeTrackingDao.updateChargeTrackingValues(
+                                            id_charge_record = charge_record_id,
+                                            capacity = data.discharged - it.last_charged_capacity
+                                        )
+                                        chargeTrackingDao.updateDischargeTrackingValues(
+                                            id_charge_record = charge_record_id,
+                                            capacity = data.discharged
+                                        )
+                                        val updated = chargeTrackingDao.getChargeTrackingById(charge_record_id)
+                                        println(updated)
+                                        DatabaseBuilder.broadcastChannel.send(Json.encodeToString(updated))
+                                        SlotState(
+                                            battery_id = it.battery_id,
+                                            slotNumber = it.slotNumber,
+                                            last_charged_capacity = data.charged!!,
+                                            last_discharged_capacity = data.discharged,
+                                            initial_capacity = data.discharged - it.last_charged_capacity,
+                                            charged = it.charged,
+                                            discharged = it.discharged,
+                                            charging = false,
+                                            running = true
+                                        )
+                                    } else {
+                                        println("Constant discharging")
+                                        chargeTrackingDao.createChargeTracking(
+                                            chargeTracking.copy(
+                                                real_capacity = if (!it.charged) 0 else it.last_discharged_capacity - data.discharged
+                                            )
+                                        )
+                                        SlotState(
+                                            battery_id = it.battery_id,
+                                            slotNumber = it.slotNumber,
+                                            last_charged_capacity = data.charged!!,
+                                            last_discharged_capacity = data.discharged,
+                                            initial_capacity = slot.initial_capacity,
+                                            charged = it.charged,
+                                            discharged = it.discharged,
+                                            charging = false,
+                                            running = true
+                                        )
+                                    }
                                 state
                             } else {
                                 it
@@ -218,6 +276,7 @@ suspend fun startTracking(
                             last_charged_capacity = it.last_charged_capacity,
                             last_discharged_capacity = it.last_discharged_capacity,
                             charged = it.charged,
+                            discharged = it.discharged,
                             charging = it.charging,
                             running = false
                         )

@@ -28,7 +28,7 @@ class ChargeTrackingDaoImpl: ChargeTrackingDao {
     override suspend fun getChargeTrackingById(id: Int): List<FormatedChargeTracking>? {
         return try {
             dbQuery {
-                ChargeTrackingEntity.find { ChargeTrackings.idChargeRecord eq id }.map { EntityParser.toFormatedChargeTracking(it) }
+                ChargeTrackingEntity.find { ChargeTrackings.idChargeRecord eq id }.orderBy( ChargeTrackings.id to SortOrder.ASC ).map { EntityParser.toFormatedChargeTracking(it) }
             }
         } catch (e: Exception) {
             null
@@ -87,5 +87,24 @@ class ChargeTrackingDaoImpl: ChargeTrackingDao {
             println(e)
             emptyList()
         }
+    }
+
+    override suspend fun updateChargeTrackingValues(
+        id_charge_record: Int,
+        capacity: Int
+    ): List<FormatedChargeTracking> {
+        return try {
+            dbQuery {
+                val chargeRecord = ChargeRecordEntity.findById(id_charge_record) ?: throw IllegalArgumentException("No charge record found for id $id_charge_record")
+                ChargeTrackingEntity.find { (ChargeTrackings.idChargeRecord eq id_charge_record) and (ChargeTrackings.charging eq Op.TRUE) }.sortedByDescending { it.timestamp }.map {
+                    it.realCapacity = capacity + it.capacity
+                }
+                ChargeTrackingEntity.find { (ChargeTrackings.idChargeRecord eq id_charge_record) and (ChargeTrackings.charging eq Op.TRUE) }.orderBy( ChargeTrackings.id to SortOrder.ASC ).map { EntityParser.toFormatedChargeTracking(it) }
+            }
+        } catch (e: Exception) {
+            println(e)
+            emptyList()
+        }
+
     }
 }
