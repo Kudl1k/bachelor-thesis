@@ -149,10 +149,17 @@ export function SetupPage() {
   };
 
   useEffect(() => {
-    if (ports !== null && selectedCharger !== null) {
+    if (
+      ports !== null &&
+      selectedCharger !== null &&
+      selectedBatteries !== null
+    ) {
       setSelectedSlots([]);
       for (let index = 0; index < selectedCharger.slots; index++) {
-        setSelectedSlots((prev) => [...prev, { id: 0, slot: index + 1 }]);
+        setSelectedSlots((prev) => [
+          ...prev,
+          { id: selectedBatteryIds[index] || 0, slot: index + 1 },
+        ]);
       }
       ports?.find((findport) => {
         console.log("Checking port", findport);
@@ -162,7 +169,7 @@ export function SetupPage() {
         }
       });
     }
-  }, [ports, selectedCharger]);
+  }, [ports, selectedBatteries, selectedBatteryIds, selectedCharger]);
 
   function handleContinueBattery() {
     const searchCharger: ChargerSearch = {
@@ -463,9 +470,10 @@ export function SetupPage() {
                       <span className="font-semibold">Slot {index + 1}: </span>
                       <Select
                         defaultValue={
-                          (selectedBatteries && selectedBatteries[index]?.id) +
-                            "," +
-                            (index + 1) ?? "0," + (index + 1)
+                          (selectedBatteries && selectedBatteries[index]?.id) !=
+                          null
+                            ? selectedBatteries[index]?.id + "," + (index + 1)
+                            : "0," + (index + 1)
                         }
                         onValueChange={setBatterySlot}
                         key={index + 1}

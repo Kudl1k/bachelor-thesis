@@ -67,7 +67,7 @@ export function StartPage() {
                           {chargeRecords[0].charger.name}
                         </h1>
                       </CardHeader>
-                      <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-4">
+                      <CardContent className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-4">
                         {chargeRecords.map((record) => (
                           <ChargeRecordChart
                             key={record.idChargeRecord}

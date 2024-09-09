@@ -125,18 +125,18 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
         <div className="">
           <div className="flex items-center gap-1">
             <Hash className="" />
-            <h2 className="text-xl">{data.battery.id}</h2>
+            <h2 className="text-xl font-semibold">{data.battery.id}</h2>
           </div>
           <div className="flex items-center gap-1">
             {data.tracking[data.tracking.length - 1].charging ? (
               <>
                 <BatteryCharging />
-                Charging
+                <p className="font-semibold">Charging</p>
               </>
             ) : (
               <>
                 <Battery />
-                Discharging
+                <p className="font-semibold">Discharging</p>
               </>
             )}
           </div>

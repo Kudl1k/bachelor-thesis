@@ -9,7 +9,7 @@ import { Battery, truncateText } from "@/models/BatteryData";
 
 import {
   BatteryCharging,
-  BatteryMedium,
+  BatteryFull,
   Biohazard,
   CalendarClock,
   CalendarPlus,
@@ -44,12 +44,12 @@ export function BatteryCard({ battery }: BatteryCardProps) {
                 {battery.id}
               </div>
             </h1>
-            <div className="flex items-center">
+            <div className="flex items-center gap-1">
               <Badge variant="outline" className="gap-2">
                 <CalendarPlus size={14} />
                 <p className="text-sm">{battery.created_at}</p>
               </Badge>
-              <div className="ml-auto">
+              <div className="ml-auto items-center">
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger>
@@ -86,7 +86,7 @@ export function BatteryCard({ battery }: BatteryCardProps) {
         </h2>
         <h2 className="text-lg font-semibold">
           <div className="flex items-center gap-2">
-            <BatteryMedium />
+            <BatteryFull />
             {battery.factory_capacity} mAh
           </div>
         </h2>
