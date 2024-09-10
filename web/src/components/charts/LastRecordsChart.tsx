@@ -13,6 +13,10 @@ const LastRecordsChartConfig = {
     label: "Charged",
     color: "hsl(var(--chart-1))",
   },
+  dischargedCapacity: {
+    label: "Discharged",
+    color: "hsl(var(--chart-2))",
+  },
 } satisfies ChartConfig;
 
 export interface LastRecordsChartProps {
@@ -97,6 +101,12 @@ export function LastRecordsChart({ data }: LastRecordsChartProps) {
           stackId="a"
           fill="var(--color-chargedCapacity)"
           radius={[0, 0, 4, 4]}
+        />
+        <Bar
+          dataKey="dischargedCapacity"
+          stackId="a"
+          fill="var(--color-dischargedCapacity)"
+          radius={[4, 4, 0, 0]}
         />
       </BarChart>
     </ChartContainer>

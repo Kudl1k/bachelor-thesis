@@ -76,7 +76,10 @@ export function SetupPage() {
 
   useEffect(() => {
     if (batteries) {
-      const transformedData = batteries.map((battery) => ({
+      const filteredBatteries = batteries.filter(
+        (battery) => !battery.archived
+      );
+      const transformedData = filteredBatteries.map((battery) => ({
         id: battery.id,
         type: battery.type.shortcut,
         size: battery.size.name,
@@ -85,6 +88,7 @@ export function SetupPage() {
         last_charged_capacity: battery.last_charged_capacity
           ? battery.last_charged_capacity.toString()
           : "N/A",
+        archived: battery.archived,
         last_time_charged_at: battery.last_time_charged_at
           ? battery.last_time_charged_at
           : "N/A",

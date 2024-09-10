@@ -34,6 +34,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const batteryAddFormSchema = z.object({
+  id: z.string().length(8, { message: "ID must be 8 characters long." }),
   type: z.string(),
   size: z.string().min(1, { message: "Size is required." }),
   factory_capacity: z
@@ -46,19 +47,33 @@ const batteryAddFormSchema = z.object({
 interface BatteryAddFormProps {
   types: Type[] | [];
   sizes: Size[] | [];
+  newId: string;
 }
 
-export function BatteryAddFormSchema({ types, sizes }: BatteryAddFormProps) {
+export function BatteryAddFormSchema({
+  types,
+  sizes,
+  newId,
+}: BatteryAddFormProps) {
   const [openDialog, setOpenDialog] = useState(false);
   const [battery, setBattery] = useState<BatteryInsert | null>(null);
   const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof batteryAddFormSchema>>({
     resolver: zodResolver(batteryAddFormSchema),
+    values: {
+      id: newId,
+      type: "",
+      size: "",
+      factory_capacity: "",
+      voltage: "",
+      shoplink: "",
+    },
   });
 
   async function onSubmit(data: z.infer<typeof batteryAddFormSchema>) {
     const insertBattery: BatteryInsert = {
+      id: data.id,
       type: data.type,
       size: data.size,
       factory_capacity: parseInt(data.factory_capacity),
@@ -98,6 +113,20 @@ export function BatteryAddFormSchema({ types, sizes }: BatteryAddFormProps) {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
+            <FormField
+              control={form.control}
+              name="id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Factory Capacity</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="00000001" {...field} />
+                  </FormControl>
+                  <FormDescription>Factory capacity in mAh.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="type"

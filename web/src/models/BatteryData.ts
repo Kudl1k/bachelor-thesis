@@ -11,11 +11,13 @@ export interface Battery {
   voltage: number;
   shop_link: string | null;
   last_charged_capacity: number | null;
+  archived: boolean;
   last_time_charged_at: string | null;
   created_at: string;
 }
 
 export interface BatteryInsert {
+  id: string;
   type: string;
   size: string;
   factory_capacity: number;
@@ -30,6 +32,7 @@ export interface BatteryColumnType {
   factory_capacity: number;
   voltage: number;
   last_charged_capacity: string;
+  archived: boolean;
   last_time_charged_at: string;
 }
 
@@ -46,6 +49,7 @@ export interface BatteryInfo {
   voltage: number;
   shop_link: string | null;
   last_charged_capacity: number | null;
+  archived: boolean;
   last_time_charged_at: string | null;
   created_at: string;
   charge_records: ChargeRecord[];
@@ -112,5 +116,21 @@ export async function fetchBatteryInfo(
     setBatteryData(data);
   } catch (error) {
     console.error("Failed to fetch battery info:", error);
+  }
+}
+
+export async function fetchNewId(setNewId: (id: string) => void) {
+  try {
+    const response = await fetch(`${DEFAULTURL}/batteries/newId`);
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+
+    const responseText = await response.text();
+    console.log("Raw response text:", responseText);
+
+    setNewId(responseText);
+  } catch (error) {
+    console.error("Failed to fetch new battery id:", error);
   }
 }

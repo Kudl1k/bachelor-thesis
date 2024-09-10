@@ -60,6 +60,7 @@ export interface ChargeRecord {
   finishedAt: string;
   initialCapacity: number;
   chargedCapacity: number | null;
+  dischargedCapacity: number | null;
   charger: Charger;
   battery: Battery;
   tracking: TrackingRecord[];
