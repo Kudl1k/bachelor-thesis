@@ -8,7 +8,7 @@ import org.jetbrains.exposed.sql.javatime.timestamp
 
 object Chargers : IntIdTable("charger") {
     val name = varchar("name", 50)
-    val tty = varchar("tty", 15)
+    val tty = varchar("tty", 30)
     val baudRate = integer("baud_rate")
     val dataBits = integer("data_bits")
     val stopBits = integer("stop_bits")
