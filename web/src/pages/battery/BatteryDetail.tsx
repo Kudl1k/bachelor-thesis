@@ -23,7 +23,7 @@ export default function BatteryDetail() {
 
   useEffect(() => {
     if (!hasFetched.current) {
-      fetchBatteryInfo(Number(id), setBatteryData);
+      fetchBatteryInfo(String(id), setBatteryData);
       hasFetched.current = true;
     }
   }, [id]);

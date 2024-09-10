@@ -32,7 +32,7 @@ class BatteriesDaoImpl: BatteriesDao {
         }
     }
 
-    override suspend fun getBatteryById(id: Int): BatteryFormated? {
+    override suspend fun getBatteryById(id: String): BatteryFormated? {
         return try {
             dbQuery {
                 val batteryEntity = BatteryEntity.findById(id) ?: return@dbQuery null
@@ -61,7 +61,7 @@ class BatteriesDaoImpl: BatteriesDao {
                 val size = SizeEntity.find { Sizes.name eq battery.size }.singleOrNull()
                     ?: throw IllegalArgumentException("No size found for name ${battery.size}")
 
-                BatteryEntity.new {
+                BatteryEntity.new(battery.id ?: generateBatteryId()) {
                     typeEntity = type
                     sizeEntity = size
                     factoryCapacity = battery.factory_capacity
@@ -100,7 +100,7 @@ class BatteriesDaoImpl: BatteriesDao {
         }
     }
 
-    override suspend fun deleteBattery(id: Int): BatteryFormated? {
+    override suspend fun deleteBattery(id: String): BatteryFormated? {
         return try {
             val battery = getBatteryById(id) ?: throw IllegalArgumentException("No battery found for id $id")
             dbQuery {
@@ -113,7 +113,7 @@ class BatteriesDaoImpl: BatteriesDao {
         }
     }
 
-    override suspend fun updateBatteryLastChargingCapacity(id: Int, capacity: Int): BatteryFormated? {
+    override suspend fun updateBatteryLastChargingCapacity(id: String, capacity: Int): BatteryFormated? {
         return try {
             val battery = getBatteryById(id) ?: throw IllegalArgumentException("No battery found for id $id")
             dbQuery {
@@ -129,11 +129,12 @@ class BatteriesDaoImpl: BatteriesDao {
         }
     }
 
-    override suspend fun getBatteryInfo(id: Int): BatteryInfo? {
+    override suspend fun getBatteryInfo(id: String): BatteryInfo? {
         return try {
             dbQuery {
+                println("id: $id")
                 val battery = getBatteryById(id) ?: return@dbQuery null
-
+                println("battery: $battery")
 
                 val chargeRecords = ChargeRecordEntity.find { ChargeRecords.idBattery eq id }.map {
                     val charger = ChargerEntity.findById(it.chargerEntity.id.value) ?: throw IllegalArgumentException("No charger found for id ${it.chargerEntity.id.value}")
@@ -155,6 +156,7 @@ class BatteriesDaoImpl: BatteriesDao {
                     )
                     result
                 }
+                println("chargeRecords: $chargeRecords")
                 val result = BatteryInfo(
                     id = battery.id!!,
                     type = battery.type,
@@ -173,5 +175,10 @@ class BatteriesDaoImpl: BatteriesDao {
             e.printStackTrace()
             null
         }
+    }
+
+    override fun generateBatteryId(): String {
+        val nextId = (Batteries.select(Batteries.id.max()).singleOrNull()?.get(Batteries.id.max())?.toString()?.toIntOrNull() ?: 0) + 1
+        return nextId.toString().padStart(8, '0')
     }
 }

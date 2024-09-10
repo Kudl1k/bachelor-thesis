@@ -4,7 +4,7 @@ import { Size } from "./SizeData";
 import { Type } from "./TypeData";
 
 export interface Battery {
-  id: number;
+  id: string;
   type: Type;
   size: Size;
   factory_capacity: number;
@@ -24,7 +24,7 @@ export interface BatteryInsert {
 }
 
 export interface BatteryColumnType {
-  id: number;
+  id: string;
   type: string;
   size: string;
   factory_capacity: number;
@@ -34,12 +34,12 @@ export interface BatteryColumnType {
 }
 
 export interface BatteryWithSlot {
-  id: number;
+  id: string;
   slot: number;
 }
 
 export interface BatteryInfo {
-  id: number;
+  id: string;
   type: Type;
   size: Size;
   factory_capacity: number;
@@ -100,7 +100,7 @@ export async function insertBatteryData(
 }
 
 export async function fetchBatteryInfo(
-  id: number,
+  id: string,
   setBatteryData: (data: BatteryInfo) => void
 ) {
   try {

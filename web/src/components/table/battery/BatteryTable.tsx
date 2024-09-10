@@ -31,7 +31,7 @@ interface DataTableProps<TData, TValue> {
   searchbarname: string;
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  setSelectedIds?: (selectedIds: number[]) => void;
+  setSelectedIds?: (selectedIds: string[]) => void;
   setSelectedId: (selectedId: number) => void;
   multiRowSelection?: boolean;
   idname: string;
@@ -79,14 +79,16 @@ export function DataTable<TData, TValue>({
   useEffect(() => {
     const selectedRowIds = table
       .getSelectedRowModel()
-      .rows.map(
-        (row) => (row.original as { id: number; [key: string]: number })[idname]
+      .rows.map((row) =>
+        (row.original as { id: number; [key: string]: number })[
+          idname
+        ].toString()
       );
     if (setSelectedIds) {
       setSelectedIds(selectedRowIds);
     }
     if (selectedRowIds) {
-      setSelectedId(selectedRowIds[0] || -1);
+      setSelectedId(Number(selectedRowIds[0]) || -1);
     }
   });
 

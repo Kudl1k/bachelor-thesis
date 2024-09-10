@@ -38,7 +38,7 @@ export const batteryColumns: ColumnDef<BatteryColumnType>[] = [
     filterFn: (row, columnId, filterValue: string) => {
       const search = filterValue.toLowerCase();
       let value = row.getValue(columnId) as string;
-      if (typeof value === "number") value = String(value);
+      if (typeof value === "string") value = String(value);
       return value?.toLowerCase().includes(search);
     },
   },

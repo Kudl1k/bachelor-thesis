@@ -18,6 +18,7 @@ import {
   Ruler,
   Zap,
 } from "lucide-react";
+import Barcode from "react-barcode";
 import { Link } from "react-router-dom";
 import { Badge } from "../ui/badge";
 import { buttonVariants } from "../ui/button";
@@ -37,13 +38,22 @@ export function BatteryCard({ battery }: BatteryCardProps) {
     <Card className="shadow-md">
       <CardHeader>
         <CardTitle>
-          <div className="flex justify-between items-center w-full">
-            <h1 className="text-2xl font-bold">
-              <div className="flex items-center gap-2">
-                <Hash className="size-7" />
-                {battery.id}
-              </div>
-            </h1>
+          <div className="flex justify-between items-center w-full gap-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <h1 className="text-2xl font-bold hover:shadow-lg border-2 border-background hover:border-primary ease-in-out duration-150 rounded-2xl p-1">
+                    <div className="flex items-center gap-2">
+                      <Hash className="size-7" />
+                      {battery.id}
+                    </div>
+                  </h1>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <Barcode value={battery.id} height={40} />
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <div className="flex items-center gap-1">
               <Badge variant="outline" className="gap-2">
                 <CalendarPlus size={14} />
@@ -53,7 +63,9 @@ export function BatteryCard({ battery }: BatteryCardProps) {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger>
-                      <LucideLink size={14} />
+                      <a href={battery.shop_link || ""} target="_blank">
+                        <LucideLink size={14} />
+                      </a>
                     </TooltipTrigger>
                     <TooltipContent>
                       <a href={battery.shop_link || ""} target="_blank">

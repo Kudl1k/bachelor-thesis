@@ -17,7 +17,7 @@ var job: Job? = null
 var openPort: SerialPort? = null
 
 data class SlotState(
-    val battery_id: Int,
+    val battery_id: String,
     val slotNumber: Int,
     val last_charged_capacity: Int,
     val last_discharged_capacity: Int,
@@ -50,8 +50,8 @@ suspend fun startTracking(
         slotStates.add(SlotState(
             battery_id = battery.id,
             slotNumber = battery.slot,
-            last_charged_capacity = -1,
-            last_discharged_capacity = -1,
+            last_charged_capacity = 0,
+            last_discharged_capacity = 0,
             initial_capacity = 0,
             charged = false,
             discharged = false,
@@ -87,7 +87,7 @@ suspend fun startTracking(
                     "Slot: ${slot.slotNumber} - Charging: ${slot.charging} - Charged: ${slot.charged} - Discharged: ${slot.discharged} - Current: ${data.current} - Voltage: ${data.voltage} - Capacity: ${data.charged} - Discharged: ${data.discharged}"
                 )
 
-                if (slot.last_charged_capacity == -1 && slot.last_discharged_capacity == -1) {
+                if (slot.last_charged_capacity == 0 && slot.last_discharged_capacity == 0) {
                     slotStates = slotStates.map {
                         if (it.slotNumber == slot.slotNumber) {
                             SlotState(
@@ -96,9 +96,9 @@ suspend fun startTracking(
                                 last_charged_capacity = if (data.charged!! > 0) data.charged else it.last_charged_capacity,
                                 last_discharged_capacity = if (data.discharged!! > 0) data.discharged else it.last_discharged_capacity,
                                 initial_capacity = 0,
-                                charged = if (data.charged > 0) true else it.charging,
-                                discharged = if (data.discharged > 0) true else it.discharged,
-                                charging = if (data.charged > 0) true else it.charging,
+                                charged = it.charged,
+                                discharged = it.discharged,
+                                charging = if (data.charged > 0) true else if(data.discharged > 0) false else it.charging,
                                 running = true
                             )
                         } else {

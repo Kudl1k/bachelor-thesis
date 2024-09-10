@@ -16,7 +16,7 @@ fun Route.batteries(batteriesDao: BatteriesDao) {
         }
         get("{id}") {
             try {
-                val id = call.parameters["id"]?.toInt() ?: return@get call.respond(HttpStatusCode.BadRequest)
+                val id = call.parameters["id"] ?: return@get call.respond(HttpStatusCode.BadRequest)
                 val battery = batteriesDao.getBatteryById(id)
                 if (battery != null) {
                     call.respond(battery)
@@ -29,7 +29,7 @@ fun Route.batteries(batteriesDao: BatteriesDao) {
         }
         get("{id}/info") {
             try {
-                val id = call.parameters["id"]?.toInt() ?: return@get call.respond(HttpStatusCode.BadRequest)
+                val id = call.parameters["id"] ?: return@get call.respond(HttpStatusCode.BadRequest)
                 val batteryInfo = batteriesDao.getBatteryInfo(id)
                 if (batteryInfo != null) {
                     println("not null")
@@ -63,12 +63,15 @@ fun Route.batteries(batteriesDao: BatteriesDao) {
         }
         delete("{id}") {
             try {
-                val id = call.parameters["id"]?.toInt() ?: return@delete call.respond(HttpStatusCode.BadRequest)
+                val id = call.parameters["id"] ?: return@delete call.respond(HttpStatusCode.BadRequest)
                 batteriesDao.deleteBattery(id)
                 call.respond(HttpStatusCode.OK)
             } catch (e: Exception) {
                 call.respondText(text = "Please insert right form of ID (Int), starting from 1", status = HttpStatusCode.BadRequest)
             }
+        }
+        get("newId") {
+            call.respond(batteriesDao.generateBatteryId())
         }
     }
 }

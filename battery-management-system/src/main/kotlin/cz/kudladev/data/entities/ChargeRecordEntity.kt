@@ -13,7 +13,7 @@ object ChargeRecords : IntIdTable("charge_record") {
     val initialCapacity = integer("initial_capacity")
     val chargedCapacity = integer("charged_capacity").nullable()
     val idCharger = reference("id_charger", Chargers)
-    val idBattery = reference("id_battery", Batteries)
+    val idBattery = reference("id_battery", Batteries.id)
 }
 
 class ChargeRecordEntity(id: EntityID<Int>) : IntEntity(id) {

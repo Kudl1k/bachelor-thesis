@@ -8,7 +8,7 @@ import java.sql.Timestamp
 
 @Serializable
 data class Battery(
-    val id: Int? = null,
+    val id: String? = null,
     val type: Type,
     val size: Size,
     val factory_capacity: Int,
@@ -21,7 +21,7 @@ data class Battery(
 
 @Serializable
 data class BatteryFormated(
-    val id: Int,
+    val id: String,
     val type: Type,
     val size: Size,
     val factory_capacity: Int,
@@ -35,6 +35,7 @@ data class BatteryFormated(
 
 @Serializable
 data class BatteryInsert(
+    val id: String? = null,
     val type: String,
     val size: String,
     val factory_capacity: Int,
@@ -44,13 +45,13 @@ data class BatteryInsert(
 
 @Serializable
 data class BatteryWithSlot(
-    val id: Int,
+    val id: String,
     val slot: Int,
 )
 
 @Serializable
 data class BatteryInfo(
-    val id: Int,
+    val id: String,
     val type: Type,
     val size: Size,
     val factory_capacity: Int,

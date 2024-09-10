@@ -10,16 +10,17 @@ interface BatteriesDao {
 
     suspend fun getAllBatteries(): List<BatteryFormated>
 
-    suspend fun getBatteryById(id: Int): BatteryFormated?
+    suspend fun getBatteryById(id: String): BatteryFormated?
 
     suspend fun createBattery(battery: BatteryInsert): BatteryFormated?
 
     suspend fun updateBattery(battery: Battery): BatteryFormated?
 
-    suspend fun deleteBattery(id: Int): BatteryFormated?
+    suspend fun deleteBattery(id: String): BatteryFormated?
 
-    suspend fun updateBatteryLastChargingCapacity(id: Int, capacity: Int): BatteryFormated?
+    suspend fun updateBatteryLastChargingCapacity(id: String, capacity: Int): BatteryFormated?
 
-    suspend fun getBatteryInfo(id: Int): BatteryInfo?
+    suspend fun getBatteryInfo(id: String): BatteryInfo?
 
+    fun generateBatteryId(): String
 }

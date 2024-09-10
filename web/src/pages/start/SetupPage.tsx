@@ -46,7 +46,7 @@ export function SetupPage() {
   const [isOpenBatteries, setIsOpenBatteries] = useState(true);
   const [batteries, setBatteries] = useState<Battery[] | null>(null);
   const [data, setData] = useState<BatteryColumnType[] | null>(null);
-  const [selectedBatteryIds, setSelectedBatteryIds] = useState<number[]>([]);
+  const [selectedBatteryIds, setSelectedBatteryIds] = useState<string[]>([]);
   const [selectedBatteries, setSelectedBatteries] = useState<Battery[] | null>(
     null
   );
@@ -135,7 +135,7 @@ export function SetupPage() {
     }
   }, [chargers, selectedChargerId]);
 
-  const handleBatterySelectionChange = (selectedIds: number[]) => {
+  const handleBatterySelectionChange = (selectedIds: string[]) => {
     setSelectedBatteryIds(selectedIds);
   };
 
@@ -158,7 +158,7 @@ export function SetupPage() {
       for (let index = 0; index < selectedCharger.slots; index++) {
         setSelectedSlots((prev) => [
           ...prev,
-          { id: selectedBatteryIds[index] || 0, slot: index + 1 },
+          { id: String(selectedBatteryIds[index] || 0), slot: index + 1 },
         ]);
       }
       ports?.find((findport) => {
@@ -197,7 +197,7 @@ export function SetupPage() {
       const [id, slotNumber] = value.split(",");
       console.log(id, slotNumber);
       if (Number(slot.slot) === parseInt(slotNumber)) {
-        return { id: Number(id), slot: slot.slot };
+        return { id: id, slot: slot.slot };
       }
       return slot;
     });
@@ -209,7 +209,7 @@ export function SetupPage() {
   function checkBatterySlotsEmpty(): boolean {
     let counter = 0;
     for (let i = 0; i < selectedSlots.length; i++) {
-      if (selectedSlots[i].id !== 0) {
+      if (selectedSlots[i].id !== "0") {
         counter++;
       }
     }
@@ -219,7 +219,7 @@ export function SetupPage() {
   function checkBatterySlotsConflicts(): boolean {
     for (let i = 0; i < selectedSlots.length; i++) {
       const slot = selectedSlots[i];
-      if (slot.id === 0) {
+      if (slot.id === "0") {
         continue;
       }
       for (let j = 0; j < selectedSlots.length; j++) {
@@ -257,8 +257,11 @@ export function SetupPage() {
       await updatePort(selectedChargerId, port);
     }
     checkBatterySlotsConflicts();
-    const filteredSlots = selectedSlots.filter((slot) => slot.id !== 0);
+    const filteredSlots = selectedSlots.filter((slot) => slot.id !== "0");
     console.log("Filtered slots:", filteredSlots);
+    console.log("Starting the tracking process");
+    console.log("Selected charger id:", selectedChargerId);
+    console.log("Batteries:", filteredSlots);
     startTracking({
       id_charger: selectedChargerId,
       batteries: filteredSlots,
@@ -472,7 +475,7 @@ export function SetupPage() {
                         defaultValue={
                           (selectedBatteries && selectedBatteries[index]?.id) !=
                           null
-                            ? selectedBatteries[index]?.id + "," + (index + 1)
+                            ? selectedBatteries?.[index]?.id + "," + (index + 1)
                             : "0," + (index + 1)
                         }
                         onValueChange={setBatterySlot}

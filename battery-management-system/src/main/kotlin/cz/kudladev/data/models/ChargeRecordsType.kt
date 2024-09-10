@@ -23,7 +23,7 @@ data class ChargeRecord(
 data class ChargeRecordInsert(
     val slot: Int,
     val charger_id: Int,
-    val battery_id: Int
+    val battery_id: String
 )
 
 @Serializable
