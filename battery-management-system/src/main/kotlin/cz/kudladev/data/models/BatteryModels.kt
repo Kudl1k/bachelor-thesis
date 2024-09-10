@@ -16,6 +16,7 @@ data class Battery(
     val shop_link: String?,
     val last_charged_capacity: Int?,
     @Serializable(with = TimestampSerializer::class) val last_time_charged_at: Timestamp?,
+    val archived: Boolean,
     @Serializable(with = TimestampSerializer::class) val created_at: Timestamp?
 )
 
@@ -29,6 +30,7 @@ data class BatteryFormated(
     val shop_link: String?,
     val last_charged_capacity: Float?,
     @Serializable(with = TimestampSerializer::class) val last_time_charged_at: Timestamp?,
+    val archived: Boolean,
     @Serializable(with = TimestampSerializer::class) val created_at: Timestamp?
 )
 
@@ -59,6 +61,7 @@ data class BatteryInfo(
     val shop_link: String?,
     val last_charged_capacity: Float?,
     @Serializable(with = TimestampSerializer::class) val last_time_charged_at: Timestamp?,
+    val archived: Boolean,
     @Serializable(with = TimestampSerializer::class) val created_at: Timestamp?,
     val charge_records: List<ChargeRecordWithTrackingFormated>
 )

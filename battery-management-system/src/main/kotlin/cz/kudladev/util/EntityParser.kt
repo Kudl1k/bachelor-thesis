@@ -17,6 +17,7 @@ object EntityParser {
             shop_link = entity.shopLink,
             last_charged_capacity = entity.lastChargedCapacity,
             last_time_charged_at = entity.lastTimeChargedAt?.let { Timestamp.from(it) },
+            archived = entity.archived,
             created_at = Timestamp.from(entity.createdAt)
         )
     }
@@ -31,6 +32,7 @@ object EntityParser {
             shop_link = entity.shopLink,
             last_charged_capacity = entity.lastChargedCapacity?.let { convertChargedOrDischargedCapacityToMilliAmpHour(it) },
             last_time_charged_at = entity.lastTimeChargedAt?.let { Timestamp.from(it) },
+            archived = entity.archived,
             created_at = Timestamp.from(entity.createdAt)
         )
     }
@@ -90,6 +92,7 @@ object EntityParser {
             finishedAt = chargeRecordEntity.finishedAt?.let { Timestamp.from(it) },
             initialCapacity = chargeRecordEntity.initialCapacity,
             chargedCapacity = chargeRecordEntity.chargedCapacity,
+            dischargedCapacity = chargeRecordEntity.dischargedCapacity,
             charger = charger,
             battery = battery
         )

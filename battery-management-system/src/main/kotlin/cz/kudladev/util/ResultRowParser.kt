@@ -35,6 +35,7 @@ object ResultRowParser {
             shop_link = row[Batteries.shop_link],
             last_charged_capacity = row[Batteries.lastChargedCapacity],
             last_time_charged_at = row[Batteries.lastTimeChargedAt]?.let { Timestamp.from(it) },
+            archived = row[Batteries.archived],
             created_at = Timestamp.from(row[Batteries.createdAt])
         )
     }

@@ -8,6 +8,7 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import org.jetbrains.exposed.sql.transactions.transaction
 
 fun Route.batteries(batteriesDao: BatteriesDao) {
     route("/batteries") {
@@ -71,7 +72,11 @@ fun Route.batteries(batteriesDao: BatteriesDao) {
             }
         }
         get("newId") {
-            call.respond(batteriesDao.generateBatteryId())
+            var newId: String? = null
+            transaction {
+                newId = batteriesDao.generateBatteryId()
+            }
+            call.respondText(newId!!, status = HttpStatusCode.OK)
         }
     }
 }

@@ -150,6 +150,11 @@ class BatteriesDaoImpl: BatteriesDao {
                                 it1
                             )
                         },
+                        dischargedCapacity = it.dischargedCapacity?.let { it1 ->
+                            convertChargedOrDischargedCapacityToMilliAmpHour(
+                                it1
+                            )
+                        },
                         charger = EntityParser.toCharger(charger),
                         battery = battery,
                         tracking = tracking
@@ -165,6 +170,7 @@ class BatteriesDaoImpl: BatteriesDao {
                     voltage = battery.voltage,
                     shop_link = battery.shop_link,
                     last_charged_capacity = battery.last_charged_capacity,
+                    archived = battery.archived,
                     last_time_charged_at = battery.last_time_charged_at,
                     created_at = battery.created_at,
                     charge_records = chargeRecords
@@ -178,7 +184,8 @@ class BatteriesDaoImpl: BatteriesDao {
     }
 
     override fun generateBatteryId(): String {
-        val nextId = (Batteries.select(Batteries.id.max()).singleOrNull()?.get(Batteries.id.max())?.toString()?.toIntOrNull() ?: 0) + 1
+        val usedIds = Batteries.slice(Batteries.id).selectAll().map { it[Batteries.id].value.toInt() }.toSet()
+        val nextId = (1..Int.MAX_VALUE).first { it.toString() !in usedIds.map { id -> id.toString() } }
         return nextId.toString().padStart(8, '0')
     }
 }

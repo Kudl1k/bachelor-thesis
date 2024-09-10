@@ -58,7 +58,18 @@ suspend fun startTracking(
             charging = false,
             running = true
         ))
-        chargeRecords.add(chargeRecordsDao.createChargeRecord(chargeRecord))
+        val createdChargeRecord = chargeRecordsDao.createChargeRecord(chargeRecord)
+        chargeRecords.add(createdChargeRecord)
+        chargeTrackingDao.createChargeTracking(
+            chargeTracking = ChargeTrackingID(
+                charge_record_id = createdChargeRecord.idChargeRecord!!,
+                charging = false,
+                real_capacity = 0,
+                capacity = 0,
+                voltage = 0,
+                current = 0
+            )
+        )
     }
 
     while (isRunning) {
@@ -264,7 +275,7 @@ suspend fun startTracking(
             } else if (data.current == 0 && data.slot == slot.slotNumber) {
                 slotStates = slotStates.map {
                     if (it.slotNumber == slot.slotNumber) {
-                        chargeRecordsDao.endChargeRecord(charge_record_id, it.last_charged_capacity)
+                        chargeRecordsDao.endChargeRecord(charge_record_id, it.last_charged_capacity,it.last_discharged_capacity)
                         batteriesDao.updateBatteryLastChargingCapacity(
                             slot.battery_id,
                             it.last_charged_capacity

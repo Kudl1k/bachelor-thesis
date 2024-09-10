@@ -18,6 +18,7 @@ object Batteries : IdTable<String>("battery") {
     val shop_link = varchar("shop_link", 255).nullable()
     val lastChargedCapacity = integer("last_charged_capacity").nullable()
     val lastTimeChargedAt = timestamp("last_time_charged_at").nullable()
+    val archived = bool("archived").default(false)
     val createdAt = timestamp("created_at")
 
     override val primaryKey = PrimaryKey(id)
@@ -33,5 +34,6 @@ class BatteryEntity(id: EntityID<String>) : Entity<String>(id) {
     var shopLink by Batteries.shop_link
     var lastChargedCapacity by Batteries.lastChargedCapacity
     var lastTimeChargedAt by Batteries.lastTimeChargedAt
+    var archived by Batteries.archived
     var createdAt by Batteries.createdAt
 }

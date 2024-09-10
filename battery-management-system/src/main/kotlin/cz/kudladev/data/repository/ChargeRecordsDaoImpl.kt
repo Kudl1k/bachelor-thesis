@@ -57,6 +57,7 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
                     finishedAt = null
                     initialCapacity = 0
                     chargedCapacity = null
+                    dischargedCapacity = null
                     chargerEntity = charger
                     batteryEntity = battery
                 }.id.value
@@ -75,6 +76,7 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
                     it.startedAt = chargeRecord.startedAt.toInstant()
                     it.finishedAt = chargeRecord.finishedAt?.toInstant()
                     it.chargedCapacity = chargeRecord.chargedCapacity
+                    it.dischargedCapacity = chargeRecord.dischargedCapacity
                     it.chargerEntity = chargeRecord.charger.id?.let { it1 -> ChargerEntity.findById(it1) } ?: throw IllegalArgumentException("No charger found for id ${chargeRecord.charger.id}")
                     it.batteryEntity = chargeRecord.battery.id?.let { it1 -> BatteryEntity.findById(it1) } ?: throw IllegalArgumentException("No battery found for id ${chargeRecord.battery.id}")
                 }
@@ -98,12 +100,13 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
         }
     }
 
-    override suspend fun endChargeRecord(id: Int, capacity: Int): ChargeRecord? {
+    override suspend fun endChargeRecord(id: Int, charged_capacity: Int, discharged_capacity: Int): ChargeRecord? {
         return try {
             dbQuery {
                 ChargeRecordEntity.findById(id)?.let {
                     it.finishedAt = Clock.systemUTC().instant()
-                    it.chargedCapacity = capacity
+                    it.chargedCapacity = charged_capacity
+                    it.dischargedCapacity = discharged_capacity
                 }
             }
             getChargeRecordById(id)
@@ -129,6 +132,7 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
                         finishedAt = it.finishedAt?.let { Timestamp.from(it) },
                         initialCapacity = it.initialCapacity,
                         chargedCapacity = it.chargedCapacity,
+                        dischargedCapacity = it.dischargedCapacity,
                         charger = EntityParser.toCharger(charger),
                         battery = EntityParser.toFormatedBattery(battery, EntityParser.toType(type), EntityParser.toSize(size)),
                         tracking = tracking
