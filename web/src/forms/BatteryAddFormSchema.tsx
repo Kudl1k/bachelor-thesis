@@ -30,6 +30,7 @@ import { Input } from "@/components/ui/input";
 import { BatteryInsert, insertBatteryData } from "@/models/BatteryData";
 import { Size } from "@/models/SizeData";
 import { Type } from "@/models/TypeData";
+import JsBarcode from "jsbarcode";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -71,6 +72,27 @@ export function BatteryAddFormSchema({
     },
   });
 
+  const [barcodeUrl, setBarcodeUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const canvas = document.createElement("canvas");
+    JsBarcode(canvas, newId, { format: "CODE128", height: 40 });
+    const url = canvas.toDataURL("image/png");
+    setBarcodeUrl(url);
+  }, [newId]);
+
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === "id" && value.id) {
+        const canvas = document.createElement("canvas");
+        JsBarcode(canvas, value.id, { format: "CODE128", height: 40 });
+        const url = canvas.toDataURL("image/png");
+        setBarcodeUrl(url);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
+
   async function onSubmit(data: z.infer<typeof batteryAddFormSchema>) {
     const insertBattery: BatteryInsert = {
       id: data.id,
@@ -111,6 +133,13 @@ export function BatteryAddFormSchema({
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <div className="flex w-full justify-center">
+          {barcodeUrl ? (
+            <img src={barcodeUrl} alt="Barcode" height={40} />
+          ) : (
+            <canvas style={{ display: "none" }} />
+          )}
+        </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <FormField
