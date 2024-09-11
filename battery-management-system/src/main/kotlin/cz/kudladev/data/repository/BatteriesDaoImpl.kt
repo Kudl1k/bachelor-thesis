@@ -115,7 +115,7 @@ class BatteriesDaoImpl: BatteriesDao {
 
     override suspend fun updateBatteryLastChargingCapacity(id: String, capacity: Int): BatteryFormated? {
         return try {
-            val battery = getBatteryById(id) ?: throw IllegalArgumentException("No battery found for id $id")
+            getBatteryById(id) ?: throw IllegalArgumentException("No battery found for id $id")
             dbQuery {
                 BatteryEntity.findById(id)?.apply {
                     lastChargedCapacity = capacity
@@ -163,7 +163,7 @@ class BatteriesDaoImpl: BatteriesDao {
                 }
                 println("chargeRecords: $chargeRecords")
                 val result = BatteryInfo(
-                    id = battery.id!!,
+                    id = battery.id,
                     type = battery.type,
                     size = battery.size,
                     factory_capacity = battery.factory_capacity,
@@ -185,7 +185,7 @@ class BatteriesDaoImpl: BatteriesDao {
 
     override suspend fun toggleArchiveBattery(id: String): BatteryFormated? {
         return try {
-            val battery = getBatteryById(id) ?: throw IllegalArgumentException("No battery found for id $id")
+            getBatteryById(id) ?: throw IllegalArgumentException("No battery found for id $id")
             dbQuery {
                 BatteryEntity.findById(id)?.apply {
                     archived = !archived
