@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/card";
 import { Battery, truncateText } from "@/models/BatteryData";
 
+import JsBarcode from "jsbarcode";
 import {
   BatteryCharging,
   BatteryFull,
@@ -18,7 +19,7 @@ import {
   Ruler,
   Zap,
 } from "lucide-react";
-import Barcode from "react-barcode";
+import { useCallback, useState } from "react";
 import { Link } from "react-router-dom";
 import { Badge } from "../ui/badge";
 import { buttonVariants } from "../ui/button";
@@ -34,6 +35,18 @@ interface BatteryCardProps {
 }
 
 export function BatteryCard({ battery }: BatteryCardProps) {
+  const [barcodeUrl, setBarcodeUrl] = useState<string | null>(null);
+  const setCanvasRef = useCallback(
+    (node: HTMLCanvasElement | null) => {
+      if (node) {
+        JsBarcode(node, battery.id, { format: "CODE128", height: 40 });
+        const url = node.toDataURL("image/png");
+        setBarcodeUrl(url);
+      }
+    },
+    [battery.id]
+  );
+
   return (
     <Card className="shadow-md">
       <CardHeader>
@@ -50,7 +63,11 @@ export function BatteryCard({ battery }: BatteryCardProps) {
                   </h1>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <Barcode value={battery.id} height={40} />
+                  {barcodeUrl ? (
+                    <img src={barcodeUrl} alt="Barcode" height={40} />
+                  ) : (
+                    <canvas ref={setCanvasRef} style={{ display: "none" }} />
+                  )}
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

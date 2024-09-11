@@ -66,7 +66,7 @@ export function BaterryPage() {
       )}
 
       <div className="flex justify-center">
-        <div className="w-full xl:w-4/6 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 p-4">
+        <div className="w-full xl:w-4/6 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-4 p-4">
           {paginatedData.map((battery) => (
             <BatteryCard key={battery.id} battery={battery} />
           ))}
