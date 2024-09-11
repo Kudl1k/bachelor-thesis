@@ -3,6 +3,9 @@ import { InfoBox } from "@/components/InfoBox";
 import { Loading } from "@/components/Loading";
 import { PaggingMenu } from "@/components/PaggingMenu";
 import { buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Battery, fetchBatteryData } from "@/models/BatteryData";
 import { BatteryWarning } from "lucide-react";
 
@@ -11,9 +14,13 @@ import { Link } from "react-router-dom";
 
 export function BaterryPage() {
   const [batteryData, setBatteryData] = useState<Battery[] | null>(null);
+  const [filteredData, setFilteredData] = useState<Battery[] | null>(null);
   const [page, setPage] = useState(1);
   const [perPage] = useState(9);
   const hasFetched = useRef(false);
+
+  const [archived, setArchived] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (!hasFetched.current) {
@@ -30,19 +37,51 @@ export function BaterryPage() {
     }
   }, []);
 
-  if (!batteryData) {
+  useEffect(() => {
+    if (batteryData === null) return;
+    if (searchQuery.trim() !== "") {
+      setFilteredData(
+        batteryData.filter((battery) => battery.id.includes(searchQuery.trim()))
+      );
+    } else {
+      setFilteredData(batteryData);
+    }
+  }, [batteryData, searchQuery]);
+
+  function onArchivedSwitchChange() {
+    setArchived(!archived);
+  }
+
+  function onSearchQueryChange(event: React.ChangeEvent<HTMLInputElement>) {
+    setSearchQuery(event.target.value);
+  }
+
+  if (!batteryData || !filteredData) {
     return Loading();
   }
 
   const start = (Number(page) - 1) * Number(perPage);
   const end = start + Number(perPage);
 
-  const paginatedData = batteryData.slice(start, end);
+  const paginatedData = filteredData.slice(start, end);
+
+  const filteredBatteryData = archived
+    ? paginatedData
+    : paginatedData.filter((battery) => !battery.archived);
 
   return (
     <>
       <div className="flex justify-center">
-        <div className="flex justify-end w-full xl:w-4/6 ps-4 pe-4 pt-4">
+        <div className="flex justify-between w-full xl:w-4/6 ps-4 pe-4 pt-4">
+          <div className="flex items-center space-x-2">
+            <Input
+              type="text"
+              placeholder="Search for battery id"
+              onChange={onSearchQueryChange}
+            />
+            <Switch onCheckedChange={onArchivedSwitchChange} />
+            <Label htmlFor="">Archived</Label>
+          </div>
           <div>
             <Link
               className={buttonVariants({ variant: "default" })}
@@ -67,7 +106,7 @@ export function BaterryPage() {
 
       <div className="flex justify-center">
         <div className="w-full xl:w-4/6 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-4 p-4">
-          {paginatedData.map((battery) => (
+          {filteredBatteryData.map((battery) => (
             <BatteryCard key={battery.id} battery={battery} />
           ))}
         </div>

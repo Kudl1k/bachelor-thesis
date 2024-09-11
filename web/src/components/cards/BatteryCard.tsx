@@ -9,9 +9,10 @@ import { Battery, truncateText } from "@/models/BatteryData";
 
 import JsBarcode from "jsbarcode";
 import {
+  Archive,
+  Atom,
   BatteryCharging,
   BatteryFull,
-  Biohazard,
   CalendarClock,
   CalendarPlus,
   Hash,
@@ -23,6 +24,7 @@ import { useCallback, useState } from "react";
 import { Link } from "react-router-dom";
 import { Badge } from "../ui/badge";
 import { buttonVariants } from "../ui/button";
+import { Label } from "../ui/label";
 import {
   Tooltip,
   TooltipContent,
@@ -127,11 +129,19 @@ export function BatteryCard({ battery }: BatteryCardProps) {
         </h2>
         <h2 className="text-lg font-semibold">
           <div className="flex items-center gap-2">
-            <Biohazard />
+            <Atom />
             {battery.type.shortcut}
           </div>
         </h2>
-        <div className="flex justify-end w-full">
+        <div className="flex justify-between w-full">
+          <div className="flex items-center space-x-2 text-red-500">
+            {battery.archived && (
+              <>
+                <Archive />
+                <Label htmlFor="archived">Archived battery</Label>
+              </>
+            )}
+          </div>
           <Link
             className={buttonVariants({ variant: "secondary" })}
             to={`/battery/${battery.id}`}
