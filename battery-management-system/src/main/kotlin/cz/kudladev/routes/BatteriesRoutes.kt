@@ -78,5 +78,15 @@ fun Route.batteries(batteriesDao: BatteriesDao) {
             }
             call.respondText(newId!!, status = HttpStatusCode.OK)
         }
+        get("{id}/toggleArchive") {
+            try {
+                val id = call.parameters["id"] ?: return@get call.respond(HttpStatusCode.BadRequest)
+                batteriesDao.toggleArchiveBattery(id)
+                call.respond(HttpStatusCode.OK)
+            } catch (e: Exception) {
+                call.respondText(text = "Please insert right form of ID (Int), starting from 1", status = HttpStatusCode.BadRequest)
+            }
+
+        }
     }
 }

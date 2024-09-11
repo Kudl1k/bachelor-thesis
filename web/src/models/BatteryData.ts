@@ -134,3 +134,16 @@ export async function fetchNewId(setNewId: (id: string) => void) {
     console.error("Failed to fetch new battery id:", error);
   }
 }
+
+export async function toggleArchived(id: string) {
+  try {
+    const response = await fetch(`${DEFAULTURL}/batteries/${id}/toggleArchive`);
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    const responseText = await response.text();
+    console.log("Succesfully toggled:", responseText);
+  } catch (error) {
+    console.log("Failed to toggle archive with id:", error);
+  }
+}

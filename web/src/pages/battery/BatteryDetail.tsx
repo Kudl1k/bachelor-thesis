@@ -4,13 +4,25 @@ import { Loading } from "@/components/Loading";
 import { DataTable } from "@/components/table/battery/BatteryTable";
 import { ChargeRecordColumns } from "@/components/table/chargerecords/ChargeRecordColumns";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import {
   BatteryInfo,
   fetchBatteryInfo,
+  toggleArchived,
   truncateText,
 } from "@/models/BatteryData";
-import { BatteryMedium, Biohazard, Hash, Link, Ruler, Zap } from "lucide-react";
+import {
+  Archive,
+  ArchiveRestore,
+  BatteryMedium,
+  Biohazard,
+  Hash,
+  Link,
+  Ruler,
+  Zap,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 
@@ -37,6 +49,12 @@ export default function BatteryDetail() {
       setSelectedCharger(id);
     }
   };
+
+  function onArchivedButtonClick() {
+    if (!batteryData) return;
+    toggleArchived(batteryData.id);
+    window.location.reload();
+  }
 
   if (!batteryData) {
     return Loading();
@@ -94,6 +112,16 @@ export default function BatteryDetail() {
                     </a>
                   </div>
                 </h2>
+                <h2 className="text-lg font-semibold">
+                  <div className="flex items-center space-x-2 text-red-500">
+                    {batteryData.archived && (
+                      <>
+                        <Archive />
+                        <Label htmlFor="archived">Archived battery</Label>
+                      </>
+                    )}
+                  </div>
+                </h2>
               </div>
               <div className="col-span-1">
                 <LastRecordsChart data={batteryData.charge_records} />
@@ -136,6 +164,11 @@ export default function BatteryDetail() {
                 idname="idChargeRecord"
                 sortiddesc={true}
               />
+            </div>
+            <div className="w-full flex justify-center">
+              <Button onClick={onArchivedButtonClick}>
+                <ArchiveRestore className=" mr-2 h-4 w-4" /> Archive
+              </Button>
             </div>
           </CardContent>
         </Card>

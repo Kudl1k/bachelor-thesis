@@ -183,6 +183,21 @@ class BatteriesDaoImpl: BatteriesDao {
         }
     }
 
+    override suspend fun toggleArchiveBattery(id: String): BatteryFormated? {
+        return try {
+            val battery = getBatteryById(id) ?: throw IllegalArgumentException("No battery found for id $id")
+            dbQuery {
+                BatteryEntity.findById(id)?.apply {
+                    archived = !archived
+                }
+            }
+            getBatteryById(id)
+        } catch (e: Exception) {
+            println(e)
+            null
+        }
+    }
+
     override fun generateBatteryId(): String {
         val usedIds = Batteries.slice(Batteries.id).selectAll().map { it[Batteries.id].value.toInt() }.toSet()
         val nextId = (1..Int.MAX_VALUE).first { it.toString() !in usedIds.map { id -> id.toString() } }

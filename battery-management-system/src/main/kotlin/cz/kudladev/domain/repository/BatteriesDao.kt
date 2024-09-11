@@ -22,5 +22,7 @@ interface BatteriesDao {
 
     suspend fun getBatteryInfo(id: String): BatteryInfo?
 
+    suspend fun toggleArchiveBattery(id: String): BatteryFormated?
+
     fun generateBatteryId(): String
 }
