@@ -13,6 +13,7 @@ object Batteries : IdTable<String>("battery") {
     override val id = varchar("id", 8).entityId()
     val typeShortcut = reference("shortcut", Types) // Use reference for foreign key
     val size = reference("size", Sizes) // Use reference for foreign key
+    val cells = integer("cells").default(1)
     val factoryCapacity = integer("factory_capacity")
     val voltage = integer("voltage")
     val shop_link = varchar("shop_link", 255).nullable()
