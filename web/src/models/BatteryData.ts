@@ -7,6 +7,7 @@ export interface Battery {
   id: string;
   type: Type;
   size: Size;
+  cells: number;
   factory_capacity: number;
   voltage: number;
   shop_link: string | null;
@@ -20,6 +21,7 @@ export interface BatteryInsert {
   id: string;
   type: string;
   size: string;
+  cells: number;
   factory_capacity: number;
   voltage: number;
   shop_link?: string | null;
@@ -29,6 +31,7 @@ export interface BatteryColumnType {
   id: string;
   type: string;
   size: string;
+  cells: number;
   factory_capacity: number;
   voltage: number;
   last_charged_capacity: string;
@@ -45,6 +48,7 @@ export interface BatteryInfo {
   id: string;
   type: Type;
   size: Size;
+  cells: number;
   factory_capacity: number;
   voltage: number;
   shop_link: string | null;

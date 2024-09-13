@@ -65,6 +65,7 @@ class BatteriesDaoImpl: BatteriesDao {
                 BatteryEntity.new(battery.id ?: generateBatteryId()) {
                     typeEntity = type
                     sizeEntity = size
+                    cells = battery.cells
                     factoryCapacity = battery.factory_capacity
                     voltage = battery.voltage
                     shopLink = battery.shop_link
@@ -86,6 +87,7 @@ class BatteriesDaoImpl: BatteriesDao {
                 BatteryEntity.findById(battery.id ?: throw IllegalArgumentException("Battery id must not be null"))?.apply {
                     typeEntity = TypeEntity.findById(battery.type.shortcut) ?: throw IllegalArgumentException("No type found for id ${battery.type.shortcut}")
                     sizeEntity = SizeEntity.findById(battery.size.name) ?: throw IllegalArgumentException("No size found for id ${battery.size.name}")
+                    cells = battery.cells
                     factoryCapacity = battery.factory_capacity
                     voltage = battery.voltage
                     shopLink = battery.shop_link

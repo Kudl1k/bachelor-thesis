@@ -37,9 +37,34 @@ fun readFromPort(
     idCharger: Int,
 ): ParserResult {
     resetPort(port)
-    val buffer = port.readBytes(bytes)
+    if (idCharger == 1) {
+        println("Conrad Charge Manager 2010")
+        val buffer = port.readBytes(bytes)
+        return BufferParsers.conradChargeManager2010(buffer)
+    } else {
+        println("Turnigy Accucell 6")
+        var frame = ""
+        while (true) {
+            try {
+                val byte = port.readBytes(1) ?: continue
+                val c = byte[0].toChar()
 
-    return BufferParsers.conradManagerCharger2010(buffer)
+                if (c == '{') {
+                    frame = ""
+                } else if (c == '}' && frame.length == 74) {
+                    val result = BufferParsers.turnigyAccucell6(frame)
+                    println(result)
+                    return result
+                } else {
+                    frame += c
+                }
+            } catch (e: Exception) {
+                System.err.println(e)
+            }
+        }
+    }
+
+
 }
 
 fun resetPort(port: SerialPort) {
