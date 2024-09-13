@@ -9,7 +9,6 @@ import cz.kudladev.util.EntityParser
 import cz.kudladev.util.ResultRowParser
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import java.sql.Time
 import java.sql.Timestamp
 import java.time.Clock
 
@@ -124,7 +123,12 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
                     val battery = BatteryEntity.findById(it.batteryEntity.id.value) ?: throw IllegalArgumentException("No battery found for id ${it.batteryEntity.id.value}")
                     val size = SizeEntity.findById(battery.sizeEntity.id.value) ?: throw IllegalArgumentException("No size found for id ${battery.sizeEntity.id.value}")
                     val type = TypeEntity.findById(battery.typeEntity.id.value) ?: throw IllegalArgumentException("No type found for id ${battery.typeEntity.id.value}")
-                    val tracking = ChargeTrackingEntity.find { ChargeTrackings.idChargeRecord eq it.id.value }.orderBy(ChargeTrackings.id to SortOrder.ASC).map { EntityParser.toFormatedChargeTracking(it) }
+                    val tracking = ChargeTrackingEntity.find { ChargeTrackings.idChargeRecord eq it.id.value }.orderBy(ChargeTrackings.id to SortOrder.ASC).map {
+                        val cells = CellTracking.select { (CellTracking.timestamp eq it.timestamp.value) and (CellTracking.idChargeRecord eq it.chargeRecordEntity.id.value) }
+                            .orderBy(CellTracking.number to SortOrder.ASC)
+                            .map { ResultRowParser.resultRowToFormatedCell(it) }
+                        EntityParser.toFormatedChargeTracking(it, cells)
+                    }
                     ChargeRecordWithTracking(
                         idChargeRecord = it.id.value,
                         slot = it.slot,

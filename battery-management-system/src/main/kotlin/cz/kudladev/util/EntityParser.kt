@@ -2,7 +2,6 @@ package cz.kudladev.util
 
 import cz.kudladev.data.entities.*
 import cz.kudladev.data.models.*
-import java.sql.Time
 import java.sql.Timestamp
 
 object EntityParser {
@@ -12,6 +11,7 @@ object EntityParser {
             id = entity.id.value,
             type = type,
             size = size,
+            cells = entity.cells,
             factory_capacity = entity.factoryCapacity,
             voltage = entity.voltage,
             shop_link = entity.shopLink,
@@ -27,6 +27,7 @@ object EntityParser {
             id = entity.id.value,
             type = type,
             size = size,
+            cells = entity.cells,
             factory_capacity = entity.factoryCapacity,
             voltage = convertVoltageToVolt(entity.voltage),
             shop_link = entity.shopLink,
@@ -98,7 +99,7 @@ object EntityParser {
         )
     }
 
-    fun toChargeTracking(chargeTrackingEntity: ChargeTrackingEntity): ChargeTrackingID{
+    fun toChargeTracking(chargeTrackingEntity: ChargeTrackingEntity, cells: List<Cell>): ChargeTrackingID{
         return ChargeTrackingID(
             timestamp = Timestamp.from(chargeTrackingEntity.timestamp.value),
             charge_record_id = chargeTrackingEntity.chargeRecordEntity.id.value,
@@ -106,11 +107,12 @@ object EntityParser {
             voltage = chargeTrackingEntity.voltage,
             current = chargeTrackingEntity.current,
             capacity = chargeTrackingEntity.capacity,
-            real_capacity = chargeTrackingEntity.realCapacity
+            real_capacity = chargeTrackingEntity.realCapacity,
+            cells = cells
         )
     }
 
-    fun toFormatedChargeTracking(chargeTrackingEntity: ChargeTrackingEntity): FormatedChargeTracking{
+    fun toFormatedChargeTracking(chargeTrackingEntity: ChargeTrackingEntity, cells: List<FormatedCell>): FormatedChargeTracking{
         return FormatedChargeTracking(
             timestamp = Timestamp.from(chargeTrackingEntity.timestamp.value),
             charge_record_id = chargeTrackingEntity.chargeRecordEntity.id.value,
@@ -118,7 +120,8 @@ object EntityParser {
             real_capacity = convertChargedOrDischargedCapacityToMilliAmpHour(chargeTrackingEntity.realCapacity),
             capacity = convertChargedOrDischargedCapacityToMilliAmpHour(chargeTrackingEntity.capacity),
             voltage = convertVoltageToVolt(chargeTrackingEntity.voltage),
-            current = convertCurrentToAmpere(chargeTrackingEntity.current)
+            current = convertCurrentToAmpere(chargeTrackingEntity.current),
+            cells = cells
         )
     }
 
