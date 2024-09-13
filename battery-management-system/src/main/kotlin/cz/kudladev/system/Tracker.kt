@@ -95,7 +95,7 @@ suspend fun startTracking(
                     charge_record_id = chargeRecord.idChargeRecord!!
                 }
             }
-            if (data.state != State.NO_BATTERY) {
+            if (data.state != State.NO_BATTERY && data.state != State.END) {
                 println(
                     "Slot: ${slot.slotNumber} - Charging: ${slot.charging} - Charged: ${slot.charged} - Discharged: ${slot.discharged} - Current: ${data.current} - Voltage: ${data.voltage} - Capacity: ${data.capacity} - State: ${data.state}"
                 )
