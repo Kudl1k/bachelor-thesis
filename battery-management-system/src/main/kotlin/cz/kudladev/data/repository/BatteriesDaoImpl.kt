@@ -5,6 +5,7 @@ import cz.kudladev.data.entities.*
 import cz.kudladev.data.models.*
 import cz.kudladev.domain.repository.BatteriesDao
 import cz.kudladev.util.EntityParser
+import cz.kudladev.util.ResultRowParser
 import org.jetbrains.exposed.sql.*
 import java.sql.Timestamp
 import java.time.Clock
@@ -138,7 +139,12 @@ class BatteriesDaoImpl: BatteriesDao {
 
                 val chargeRecords = ChargeRecordEntity.find { ChargeRecords.idBattery eq id }.map {
                     val charger = ChargerEntity.findById(it.chargerEntity.id.value) ?: throw IllegalArgumentException("No charger found for id ${it.chargerEntity.id.value}")
-                    val tracking = ChargeTrackingEntity.find { ChargeTrackings.idChargeRecord eq it.id.value }.orderBy(ChargeTrackings.id to SortOrder.ASC).map { EntityParser.toFormatedChargeTracking(it) }
+                    val tracking = ChargeTrackingEntity.find { ChargeTrackings.idChargeRecord eq it.id.value }.orderBy(ChargeTrackings.id to SortOrder.ASC).map {
+                        val cells = CellTracking.select { (CellTracking.timestamp eq it.timestamp.value) and (CellTracking.idChargeRecord eq it.chargeRecordEntity.id.value) }
+                            .orderBy(CellTracking.number to SortOrder.ASC)
+                            .map { ResultRowParser.resultRowToFormatedCell(it) }
+                        EntityParser.toFormatedChargeTracking(it, cells)
+                    }
                     val result = ChargeRecordWithTrackingFormated(
                         idChargeRecord = it.id.value,
                         slot = it.slot,
@@ -166,6 +172,7 @@ class BatteriesDaoImpl: BatteriesDao {
                     id = battery.id,
                     type = battery.type,
                     size = battery.size,
+                    cells = battery.cells,
                     factory_capacity = battery.factory_capacity,
                     voltage = battery.voltage,
                     shop_link = battery.shop_link,

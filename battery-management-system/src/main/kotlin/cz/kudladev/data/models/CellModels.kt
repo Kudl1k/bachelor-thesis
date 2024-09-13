@@ -10,5 +10,13 @@ data class Cell(
     @Serializable(with = TimestampSerializer::class) val timestamp: Timestamp,
     val idChargeRecord: Int,
     val number: Int,
+    val voltage: Int
+)
+
+@Serializable
+data class FormatedCell(
+    @Serializable(with = TimestampSerializer::class) val timestamp: Timestamp,
+    val idChargeRecord: Int,
+    val number: Int,
     val voltage: Float
 )

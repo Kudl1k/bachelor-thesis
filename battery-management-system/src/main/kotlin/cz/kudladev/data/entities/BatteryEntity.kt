@@ -2,8 +2,6 @@ package cz.kudladev.data.entities
 
 import org.jetbrains.exposed.dao.Entity
 import org.jetbrains.exposed.dao.EntityClass
-import org.jetbrains.exposed.dao.IntEntity
-import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.javatime.timestamp
@@ -30,6 +28,7 @@ class BatteryEntity(id: EntityID<String>) : Entity<String>(id) {
 
     var typeEntity by TypeEntity referencedOn Batteries.typeShortcut
     var sizeEntity by SizeEntity referencedOn Batteries.size
+    var cells by Batteries.cells
     var factoryCapacity by Batteries.factoryCapacity
     var voltage by Batteries.voltage
     var shopLink by Batteries.shop_link

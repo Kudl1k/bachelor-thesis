@@ -12,7 +12,8 @@ data class ChargeTrackingID(
     val real_capacity: Int,
     val capacity: Int,
     val voltage: Int,
-    val current: Int
+    val current: Int,
+    val cells: List<Cell>
 )
 
 @Serializable
@@ -23,7 +24,8 @@ data class FormatedChargeTracking(
     val real_capacity: Float,
     val capacity: Float,
     val voltage: Float,
-    val current: Float
+    val current: Float,
+    val cells: List<FormatedCell>
 )
 
 @Serializable

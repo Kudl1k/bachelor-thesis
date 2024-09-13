@@ -76,6 +76,13 @@ export interface TrackingRecord {
   current: number;
 }
 
+export interface CellTrakcing {
+  timestamp: string;
+  idChargeRecord: number;
+  number: number;
+  voltage: number;
+}
+
 export async function fetchChargerData(
   setChargerData: (data: Charger[]) => void
 ) {

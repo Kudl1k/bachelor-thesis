@@ -2,7 +2,6 @@ package cz.kudladev.data.models
 
 import cz.kudladev.util.TimestampSerializer
 import kotlinx.serialization.Serializable
-import java.sql.Time
 import java.sql.Timestamp
 
 
@@ -11,6 +10,7 @@ data class Battery(
     val id: String? = null,
     val type: Type,
     val size: Size,
+    val cells: Int,
     val factory_capacity: Int,
     val voltage: Int,
     val shop_link: String?,
@@ -25,6 +25,7 @@ data class BatteryFormated(
     val id: String,
     val type: Type,
     val size: Size,
+    val cells: Int,
     val factory_capacity: Int,
     val voltage: Float,
     val shop_link: String?,
@@ -40,6 +41,7 @@ data class BatteryInsert(
     val id: String? = null,
     val type: String,
     val size: String,
+    val cells: Int,
     val factory_capacity: Int,
     val shop_link: String?,
     val voltage: Int
@@ -56,6 +58,7 @@ data class BatteryInfo(
     val id: String,
     val type: Type,
     val size: Size,
+    val cells: Int,
     val factory_capacity: Int,
     val voltage: Float,
     val shop_link: String?,

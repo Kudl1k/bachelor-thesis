@@ -1,21 +1,13 @@
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import org.jetbrains.exposed.dao.EntityChangeType
-import org.jetbrains.exposed.dao.EntityHook
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import cz.kudladev.data.entities.*
-import cz.kudladev.util.EntityParser
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.broadcast
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.*
-import org.jetbrains.exposed.dao.toEntity
 
 object DatabaseBuilder {
 
@@ -39,24 +31,6 @@ object DatabaseBuilder {
         transaction {
             SchemaUtils.createMissingTablesAndColumns(Types, Sizes, Batteries, Chargers, ChargerTypes, ChargerSizes, ChargeRecords, ChargeTrackings,CellTracking)
         }
-
-        EntityHook.subscribe { change ->
-            if (change.entityClass.isAssignableTo(ChargeTrackingEntity)) {
-                when (change.changeType) {
-                    EntityChangeType.Created -> {
-                        val chargeTracking = change.toEntity(ChargeTrackingEntity) ?: return@subscribe
-                        runBlocking {
-                            // Send only a single record when created
-                            broadcastChannel.send(Json.encodeToString(EntityParser.toFormatedChargeTracking(chargeTracking)))
-                        }
-                    }
-                    EntityChangeType.Updated -> {}
-                    EntityChangeType.Removed -> {}
-                }
-            }
-        }
-
-
     }
 
 
