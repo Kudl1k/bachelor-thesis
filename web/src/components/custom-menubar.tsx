@@ -10,6 +10,8 @@ export function CustomMenubar() {
   const location = useLocation();
   const [activeButton, setActiveButton] = useState<string>("");
   const [isSmallScreen, setIsSmallScreen] = useState<boolean>(false);
+  const [isVisible, setIsVisible] = useState<boolean>(true);
+  const [lastScrollY, setLastScrollY] = useState<number>(0);
 
   useEffect(() => {
     const path = location.pathname;
@@ -35,8 +37,29 @@ export function CustomMenubar() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > lastScrollY) {
+        // Scrolling down
+        setIsVisible(false);
+      } else {
+        // Scrolling up
+        setIsVisible(true);
+      }
+      setLastScrollY(window.scrollY);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
+
   return (
-    <nav className="sticky top-0 mt-4 ms-4 me-4 z-50">
+    <nav
+      className={`sticky top-0 mt-4 ms-4 me-4 z-50 transition-transform duration-300 ${
+        isVisible ? "translate-y-0" : "-translate-y-full"
+      }`}
+    >
       <div className="flex justify-center">
         <Menubar className="flex justify-between w-full xl:w-4/6 h-13 shadow-lg">
           {isSmallScreen ? (
