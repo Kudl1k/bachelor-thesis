@@ -207,7 +207,7 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
       <ChartContainer
         key={data.idChargeRecord}
         config={chartConfig}
-        className={`min-h-[200px] w-full ${className}`}
+        className={`min-h-[200px] max-h-[400px] w-full ${className}`}
       >
         <LineChart accessibilityLayer data={filteredData}>
           <CartesianGrid vertical={false} />
@@ -293,7 +293,10 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
                     <h1 className="text-xl font-bold">Cell {cell.number}</h1>
                   </div>
 
-                  <ChartContainer config={cellChartConfig}>
+                  <ChartContainer
+                    config={cellChartConfig}
+                    className={`min-h-[200px] max-h-[400px] w-full`}
+                  >
                     <LineChart data={filteredCellData}>
                       <CartesianGrid vertical={false} />
                       <XAxis
