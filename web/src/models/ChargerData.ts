@@ -64,6 +64,7 @@ export interface ChargeRecord {
   charger: Charger;
   battery: Battery;
   tracking: TrackingRecord[];
+  cells: CellWithTracking[];
 }
 
 export interface TrackingRecord {
@@ -74,6 +75,18 @@ export interface TrackingRecord {
   capacity: number;
   voltage: number;
   current: number;
+  cells: CellTrakcing[];
+}
+
+export interface CellWithTracking {
+  idChargeRecord: number;
+  number: number;
+  voltages: CellTrakcing[];
+}
+
+export interface Cell {
+  idChargeRecord: number;
+  number: number;
 }
 
 export interface CellTrakcing {

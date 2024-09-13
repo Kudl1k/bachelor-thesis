@@ -38,6 +38,7 @@ const batteryAddFormSchema = z.object({
   id: z.string().length(8, { message: "ID must be 8 characters long." }),
   type: z.string(),
   size: z.string().min(1, { message: "Size is required." }),
+  cells: z.string().min(1).default("1"),
   factory_capacity: z
     .string()
     .min(1, { message: "Factory capacity is required." }),
@@ -66,6 +67,7 @@ export function BatteryAddFormSchema({
       id: newId,
       type: "",
       size: "",
+      cells: "1",
       factory_capacity: "",
       voltage: "",
       shoplink: "",
@@ -98,6 +100,7 @@ export function BatteryAddFormSchema({
       id: data.id,
       type: data.type,
       size: data.size,
+      cells: parseInt(data.cells),
       factory_capacity: parseInt(data.factory_capacity),
       shop_link: data.shoplink,
       voltage: parseInt(data.voltage),
@@ -163,7 +166,7 @@ export function BatteryAddFormSchema({
                 <TypeFormCombobox
                   fieldName="type"
                   label="Type"
-                  description=""
+                  description="Select the type of the battery."
                   types={types}
                   fieldValue={field.value}
                   setValue={form.setValue}
@@ -177,11 +180,27 @@ export function BatteryAddFormSchema({
                 <SizeFormCombobox
                   fieldName="size"
                   label="Size"
-                  description=""
+                  description="Select the size of the battery."
                   sizes={sizes}
                   fieldValue={field.value}
                   setValue={form.setValue}
                 />
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="cells"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Number of cells</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="1" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Please type here, how many of the cells can be tracked.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
               )}
             />
             <FormField

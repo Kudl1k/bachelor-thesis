@@ -6,7 +6,6 @@ import cz.kudladev.data.entities.ChargeRecordEntity
 import cz.kudladev.data.entities.ChargeTrackingEntity
 import cz.kudladev.data.entities.ChargeTrackings
 import cz.kudladev.data.models.ChargeTrackingID
-import cz.kudladev.data.models.FormatedCell
 import cz.kudladev.data.models.FormatedChargeTracking
 import cz.kudladev.data.models.convertVoltageToVolt
 import cz.kudladev.domain.repository.ChargeTrackingDao
@@ -20,10 +19,7 @@ class ChargeTrackingDaoImpl: ChargeTrackingDao {
         return try {
             dbQuery {
                 ChargeTrackingEntity.all().map { chargeTrackingEntity ->
-                    val cells = CellTracking.select { (CellTracking.timestamp eq chargeTrackingEntity.timestamp.value) and (CellTracking.idChargeRecord eq chargeTrackingEntity.chargeRecordEntity.id.value) }
-                        .orderBy(CellTracking.number to SortOrder.ASC)
-                        .map { ResultRowParser.resultRowToFormatedCell(it) }
-                    EntityParser.toFormatedChargeTracking(chargeTrackingEntity, cells)
+                    EntityParser.toFormatedChargeTracking(chargeTrackingEntity)
                 }
             }
         } catch (e: Exception) {
@@ -36,10 +32,7 @@ class ChargeTrackingDaoImpl: ChargeTrackingDao {
         return try {
             dbQuery {
                 ChargeTrackingEntity.find { ChargeTrackings.idChargeRecord eq id }.map { chargeTrackingEntity ->
-                    val cells = CellTracking.select { (CellTracking.timestamp eq chargeTrackingEntity.timestamp.value) and (CellTracking.idChargeRecord eq chargeTrackingEntity.chargeRecordEntity.id.value) }
-                        .orderBy(CellTracking.number to SortOrder.ASC)
-                        .map { ResultRowParser.resultRowToFormatedCell(it) }
-                    EntityParser.toFormatedChargeTracking(chargeTrackingEntity, cells)
+                    EntityParser.toFormatedChargeTracking(chargeTrackingEntity)
                 }
             }
         } catch (e: Exception) {
@@ -60,23 +53,7 @@ class ChargeTrackingDaoImpl: ChargeTrackingDao {
                     this.voltage = chargeTracking.voltage
                     this.current = chargeTracking.current
                 }
-                chargeTracking.cells.forEach { cell ->
-                    CellTracking.insert {
-                        it[timestamp] = current_timestamp
-                        it[idChargeRecord] = chargeRecord.id.value
-                        it[number] = cell.number
-                        it[voltage] = cell.voltage
-                    }
-                }
-                val formatedCells = chargeTracking.cells.map { cell ->
-                    FormatedCell(
-                        timestamp = cell.timestamp,
-                        idChargeRecord = cell.idChargeRecord,
-                        number = cell.number,
-                        voltage = convertVoltageToVolt(cell.voltage)
-                    )
-                }
-                EntityParser.toFormatedChargeTracking(chargeTrackingEntity, formatedCells)
+                EntityParser.toFormatedChargeTracking(chargeTrackingEntity)
             }
         } catch (e: Exception) {
             println(e)
@@ -89,10 +66,8 @@ class ChargeTrackingDaoImpl: ChargeTrackingDao {
             dbQuery {
                 val chargeTrackingEntity = ChargeTrackingEntity.find { ChargeTrackings.idChargeRecord eq id }.sortedByDescending { it.timestamp }.firstOrNull()
                 if (chargeTrackingEntity != null) {
-                    val cells = CellTracking.select { (CellTracking.timestamp eq chargeTrackingEntity.timestamp.value) and (CellTracking.idChargeRecord eq chargeTrackingEntity.chargeRecordEntity.id.value) }
-                        .orderBy(CellTracking.number to SortOrder.ASC)
-                        .map { ResultRowParser.resultRowToFormatedCell(it) }
-                    EntityParser.toFormatedChargeTracking(chargeTrackingEntity, cells)
+
+                    EntityParser.toFormatedChargeTracking(chargeTrackingEntity)
                 } else {
                     null
                 }
@@ -111,10 +86,8 @@ class ChargeTrackingDaoImpl: ChargeTrackingDao {
                     it.realCapacity = capacity - it.capacity
                 }
                 ChargeTrackingEntity.find { (ChargeTrackings.idChargeRecord eq id_charge_record) and (ChargeTrackings.charging eq Op.FALSE) }.orderBy( ChargeTrackings.id to SortOrder.ASC ).map {
-                    val cells = CellTracking.select { (CellTracking.timestamp eq it.timestamp.value) and (CellTracking.idChargeRecord eq it.chargeRecordEntity.id.value) }
-                        .orderBy(CellTracking.number to SortOrder.ASC)
-                        .map { ResultRowParser.resultRowToFormatedCell(it) }
-                    EntityParser.toFormatedChargeTracking(it, cells)
+
+                    EntityParser.toFormatedChargeTracking(it)
                 }
             }
         } catch (e: Exception) {
@@ -134,10 +107,8 @@ class ChargeTrackingDaoImpl: ChargeTrackingDao {
                     it.realCapacity = capacity + it.capacity
                 }
                 ChargeTrackingEntity.find { (ChargeTrackings.idChargeRecord eq id_charge_record) and (ChargeTrackings.charging eq Op.TRUE) }.orderBy( ChargeTrackings.id to SortOrder.ASC ).map {
-                    val cells = CellTracking.select { (CellTracking.timestamp eq it.timestamp.value) and (CellTracking.idChargeRecord eq it.chargeRecordEntity.id.value) }
-                        .orderBy(CellTracking.number to SortOrder.ASC)
-                        .map { ResultRowParser.resultRowToFormatedCell(it) }
-                    EntityParser.toFormatedChargeTracking(it, cells)
+
+                    EntityParser.toFormatedChargeTracking(it)
                 }
             }
         } catch (e: Exception) {

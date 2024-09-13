@@ -3,6 +3,7 @@ package cz.kudladev.util
 import cz.kudladev.data.entities.*
 import cz.kudladev.data.models.*
 import cz.kudladev.data.models.Battery
+import cz.kudladev.data.models.CellModel
 import cz.kudladev.data.models.Size
 import cz.kudladev.data.models.Type
 import org.jetbrains.exposed.sql.ResultRow
@@ -44,22 +45,19 @@ object ResultRowParser {
         )
     }
 
-    fun resultRowToCell(row: ResultRow): Cell {
-        return Cell(
-            timestamp = Timestamp.from(row[CellTracking.timestamp]),
-            idChargeRecord = row[CellTracking.idChargeRecord],
-            number = row[CellTracking.number],
-            voltage = row[CellTracking.voltage]
+    fun resultRowToCell(row: ResultRow): CellModel {
+        return CellModel(
+            idChargeRecord = row[Cell.idChargeRecord],
+            number = row[Cell.number]
         )
     }
 
-    fun resultRowToFormatedCell(row: ResultRow): FormatedCell {
-        return FormatedCell(
+    fun resultRowToFormatedCellTracking(row: ResultRow): FormatedCellTracking {
+        return FormatedCellTracking(
             timestamp = Timestamp.from(row[CellTracking.timestamp]),
             idChargeRecord = row[CellTracking.idChargeRecord],
             number = row[CellTracking.number],
             voltage = convertVoltageToVolt(row[CellTracking.voltage])
         )
     }
-
 }

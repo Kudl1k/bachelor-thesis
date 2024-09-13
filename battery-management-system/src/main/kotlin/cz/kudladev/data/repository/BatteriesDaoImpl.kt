@@ -142,10 +142,18 @@ class BatteriesDaoImpl: BatteriesDao {
                 val chargeRecords = ChargeRecordEntity.find { ChargeRecords.idBattery eq id }.map {
                     val charger = ChargerEntity.findById(it.chargerEntity.id.value) ?: throw IllegalArgumentException("No charger found for id ${it.chargerEntity.id.value}")
                     val tracking = ChargeTrackingEntity.find { ChargeTrackings.idChargeRecord eq it.id.value }.orderBy(ChargeTrackings.id to SortOrder.ASC).map {
-                        val cells = CellTracking.select { (CellTracking.timestamp eq it.timestamp.value) and (CellTracking.idChargeRecord eq it.chargeRecordEntity.id.value) }
-                            .orderBy(CellTracking.number to SortOrder.ASC)
-                            .map { ResultRowParser.resultRowToFormatedCell(it) }
-                        EntityParser.toFormatedChargeTracking(it, cells)
+                        EntityParser.toFormatedChargeTracking(it)
+                    }
+                    val cells = Cell.selectAll().where { Cell.idChargeRecord eq it.id.value }.orderBy(Cell.number to SortOrder.ASC).map { cell ->
+                        val cell = ResultRowParser.resultRowToCell(cell)
+                        val cellTracking = CellTracking.selectAll().where { (CellTracking.idChargeRecord eq it.id.value) and (CellTracking.number eq cell.number) }.orderBy(CellTracking.number to SortOrder.ASC).map { tracking ->
+                            ResultRowParser.resultRowToFormatedCellTracking(tracking)
+                        }
+                        CellWithFormatedTracking(
+                            idChargeRecord = cell.idChargeRecord,
+                            number = cell.number,
+                            voltages = cellTracking
+                        )
                     }
                     val result = ChargeRecordWithTrackingFormated(
                         idChargeRecord = it.id.value,
@@ -165,7 +173,8 @@ class BatteriesDaoImpl: BatteriesDao {
                         },
                         charger = EntityParser.toCharger(charger),
                         battery = battery,
-                        tracking = tracking
+                        tracking = tracking,
+                        cells = cells
                     )
                     result
                 }

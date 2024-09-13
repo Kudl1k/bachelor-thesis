@@ -33,6 +33,13 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+const cellChartConfig = {
+  voltage: {
+    label: "Voltage",
+    color: "#2563eb",
+  },
+};
+
 export interface ChargeRecordChartProps {
   data: ChargeRecord;
   className?: string;
@@ -87,6 +94,41 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
     }
     return true;
   });
+
+  function filterDataByTimeRange(
+    voltages: import("@/models/ChargerData").CellTrakcing[],
+    timeRange: string
+  ) {
+    const lastRecordTime =
+      voltages.length > 0
+        ? parseCustomDate(voltages[voltages.length - 1].timestamp)
+        : new Date();
+
+    return voltages.filter((record) => {
+      const recordTime = parseCustomDate(record.timestamp);
+      const diff = lastRecordTime.getTime() - recordTime.getTime();
+
+      if (timeRange === "full") {
+        return true;
+      }
+      if (timeRange === "5m") {
+        return diff <= 5 * 60 * 1000;
+      }
+      if (timeRange === "15m") {
+        return diff <= 15 * 60 * 1000;
+      }
+      if (timeRange === "30m") {
+        return diff <= 30 * 60 * 1000;
+      }
+      if (timeRange === "1h") {
+        return diff <= 60 * 60 * 1000;
+      }
+      if (timeRange === "2h") {
+        return diff <= 2 * 60 * 60 * 1000;
+      }
+      return true;
+    });
+  }
 
   return (
     <div className="rounded-lg p-4 mt-4 shadow-md">
@@ -237,13 +279,99 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
           />
         </LineChart>
       </ChartContainer>
+      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        {data.battery.cells > 0 &&
+          data.cells.map((cell, index) => {
+            const filteredCellData = filterDataByTimeRange(
+              cell.voltages,
+              timeRange
+            );
+            return (
+              <div key={index}>
+                <div className="rounded-lg p-4 shadow-md">
+                  <div className="flex w-full justify-between">
+                    <h1 className="text-xl font-bold">Cell {cell.number}</h1>
+                  </div>
+
+                  <ChartContainer config={cellChartConfig}>
+                    <LineChart data={filteredCellData}>
+                      <CartesianGrid vertical={false} />
+                      <XAxis
+                        dataKey="timestamp"
+                        tickLine={false}
+                        tickMargin={10}
+                        axisLine={false}
+                        tickFormatter={(value) =>
+                          value.split(" ")[1].split(":").slice(0, 3).join(":")
+                        }
+                      />
+
+                      <YAxis
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={20}
+                      />
+                      <ChartTooltip
+                        content={
+                          <ChartTooltipContent
+                            hideLabel
+                            formatter={(value, name) => (
+                              <>
+                                <div
+                                  className="h-2.5 w-2.5 shrink-0 rounded-[2px] bg-[--color-bg]"
+                                  style={
+                                    {
+                                      "--color-bg": `var(--color-${name})`,
+                                    } as React.CSSProperties
+                                  }
+                                />
+                                <div className="flex min-w-[130px] items-center text-xs text-muted-foreground">
+                                  {chartConfig[name as keyof typeof chartConfig]
+                                    ?.label || name}
+                                  <div className="ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums text-foreground">
+                                    {value}
+                                    <span className="font-normal text-muted-foreground">
+                                      {name === "real_capacity"
+                                        ? " mAh"
+                                        : name === "voltage"
+                                        ? " V"
+                                        : " A"}
+                                    </span>
+                                  </div>
+                                </div>
+                              </>
+                            )}
+                          />
+                        }
+                        cursor={true}
+                      />
+
+                      <Line
+                        dataKey="voltage"
+                        fill={chartConfig.voltage.color}
+                        stroke="var(--color-voltage)"
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ChartContainer>
+                </div>
+              </div>
+            );
+          })}
+      </div>
     </div>
   );
 }
 
 function parseCustomDate(dateString: string): Date {
-  const [datePart, timePart] = dateString.split(" ");
-  const [day, month, year] = datePart.split(".").map(Number);
-  const [hours, minutes, seconds] = timePart.split(":").map(Number);
-  return new Date(year, month - 1, day, hours, minutes, seconds);
+  if (dateString && typeof dateString === "string") {
+    const [datePart, timePart] = dateString.split(" ");
+    const [day, month, year] = datePart.split(".").map(Number);
+    const [hours, minutes, seconds] = timePart.split(":").map(Number);
+    return new Date(year, month - 1, day, hours, minutes, seconds);
+  } else {
+    console.error("Expected a string but got:", dateString);
+    return new Date(); // Return a default date or handle the error as needed
+  }
 }
