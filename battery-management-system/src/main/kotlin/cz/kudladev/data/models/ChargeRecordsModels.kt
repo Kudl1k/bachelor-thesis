@@ -37,7 +37,8 @@ data class ChargeRecordWithTracking(
     val dischargedCapacity: Int? = null,
     val charger: Charger,
     val battery: BatteryFormated,
-    val tracking: List<FormatedChargeTracking>
+    val tracking: List<FormatedChargeTracking>,
+    val cells: List<CellWithFormatedTracking> = emptyList()
 )
 
 
@@ -52,5 +53,6 @@ data class ChargeRecordWithTrackingFormated(
     val dischargedCapacity: Float? = null,
     val charger: Charger,
     val battery: BatteryFormated,
-    val tracking: List<FormatedChargeTracking>
+    val tracking: List<FormatedChargeTracking>,
+    val cells: List<CellWithFormatedTracking> = emptyList()
 )

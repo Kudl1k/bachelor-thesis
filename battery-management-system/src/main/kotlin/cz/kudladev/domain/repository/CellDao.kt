@@ -1,9 +1,9 @@
 package cz.kudladev.domain.repository
 
-import cz.kudladev.data.models.Cell
+import cz.kudladev.data.models.CellModel
 
 interface CellDao {
 
-    suspend fun createCell(cell: Cell): Cell
+    suspend fun createCell(cell: CellModel): CellModel
 
 }

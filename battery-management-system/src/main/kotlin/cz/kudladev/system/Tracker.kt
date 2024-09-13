@@ -69,7 +69,6 @@ suspend fun startTracking(
                 capacity = 0,
                 voltage = 0,
                 current = 0,
-                cells = emptyList()
             )
         )
     }
@@ -149,7 +148,6 @@ suspend fun startTracking(
                             capacity = data.capacity,
                             voltage = data.voltage,
                             current = data.current,
-                            cells = emptyList()
                         )
                         slotStates = slotStates.map {
                             if (it.slotNumber == slot.slotNumber) {
@@ -203,7 +201,6 @@ suspend fun startTracking(
                             capacity = data.capacity,
                             voltage = data.voltage,
                             current = data.current,
-                            cells = emptyList()
                         )
                         slotStates = slotStates.map {
                             if (it.slotNumber == slot.slotNumber) {

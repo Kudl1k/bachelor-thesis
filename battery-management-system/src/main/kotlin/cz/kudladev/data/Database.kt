@@ -29,7 +29,7 @@ object DatabaseBuilder {
         Database.connect(hikariDataSource)
 
         transaction {
-            SchemaUtils.createMissingTablesAndColumns(Types, Sizes, Batteries, Chargers, ChargerTypes, ChargerSizes, ChargeRecords, ChargeTrackings,CellTracking)
+            SchemaUtils.createMissingTablesAndColumns(Types, Sizes, Batteries, Chargers, ChargerTypes, ChargerSizes, ChargeRecords, ChargeTrackings,Cell, CellTracking)
         }
     }
 

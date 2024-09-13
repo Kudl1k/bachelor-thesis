@@ -99,7 +99,7 @@ object EntityParser {
         )
     }
 
-    fun toChargeTracking(chargeTrackingEntity: ChargeTrackingEntity, cells: List<Cell>): ChargeTrackingID{
+    fun toChargeTracking(chargeTrackingEntity: ChargeTrackingEntity): ChargeTrackingID{
         return ChargeTrackingID(
             timestamp = Timestamp.from(chargeTrackingEntity.timestamp.value),
             charge_record_id = chargeTrackingEntity.chargeRecordEntity.id.value,
@@ -108,11 +108,10 @@ object EntityParser {
             current = chargeTrackingEntity.current,
             capacity = chargeTrackingEntity.capacity,
             real_capacity = chargeTrackingEntity.realCapacity,
-            cells = cells
         )
     }
 
-    fun toFormatedChargeTracking(chargeTrackingEntity: ChargeTrackingEntity, cells: List<FormatedCell>): FormatedChargeTracking{
+    fun toFormatedChargeTracking(chargeTrackingEntity: ChargeTrackingEntity): FormatedChargeTracking{
         return FormatedChargeTracking(
             timestamp = Timestamp.from(chargeTrackingEntity.timestamp.value),
             charge_record_id = chargeTrackingEntity.chargeRecordEntity.id.value,
@@ -121,7 +120,6 @@ object EntityParser {
             capacity = convertChargedOrDischargedCapacityToMilliAmpHour(chargeTrackingEntity.capacity),
             voltage = convertVoltageToVolt(chargeTrackingEntity.voltage),
             current = convertCurrentToAmpere(chargeTrackingEntity.current),
-            cells = cells
         )
     }
 
