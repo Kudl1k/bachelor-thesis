@@ -39,14 +39,20 @@ export function BaterryPage() {
 
   useEffect(() => {
     if (batteryData === null) return;
+    let filtered = batteryData;
+
     if (searchQuery.trim() !== "") {
-      setFilteredData(
-        batteryData.filter((battery) => battery.id.includes(searchQuery.trim()))
+      filtered = filtered.filter((battery) =>
+        battery.id.includes(searchQuery.trim())
       );
-    } else {
-      setFilteredData(batteryData);
     }
-  }, [batteryData, searchQuery]);
+
+    if (!archived) {
+      filtered = filtered.filter((battery) => !battery.archived);
+    }
+
+    setFilteredData(filtered);
+  }, [batteryData, searchQuery, archived]);
 
   function onArchivedSwitchChange() {
     setArchived(!archived);
@@ -64,10 +70,6 @@ export function BaterryPage() {
   const end = start + Number(perPage);
 
   const paginatedData = filteredData.slice(start, end);
-
-  const filteredBatteryData = archived
-    ? paginatedData
-    : paginatedData.filter((battery) => !battery.archived);
 
   return (
     <>
@@ -106,14 +108,14 @@ export function BaterryPage() {
 
       <div className="flex justify-center">
         <div className="w-full xl:w-4/6 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-4 p-4">
-          {filteredBatteryData.map((battery) => (
+          {paginatedData.map((battery) => (
             <BatteryCard key={battery.id} battery={battery} />
           ))}
         </div>
       </div>
       {batteryData.length > 0 && (
         <PaggingMenu
-          totalPosts={batteryData.length}
+          totalPosts={filteredData.length}
           postsPerPage={perPage}
           currentPage={page}
           setCurrentPage={setPage}
