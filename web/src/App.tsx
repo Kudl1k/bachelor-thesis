@@ -1,5 +1,6 @@
 import { ThemeProvider } from "@/components/settings/theme-provider";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Toaster } from "./components/ui/sonner";
 import "./index.css";
 import { BaterryPage } from "./pages/battery/BaterryPage";
 import BatteryDetail from "./pages/battery/BatteryDetail";
@@ -24,6 +25,7 @@ function App() {
           </Route>
         </Routes>
       </BrowserRouter>
+      <Toaster />
     </ThemeProvider>
   );
 }
