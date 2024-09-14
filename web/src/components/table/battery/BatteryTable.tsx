@@ -3,6 +3,7 @@
 import {
   ColumnDef,
   ColumnFiltersState,
+  RowSelectionState,
   SortingState,
   VisibilityState,
   flexRender,
@@ -53,7 +54,7 @@ export function DataTable<TData, TValue>({
     { id: idname, desc: sortiddesc },
   ]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = useState({});
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
   const table = useReactTable({
     autoResetAll: false,
@@ -99,8 +100,25 @@ export function DataTable<TData, TValue>({
           placeholder={`Filter ${searchbarname} by id...`}
           value={(table.getColumn(idname)?.getFilterValue() as string) ?? ""}
           onChange={(event) => {
-            console.log(event.target.value);
             table.getColumn(idname)?.setFilterValue(event.target.value);
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              const filterValue = table
+                .getColumn(idname)
+                ?.getFilterValue()
+                ?.toString();
+              if (filterValue && filterValue.length === 8) {
+                const firstRow = table.getRowModel().rows[0];
+                if (firstRow) {
+                  setRowSelection((prev) => ({
+                    ...prev,
+                    [firstRow.id]: true,
+                  }));
+                  table.getColumn(idname)?.setFilterValue("");
+                }
+              }
+            }
           }}
           className="max-w-sm"
         />

@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { ChargeRecord } from "./ChargerData";
 import { DEFAULTURL } from "./Default";
 import { Size } from "./SizeData";
@@ -78,6 +79,9 @@ export async function fetchBatteryData(
     console.log("Battery data fetched:", data);
     setBatteryData(data);
   } catch (error) {
+    toast("Server error", {
+      description: "Please make sure that the server is on.",
+    });
     console.error("Failed to fetch battery data:", error);
   }
 }
@@ -95,11 +99,13 @@ export async function insertBatteryData(
     });
 
     if (!response.ok) {
+      toast.error("There was an error, while creating a battery :(");
       throw new Error("Network response was not ok");
     }
 
     const createdBattery: Battery = await response.json();
     console.log("Battery data inserted:", createdBattery);
+    toast("Battery has been succesfully created!");
     return createdBattery;
   } catch (error) {
     console.error("Failed to insert battery data:", error);

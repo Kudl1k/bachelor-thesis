@@ -35,6 +35,7 @@ import {
 import { ChevronsDownUpIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const enum Stage {
   BATTERIES,
@@ -244,23 +245,26 @@ export function SetupPage() {
     console.log("Selected charger:", selectedCharger);
     console.log("Selected slots:", selectedSlots);
     if (port === null) {
+      toast.error("Please select a port!");
       console.error("No port selected", port);
       return;
     }
     const result = checkBatterySlotsEmpty();
     if (!result) {
+      toast.error("Not all slots are filled.");
       console.error("Not all slots are filled");
       return;
     }
     const conflicts = checkBatterySlotsConflicts();
     if (!conflicts) {
+      toast.error("There are conflicts in the slots");
       console.error("There are conflicts in the slots");
       return;
     }
     if (selectedCharger?.tty !== port) {
       await updatePort(selectedChargerId, port);
     }
-    checkBatterySlotsConflicts();
+    toast("Tracking started");
     const filteredSlots = selectedSlots.filter((slot) => slot.id !== "0");
     console.log("Filtered slots:", filteredSlots);
     console.log("Starting the tracking process");

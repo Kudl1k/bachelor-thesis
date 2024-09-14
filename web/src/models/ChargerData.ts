@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { toast } from "sonner";
 import { Battery, BatteryWithSlot } from "./BatteryData";
 import { DEFAULTURL } from "./Default";
 import { Size } from "./SizeData";
@@ -128,9 +129,11 @@ export async function insertChargerData(
       body: JSON.stringify(chargerInsert),
     });
     if (!response.ok) {
+      toast.error("There was an error, while creating a charger :(");
       throw new Error("Network response was not ok");
     }
     const createdCharger: Charger = await response.json();
+    toast("Charger has been succesfully created!");
     console.log("Charger data inserted:", createdCharger);
     return createdCharger;
   } catch (error) {
@@ -188,6 +191,7 @@ export async function startTracking(tracking: Tracking) {
       }
     );
     if (!response.ok) {
+      toast.error("Tracking can`t start.");
       throw new Error("Network response was not ok");
     }
     console.log("Tracking started");
