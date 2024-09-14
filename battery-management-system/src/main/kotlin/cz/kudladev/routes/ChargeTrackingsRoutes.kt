@@ -4,10 +4,7 @@ import DatabaseBuilder
 import cz.kudladev.data.models.ChargeRecordInsert
 import cz.kudladev.data.models.ChargeTrackingID
 import cz.kudladev.data.models.StartChargeTracking
-import cz.kudladev.domain.repository.BatteriesDao
-import cz.kudladev.domain.repository.ChargeRecordsDao
-import cz.kudladev.domain.repository.ChargeTrackingDao
-import cz.kudladev.domain.repository.ChargersDao
+import cz.kudladev.domain.repository.*
 import cz.kudladev.system.*
 import cz.kudladev.util.ResultRowParser
 import io.ktor.http.*
@@ -45,7 +42,8 @@ fun Route.chargetrackings(
     chargeTrackingDao: ChargeTrackingDao,
     chargerRecordsDao: ChargeRecordsDao,
     chargersDao: ChargersDao,
-    batteriesDao: BatteriesDao
+    batteriesDao: BatteriesDao,
+    cellDao: CellDao
 ){
 
 
@@ -108,7 +106,8 @@ fun Route.chargetrackings(
                         batteries.batteries,
                         chargeTrackingDao,
                         chargerRecordsDao,
-                        batteriesDao
+                        batteriesDao,
+                        cellDao
                     )
                 }
                 call.respondText("Process started", status = HttpStatusCode.OK)

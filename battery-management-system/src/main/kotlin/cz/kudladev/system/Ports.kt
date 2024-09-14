@@ -35,6 +35,7 @@ fun readFromPort(
     port: SerialPort,
     bytes: Int,
     idCharger: Int,
+    cells: Int,
 ): ParserResult {
     resetPort(port)
     if (idCharger == 1) {
@@ -52,7 +53,7 @@ fun readFromPort(
                 if (c == '{') {
                     frame = ""
                 } else if (c == '}' && frame.length == 74) {
-                    val result = BufferParsers.turnigyAccucell6(frame)
+                    val result = BufferParsers.turnigyAccucell6(frame,cells)
                     println(result)
                     return result
                 } else {

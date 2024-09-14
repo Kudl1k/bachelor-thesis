@@ -17,6 +17,7 @@ fun Application.configureRouting() {
     val chargersDao by inject<ChargersDao>()
     val chargerRecordsDao by inject<ChargeRecordsDao>()
     val chargerTrackingDao by inject<ChargeTrackingDao>()
+    val cellDao by inject<CellDao>()
 
 
     routing {
@@ -32,7 +33,8 @@ fun Application.configureRouting() {
             chargerTrackingDao,
             chargerRecordsDao,
             chargersDao,
-            batteriesDao
+            batteriesDao,
+            cellDao
         )
     }
 }

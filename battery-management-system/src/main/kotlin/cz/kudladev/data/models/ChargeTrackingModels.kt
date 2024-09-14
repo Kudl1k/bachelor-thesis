@@ -32,6 +32,18 @@ data class StartChargeTracking(
     val batteries: List<BatteryWithSlot>,
 )
 
+@Serializable
+data class ChargeTrackingWithCellTrackings(
+    val formatedChargeTracking: FormatedChargeTracking,
+    val formatedCellTrackings: List<FormatedCellTracking>,
+)
+
+@Serializable
+data class ChargeTrackingsWithCellTrackings(
+    val formatedChargeTrackings: List<FormatedChargeTracking>,
+    val formatedCellTrackings: List<FormatedCellTracking>,
+)
+
 fun convertCurrentToAmpere(currentInMilliAmps: Int): Float {
     return currentInMilliAmps / 1000.0f
 }

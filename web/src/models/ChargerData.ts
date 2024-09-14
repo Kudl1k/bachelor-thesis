@@ -75,7 +75,6 @@ export interface TrackingRecord {
   capacity: number;
   voltage: number;
   current: number;
-  cells: CellTrakcing[];
 }
 
 export interface CellWithTracking {
@@ -94,6 +93,11 @@ export interface CellTrakcing {
   idChargeRecord: number;
   number: number;
   voltage: number;
+}
+
+export interface ChargeTrackingWithCellTrackings {
+  formatedChargeTracking: TrackingRecord;
+  formatedCellTrackings: CellTrakcing[] | null;
 }
 
 export async function fetchChargerData(
@@ -266,22 +270,55 @@ export function useWebSocketTracking({
       const data = JSON.parse(event.data);
       console.log("Received data:", data);
       setChargeRecords((prevRecords) => {
+        if (prevRecords.length === 0 && data != null) {
+          window.location.reload();
+        }
         return prevRecords.map((record) => {
-          const chargeRecordId = Array.isArray(data)
-            ? data[0].charge_record_id
-            : data.charge_record_id;
+          const chargeRecordId = Array.isArray(data.formatedChargeTracking)
+            ? data.formatedChargeTracking[0].charge_record_id
+            : data.formatedChargeTracking.charge_record_id;
           if (Number(record.idChargeRecord) === Number(chargeRecordId)) {
             console.log("Record found:", record);
-            if (Array.isArray(data)) {
-              console.log("Data is array");
+            if (Array.isArray(data.formatedChargeTracking)) {
+              console.log("formatedChargeTracking is array");
               return {
                 ...record,
-                tracking: data,
+                tracking: [...record.tracking, ...data.formatedChargeTracking],
+                cells: record.cells.map((cell) => {
+                  const updatedVoltages: CellTrakcing[] =
+                    data.formatedCellTrackings
+                      ?.filter(
+                        (cellTracking: CellTrakcing) =>
+                          cellTracking.number === cell.number
+                      )
+                      .map((cellTracking: CellTrakcing) => ({
+                        ...cellTracking,
+                      })) || [];
+                  return {
+                    ...cell,
+                    voltages: [...cell.voltages, ...updatedVoltages],
+                  };
+                }),
               };
             } else {
               return {
                 ...record,
-                tracking: [...record.tracking, data],
+                tracking: [...record.tracking, data.formatedChargeTracking],
+                cells: record.cells.map((cell) => {
+                  const updatedVoltages: CellTrakcing[] =
+                    data.formatedCellTrackings
+                      ?.filter(
+                        (cellTracking: CellTrakcing) =>
+                          cellTracking.number === cell.number
+                      )
+                      .map((cellTracking: CellTrakcing) => ({
+                        ...cellTracking,
+                      })) || [];
+                  return {
+                    ...cell,
+                    voltages: [...cell.voltages, ...updatedVoltages],
+                  };
+                }),
               };
             }
           }

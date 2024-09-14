@@ -24,6 +24,7 @@ val batteryModule = module {
     single<ChargeRecordsDao> { ChargeRecordsDaoImpl() }
     single<ChargeTrackingDao> { ChargeTrackingDaoImpl() }
     single<SizeDao> { SizeDaoImpl() }
+    single<CellDao> { CellDaoImpl() }
 
 }
 
