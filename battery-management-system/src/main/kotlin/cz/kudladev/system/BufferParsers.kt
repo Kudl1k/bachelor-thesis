@@ -32,13 +32,22 @@ object BufferParsers {
         return ParserResult(slot, state, current, batteryVoltage, capacity)
     }
 
-    fun turnigyAccucell6(frame: String): ParserResult {
+    fun turnigyAccucell6(frame: String,cellNumber: Int): ParserResult {
         val state = frame[7].code and 0x7f
         val running = (frame[23].code and 1) != 0
         val charging = (state and 0x01) != 0
         val current = ((frame[32].code and 0x7f) * 1000) + ((frame[33].code and 0x7f) * 10)
         val voltage = ((frame[34].code and 0x7f) * 1000) + ((frame[35].code and 0x7f) * 10)
         val capacity = (((0.1 * (frame[42].code and 0x7f)) + (0.001 * (frame[43].code and 0x7f))) * 100).toInt()
+
+        var cells = emptyList<Pair<Int,Int>>()
+        if (cellNumber > 1) {
+            cells = (0 until  cellNumber).mapIndexed { index, i ->
+                val cellVoltage = ((frame[44 + (i * 2)].code and 0x7f) * 1000) + ((frame[45 + (i * 2)].code and 0x7f) * 10)
+                index to cellVoltage
+            }
+        }
+
 
         return ParserResult(
             slot = 1,
@@ -49,7 +58,8 @@ object BufferParsers {
             },
             current = current,
             voltage = voltage,
-            capacity = capacity
+            capacity = capacity,
+            cells = cells
         )
     }
 
@@ -62,6 +72,7 @@ data class ParserResult(
     val current: Int,
     val voltage: Int,
     val capacity: Int,
+    val cells: List<Pair<Int,Int>> = emptyList()
 )
 
 enum class State {

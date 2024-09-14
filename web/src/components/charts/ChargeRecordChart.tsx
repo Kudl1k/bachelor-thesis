@@ -209,7 +209,7 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
         config={chartConfig}
         className={`min-h-[200px] max-h-[400px] w-full ${className}`}
       >
-        <LineChart accessibilityLayer data={filteredData}>
+        <LineChart accessibilityLayer data={filteredData} syncId={1}>
           <CartesianGrid vertical={false} />
           <XAxis
             dataKey="timestamp"
@@ -225,7 +225,6 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
           <ChartTooltip
             content={
               <ChartTooltipContent
-                hideLabel
                 formatter={(value, name) => (
                   <>
                     <div
@@ -291,13 +290,18 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
                 <div className="rounded-lg p-4 shadow-md">
                   <div className="flex w-full justify-between">
                     <h1 className="text-xl font-bold">Cell {cell.number}</h1>
+                    <div className="text-end">
+                      <p className="text-sm text-gray-500 ml-2">
+                        {cell.voltages[cell.voltages.length - 1].voltage} V
+                      </p>
+                    </div>
                   </div>
 
                   <ChartContainer
                     config={cellChartConfig}
                     className={`min-h-[200px] max-h-[400px] w-full`}
                   >
-                    <LineChart data={filteredCellData}>
+                    <LineChart data={filteredCellData} syncId={1}>
                       <CartesianGrid vertical={false} />
                       <XAxis
                         dataKey="timestamp"
@@ -317,7 +321,6 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
                       <ChartTooltip
                         content={
                           <ChartTooltipContent
-                            hideLabel
                             formatter={(value, name) => (
                               <>
                                 <div

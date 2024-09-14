@@ -3,6 +3,7 @@ package cz.kudladev.system
 import DatabaseBuilder
 import cz.kudladev.data.models.*
 import cz.kudladev.domain.repository.BatteriesDao
+import cz.kudladev.domain.repository.CellDao
 import cz.kudladev.domain.repository.ChargeRecordsDao
 import cz.kudladev.domain.repository.ChargeTrackingDao
 import jssc.SerialPort
@@ -33,13 +34,15 @@ suspend fun startTracking(
     batteryWithSlot: List<BatteryWithSlot>,
     chargeTrackingDao: ChargeTrackingDao,
     chargeRecordsDao: ChargeRecordsDao,
-    batteriesDao: BatteriesDao
+    batteriesDao: BatteriesDao,
+    cellDao: CellDao
 ) {
     val slots = charger.slots
     var slotsCounter = 0
     var slotStates = mutableListOf<SlotState>()
 
     val chargeRecords = mutableListOf<ChargeRecord>()
+    var cellNumber = 0
 
     for (battery in batteryWithSlot) {
         val chargeRecord = ChargeRecordInsert(
@@ -60,17 +63,21 @@ suspend fun startTracking(
             running = true
         ))
         val createdChargeRecord = chargeRecordsDao.createChargeRecord(chargeRecord)
+        val battery = batteriesDao.getBatteryById(battery.id)
+        if (battery != null) {
+            if (battery.cells > 1) {
+                (1..battery.cells).map { index ->
+                    cellDao.createCell(
+                        CellModel(
+                            idChargeRecord = createdChargeRecord.idChargeRecord!!,
+                            number = index
+                        )
+                    )
+                }
+            }
+            cellNumber = battery.cells
+        }
         chargeRecords.add(createdChargeRecord)
-        chargeTrackingDao.createChargeTracking(
-            chargeTracking = ChargeTrackingID(
-                charge_record_id = createdChargeRecord.idChargeRecord!!,
-                charging = false,
-                real_capacity = 0,
-                capacity = 0,
-                voltage = 0,
-                current = 0,
-            )
-        )
     }
 
     while (isRunning) {
@@ -83,7 +90,8 @@ suspend fun startTracking(
         val data = readFromPort(
             openPort!!,
             34,
-            charger.id!!
+            charger.id!!,
+            cellNumber
         )
         for (slot in slotStates) {
             if (data.slot != slot.slotNumber) continue
@@ -102,6 +110,18 @@ suspend fun startTracking(
                 if (slot.charging == null){
                     slotStates = slotStates.map {
                         if (it.slotNumber == slot.slotNumber) {
+                            if (data.state == State.DISCHARGING) {
+                                chargeTrackingDao.createChargeTracking(
+                                    chargeTracking = ChargeTrackingID(
+                                        charge_record_id = charge_record_id,
+                                        charging = false,
+                                        real_capacity = 0,
+                                        capacity = 0,
+                                        voltage = 0,
+                                        current = 0,
+                                    )
+                                )
+                            }
                             SlotState(
                                 battery_id = it.battery_id,
                                 slotNumber = it.slotNumber,
@@ -170,7 +190,17 @@ suspend fun startTracking(
                         val formated = chargeTrackingDao.createChargeTracking(
                             chargeTracking = chargeTracking
                         )
-                        DatabaseBuilder.broadcastChannel.send(Json.encodeToString(formated))
+                        val cells = data.cells.map { (index,cell) ->
+                            cellDao.createCellTracking(
+                                CellTrackingModel(
+                                    formated!!.timestamp,
+                                    charge_record_id,
+                                    index + 1,
+                                    cell
+                                )
+                            )
+                        }
+                        DatabaseBuilder.broadcastChannel.send(Json.encodeToString(ChargeTrackingWithCellTrackings(formated!!,cells)))
                     }
                 } else {
                     if (data.state == State.CHARGING) {
@@ -207,13 +237,22 @@ suspend fun startTracking(
                                 val state: SlotState =
                                     if (it.initial_capacity < data.capacity && !it.charged) {
                                         println("Discharging before charging")
-                                        chargeTrackingDao.createChargeTracking(chargeTracking)
+                                        val inserted = chargeTrackingDao.createChargeTracking(chargeTracking)
                                         val updated = chargeTrackingDao.updateDischargeTrackingValues(
                                             id_charge_record = charge_record_id,
                                             capacity = data.capacity
                                         )
-                                        println(updated)
-                                        DatabaseBuilder.broadcastChannel.send(Json.encodeToString(updated))
+                                        val cells = data.cells.map { (index,cell) ->
+                                            cellDao.createCellTracking(
+                                                CellTrackingModel(
+                                                    inserted!!.timestamp,
+                                                    charge_record_id,
+                                                    index + 1,
+                                                    cell
+                                                )
+                                            )
+                                        }
+                                        DatabaseBuilder.broadcastChannel.send(Json.encodeToString(ChargeTrackingsWithCellTrackings(updated,cells)))
                                         SlotState(
                                             battery_id = it.battery_id,
                                             slotNumber = it.slotNumber,
@@ -227,7 +266,7 @@ suspend fun startTracking(
                                         )
                                     } else if(it.last_charged_capacity < data.capacity && it.charged) {
                                         println("Discharging after charging")
-                                        chargeTrackingDao.createChargeTracking(chargeTracking)
+                                        val inserted = chargeTrackingDao.createChargeTracking(chargeTracking)
                                         chargeTrackingDao.updateChargeTrackingValues(
                                             id_charge_record = charge_record_id,
                                             capacity = data.capacity - it.last_charged_capacity
@@ -237,8 +276,17 @@ suspend fun startTracking(
                                             capacity = data.capacity
                                         )
                                         val updated = chargeTrackingDao.getChargeTrackingById(charge_record_id)
-                                        println(updated)
-                                        DatabaseBuilder.broadcastChannel.send(Json.encodeToString(updated))
+                                        val cells = data.cells.map { (index,cell) ->
+                                            cellDao.createCellTracking(
+                                                CellTrackingModel(
+                                                    inserted!!.timestamp,
+                                                    charge_record_id,
+                                                    index + 1,
+                                                    cell
+                                                )
+                                            )
+                                        }
+                                        DatabaseBuilder.broadcastChannel.send(Json.encodeToString(ChargeTrackingsWithCellTrackings(updated!!,cells)))
                                         SlotState(
                                             battery_id = it.battery_id,
                                             slotNumber = it.slotNumber,
@@ -257,7 +305,17 @@ suspend fun startTracking(
                                                 real_capacity = if (!it.charged) 0 else it.last_discharged_capacity - data.capacity
                                             )
                                         )
-                                        DatabaseBuilder.broadcastChannel.send(Json.encodeToString(inserted))
+                                        val cells = data.cells.map { (index,cell) ->
+                                            cellDao.createCellTracking(
+                                                CellTrackingModel(
+                                                    inserted!!.timestamp,
+                                                    charge_record_id,
+                                                    index + 1,
+                                                    cell
+                                                )
+                                            )
+                                        }
+                                        DatabaseBuilder.broadcastChannel.send(Json.encodeToString(ChargeTrackingWithCellTrackings(inserted!!,cells)))
                                         SlotState(
                                             battery_id = it.battery_id,
                                             slotNumber = it.slotNumber,
