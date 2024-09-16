@@ -142,6 +142,22 @@ export async function insertChargerData(
   }
 }
 
+export async function fetchChargerInfo(
+  id: number,
+  setCharger: (data: Charger) => void
+) {
+  try {
+    const response = await fetch(`${DEFAULTURL}/chargers/${id}`);
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    const data: Charger = await response.json();
+    setCharger(data);
+  } catch (error) {
+    console.error("Failed to fetch charger info:", error);
+  }
+}
+
 export async function searchChargerData(
   search: ChargerSearch,
   setChargerData: (data: Charger[]) => void
