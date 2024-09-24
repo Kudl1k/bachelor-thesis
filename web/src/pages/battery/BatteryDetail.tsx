@@ -7,12 +7,14 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   BatteryInfo,
   fetchBatteryInfo,
   toggleArchived,
   truncateText,
 } from "@/models/BatteryData";
+import JsBarcode from "jsbarcode";
 import {
   Archive,
   ArchiveRestore,
@@ -23,13 +25,24 @@ import {
   Ruler,
   Zap,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 
 export default function BatteryDetail() {
   const { id } = useParams<{ id: string }>();
   const [batteryData, setBatteryData] = useState<BatteryInfo | null>(null);
   const [selectedCharger, setSelectedCharger] = useState<number | null>(null);
+  const [barcodeUrl, setBarcodeUrl] = useState<string | null>(null);
+  const setCanvasRef = useCallback(
+    (node: HTMLCanvasElement | null) => {
+      if (node && batteryData) {
+        JsBarcode(node, batteryData.id, { format: "CODE128", height: 40 });
+        const url = node.toDataURL("image/png");
+        setBarcodeUrl(url);
+      }
+    },
+    []
+  );
 
   const hasFetched = useRef(false);
 
@@ -71,8 +84,25 @@ export default function BatteryDetail() {
               <div className="col-span-1 space-y-1">
                 <h1 className="text-2xl font-bold">
                   <div className="flex items-center gap-2">
-                    <Hash />
-                    {batteryData.id}
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <h1 className="text-2xl font-bold hover:shadow-lg border-2 border-background hover:border-primary ease-in-out duration-150 rounded-2xl p-1">
+                            <div className="flex items-center gap-2">
+                              <Hash className="size-7" />
+                              {batteryData.id}
+                            </div>
+                          </h1>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {barcodeUrl ? (
+                            <img src={barcodeUrl} alt="Barcode" height={40} />
+                          ) : (
+                            <canvas ref={setCanvasRef} style={{ display: "none" }} />
+                          )}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 </h1>
                 <h2 className="text-lg font-semibold">
