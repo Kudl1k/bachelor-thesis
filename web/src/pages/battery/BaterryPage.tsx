@@ -5,6 +5,7 @@ import { PaggingMenu } from "@/components/PaggingMenu";
 import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Battery, fetchBatteryData } from "@/models/BatteryData";
 import { BatteryWarning } from "lucide-react";
@@ -21,6 +22,8 @@ export function BaterryPage() {
 
   const [archived, setArchived] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const [viewMode, setViewMode] = useState<"table" | "card">("card");
 
   useEffect(() => {
     if (!hasFetched.current) {
@@ -58,6 +61,10 @@ export function BaterryPage() {
     setArchived(!archived);
   }
 
+  function onViewModeSwitchChange() {
+    setViewMode(viewMode === "card" ? "table" : "card");
+  }
+
   function onSearchQueryChange(event: React.ChangeEvent<HTMLInputElement>) {
     setSearchQuery(event.target.value);
   }
@@ -81,8 +88,13 @@ export function BaterryPage() {
               placeholder="Search for battery id"
               onChange={onSearchQueryChange}
             />
+            <Separator orientation="vertical" />
             <Switch onCheckedChange={onArchivedSwitchChange} />
-            <Label htmlFor="">Archived</Label>
+            <Label>Archived</Label>
+            <Separator orientation="vertical" />
+            <Switch onCheckedChange={onViewModeSwitchChange} />
+            <Label>Table</Label>
+
           </div>
           <div>
             <Link
@@ -107,11 +119,18 @@ export function BaterryPage() {
       )}
 
       <div className="flex justify-center">
-        <div className="w-full xl:w-4/6 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-4 p-4">
-          {paginatedData.map((battery) => (
-            <BatteryCard key={battery.id} battery={battery} />
-          ))}
-        </div>
+        {viewMode === "card" && (
+          <div className="w-full xl:w-4/6 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-4 p-4">
+            {paginatedData.map((battery) => (
+              <BatteryCard key={battery.id} battery={battery} />
+            ))}
+          </div>
+        )}
+        {viewMode === "table" && (
+          <div>
+            <h1>Table View</h1>
+          </div>
+        )}
       </div>
       {batteryData.length > 0 && (
         <PaggingMenu
