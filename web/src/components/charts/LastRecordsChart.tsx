@@ -4,6 +4,8 @@ import { AspectRatio } from "../ui/aspect-ratio";
 import {
   ChartConfig,
   ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
 } from "../ui/chart";
@@ -55,6 +57,7 @@ export function LastRecordsChart({ data }: LastRecordsChartProps) {
           axisLine={false}
           allowDecimals={false}
         />
+        <ChartLegend content={<ChartLegendContent />} />
         <ChartTooltip
           content={
             <ChartTooltipContent
