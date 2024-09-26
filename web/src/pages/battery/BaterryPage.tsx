@@ -2,12 +2,25 @@ import { BatteryCard } from "@/components/cards/BatteryCard";
 import { InfoBox } from "@/components/InfoBox";
 import { Loading } from "@/components/Loading";
 import { PaggingMenu } from "@/components/PaggingMenu";
+import { batteryPageColumns } from "@/components/table/battery/BatteryPageColumns";
+import { DataTablePage } from "@/components/table/DataTablePage";
 import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Battery, fetchBatteryData } from "@/models/BatteryData";
+import {
+  ColumnFiltersState,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  RowSelectionState,
+  SortingState,
+  useReactTable,
+  VisibilityState,
+} from "@tanstack/react-table";
 import { BatteryWarning } from "lucide-react";
 
 import { useEffect, useRef, useState } from "react";
@@ -24,6 +37,22 @@ export function BaterryPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const [viewMode, setViewMode] = useState<"table" | "card">("card");
+
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: "id", desc: false },
+  ]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+
+  useEffect(() => {
+    const savedViewMode = localStorage.getItem("battery-viewMode");
+    if (savedViewMode) {
+      if (savedViewMode === "table" || savedViewMode === "card") {
+        setViewMode(savedViewMode);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (!hasFetched.current) {
@@ -62,12 +91,40 @@ export function BaterryPage() {
   }
 
   function onViewModeSwitchChange() {
-    setViewMode(viewMode === "card" ? "table" : "card");
+    const newViewMode = viewMode === "card" ? "table" : "card";
+    setViewMode(newViewMode);
+    localStorage.setItem("battery-viewMode", newViewMode);
   }
 
   function onSearchQueryChange(event: React.ChangeEvent<HTMLInputElement>) {
     setSearchQuery(event.target.value);
   }
+
+  const table = useReactTable({
+    autoResetAll: false,
+    columns: batteryPageColumns,
+    data: filteredData
+      ? filteredData.slice(
+          (Number(page) - 1) * Number(perPage),
+          (Number(page) - 1) * Number(perPage) + Number(perPage)
+        )
+      : [],
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    onColumnFiltersChange: setColumnFilters,
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
+    enableMultiRowSelection: false,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      rowSelection,
+    },
+  });
 
   if (!batteryData || !filteredData) {
     return Loading();
@@ -81,22 +138,28 @@ export function BaterryPage() {
   return (
     <>
       <div className="flex justify-center">
-        <div className="flex justify-between w-full xl:w-4/6 ps-4 pe-4 pt-4">
-          <div className="flex items-center space-x-2">
-            <Input
-              type="text"
-              placeholder="Search for battery id"
-              onChange={onSearchQueryChange}
-            />
+        <div className="grid 2xl:grid-cols-3 xl:grid-cols-3 lg:grid-cols-3 md:grid-cols-3 sm:grid-cols-2 grid-cols-2 w-full xl:w-4/6 gap-2 ps-4 pe-4 pt-4 ">
+          <Input
+            className="2xl:col-span-1 xl:col-span-1 lg:col-span-1 md:col-span-1 sm:col-span-2 col-span-2"
+            type="text"
+            placeholder="Search for battery id"
+            onChange={onSearchQueryChange}
+          />
+          <div className="flex items-center gap-2">
             <Separator orientation="vertical" />
-            <Switch onCheckedChange={onArchivedSwitchChange} />
+            <Switch
+              onCheckedChange={onArchivedSwitchChange}
+              checked={archived}
+            />
             <Label>Archived</Label>
             <Separator orientation="vertical" />
-            <Switch onCheckedChange={onViewModeSwitchChange} />
+            <Switch
+              onCheckedChange={onViewModeSwitchChange}
+              checked={viewMode === "table"}
+            />
             <Label>Table</Label>
-
           </div>
-          <div>
+          <div className="flex w-full items-center justify-end">
             <Link
               className={buttonVariants({ variant: "default" })}
               to={"/add?tab=battery"}
@@ -127,8 +190,8 @@ export function BaterryPage() {
           </div>
         )}
         {viewMode === "table" && (
-          <div>
-            <h1>Table View</h1>
+          <div className="w-full xl:w-4/6  gap-4 p-4">
+            <DataTablePage table={table} />
           </div>
         )}
       </div>

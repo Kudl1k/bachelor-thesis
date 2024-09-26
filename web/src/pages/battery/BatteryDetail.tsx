@@ -1,13 +1,18 @@
 import { ChargeRecordChart } from "@/components/charts/ChargeRecordChart";
 import { LastRecordsChart } from "@/components/charts/LastRecordsChart";
 import { Loading } from "@/components/Loading";
-import { DataTable } from "@/components/table/battery/BatteryTable";
 import { ChargeRecordColumns } from "@/components/table/chargerecords/ChargeRecordColumns";
+import { DataTable } from "@/components/table/DataTable";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   BatteryInfo,
   fetchBatteryInfo,
@@ -41,7 +46,7 @@ export default function BatteryDetail() {
         setBarcodeUrl(url);
       }
     },
-    []
+    [batteryData]
   );
 
   const hasFetched = useRef(false);
@@ -98,7 +103,10 @@ export default function BatteryDetail() {
                           {barcodeUrl ? (
                             <img src={barcodeUrl} alt="Barcode" height={40} />
                           ) : (
-                            <canvas ref={setCanvasRef} style={{ display: "none" }} />
+                            <canvas
+                              ref={setCanvasRef}
+                              style={{ display: "none" }}
+                            />
                           )}
                         </TooltipContent>
                       </Tooltip>
