@@ -40,6 +40,20 @@ export interface BatteryColumnType {
   last_time_charged_at: string;
 }
 
+export interface BatteryColumnPageType {
+  id: string;
+  type: string;
+  size: string;
+  cells: number;
+  factory_capacity: number;
+  voltage: number;
+  shop_link: string | null;
+  last_charged_capacity: string;
+  archived: boolean;
+  last_time_charged_at: string;
+  created_at: string;
+}
+
 export interface BatteryWithSlot {
   id: string;
   slot: number;

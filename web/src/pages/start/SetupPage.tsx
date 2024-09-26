@@ -1,7 +1,7 @@
 import { Loading } from "@/components/Loading";
 import { batteryColumns } from "@/components/table/battery/BatteryColumns";
-import { DataTable } from "@/components/table/battery/BatteryTable";
 import { chargerColumns } from "@/components/table/charger/ChargerColumns";
+import { DataTable } from "@/components/table/DataTable";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

@@ -25,8 +25,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useEffect, useState } from "react";
-import { DataTablePagination } from "../Pagination";
-import { DataTableViewOptions } from "../ViewOptions";
+import { DataTablePagination } from "./Pagination";
+import { DataTableViewOptions } from "./ViewOptions";
 
 interface DataTableProps<TData, TValue> {
   searchbarname: string;
