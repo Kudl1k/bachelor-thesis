@@ -4,6 +4,7 @@ import { Battery, BatteryWithSlot } from "./BatteryData";
 import { DEFAULTURL } from "./Default";
 import { Size } from "./SizeData";
 import { Type } from "./TypeData";
+import exp from "constants";
 
 export interface Charger {
   id: number;
@@ -376,5 +377,99 @@ export async function updatePort(charge_id: number, port: string) {
     console.log("Port updated");
   } catch (error) {
     console.error("Failed to update port:", error);
+  }
+}
+
+export async function addChargerSize(
+  charge_id: number,
+  size: string
+): Promise<Charger | null> {
+  try {
+    const response = await fetch(`${DEFAULTURL}/chargers/${charge_id}/size/${size}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: size,
+    });
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    const updatedCharger: Charger = await response.json();
+    console.log("Charger size updated:", updatedCharger);
+    return updatedCharger;
+  } catch (error) {
+    console.error("Failed to update charger size:", error);
+    return null;
+  }
+}
+
+export async function addChargerType(
+  charge_id: number,
+  type: string
+): Promise<Charger | null> {
+  try {
+    const response = await fetch(`${DEFAULTURL}/chargers/${charge_id}/type/${type}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: type,
+    });
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    const updatedCharger: Charger = await response.json();
+    console.log("Charger type updated:", updatedCharger);
+    return updatedCharger;
+  } catch (error) {
+    console.error("Failed to update charger type:", error);
+    return null;
+  }
+}
+
+export async function removeChargerSize(
+  charge_id: number,
+  size: string
+): Promise<Charger | null> {
+  try {
+    const response = await fetch(
+      `${DEFAULTURL}/chargers/${charge_id}/size/${size}`,
+      {
+        method: "DELETE",
+      }
+    );
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    const updatedCharger: Charger = await response.json();
+    console.log("Charger size removed:", updatedCharger);
+    return updatedCharger;
+  } catch (error) {
+    console.error("Failed to remove charger size:", error);
+    return null;
+  }
+}
+
+export async function removeChargerType(
+  charge_id: number,
+  type: string
+): Promise<Charger | null> {
+  try {
+    const response = await fetch(
+      `${DEFAULTURL}/chargers/${charge_id}/type/${type}`,
+      {
+        method: "DELETE",
+      }
+    );
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    const updatedCharger: Charger = await response.json();
+    console.log("Charger type removed:", updatedCharger);
+    return updatedCharger;
+  } catch (error) {
+    console.error("Failed to remove charger type:", error);
+    return null;
   }
 }
