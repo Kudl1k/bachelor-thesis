@@ -72,14 +72,12 @@ export const batteryPageColumns: ColumnDef<Battery>[] = [
     cell: ({ row }) => {
       const value = row.original.shop_link;
 
-      if (!value) {
-        return <div className="text-gray-400">No link</div>;
-      }
+    
 
       return (
         <div className="flex items-center">
-          <a href={value} target="_blank">
-            {value}
+          <a href={value!} target="_blank">
+            <p className="" >{value}</p>
           </a>
         </div>
       );

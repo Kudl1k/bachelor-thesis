@@ -4,10 +4,10 @@ import { Battery, BatteryWithSlot } from "./BatteryData";
 import { DEFAULTURL } from "./Default";
 import { Size } from "./SizeData";
 import { Type } from "./TypeData";
-import exp from "constants";
 
 export interface Charger {
   id: number;
+  parser: Parser;
   name: string;
   tty: string;
   baudRate: number;
@@ -22,7 +22,13 @@ export interface Charger {
   sizes: Size[];
 }
 
+export interface Parser {
+  id: number;
+  name: string;
+}
+
 export interface ChargerInsert {
+  parser: number;
   name: string;
   tty: string;
   baudRate: number;
@@ -471,5 +477,21 @@ export async function removeChargerType(
   } catch (error) {
     console.error("Failed to remove charger type:", error);
     return null;
+  }
+}
+
+export async function fetchParsers(
+  setParsers: (data: Parser[]) => void
+) {
+  try {
+    const response = await fetch(`${DEFAULTURL}/chargers/parsers`);
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    const data: Parser[] = await response.json();
+    console.log("Parsers fetched:", data);
+    setParsers(data);
+  } catch (error) {
+    console.error("Failed to fetch parsers:", error);
   }
 }

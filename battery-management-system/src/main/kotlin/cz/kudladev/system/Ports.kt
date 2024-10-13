@@ -34,11 +34,11 @@ fun openPort(
 fun readFromPort(
     port: SerialPort,
     bytes: Int,
-    idCharger: Int,
+    parserId: Int,
     cells: Int,
 ): ParserResult {
     resetPort(port)
-    if (idCharger == 1) {
+    if (parserId == 1) {
         println("Conrad Charge Manager 2010")
         val buffer = port.readBytes(bytes)
         return BufferParsers.conradChargeManager2010(buffer)

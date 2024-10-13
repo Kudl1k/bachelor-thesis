@@ -21,9 +21,10 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
                 ChargeRecordEntity.all().map {
                     val charger = ChargerEntity.findById(it.chargerEntity.id.value) ?: throw IllegalArgumentException("No charger found for id ${it.chargerEntity.id.value}")
                     val battery = BatteryEntity.findById(it.batteryEntity.id.value) ?: throw IllegalArgumentException("No battery found for id ${it.batteryEntity.id.value}")
+                    val parser = ParserEntity.findById(charger.parser.id.value) ?: throw IllegalArgumentException("No parser found for id ${charger.parser.id.value}")
                     val size = SizeEntity.findById(battery.sizeEntity.id.value) ?: throw IllegalArgumentException("No size found for id ${battery.sizeEntity.id.value}")
                     val type = TypeEntity.findById(battery.typeEntity.id.value) ?: throw IllegalArgumentException("No type found for id ${battery.typeEntity.id.value}")
-                    EntityParser.toChargeRecord(it, EntityParser.toCharger(charger), EntityParser.toBattery(battery,EntityParser.toType(type),EntityParser.toSize(size)) )
+                    EntityParser.toChargeRecord(it, EntityParser.toCharger(charger, EntityParser.toParser(parser)), EntityParser.toBattery(battery,EntityParser.toType(type),EntityParser.toSize(size)) )
                 }
             }
         } catch (e: Exception) {
@@ -38,7 +39,8 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
                 ChargeRecordEntity.findById(id)?.let {
                     val size = SizeEntity.findById(it.batteryEntity.sizeEntity.id.value) ?: throw IllegalArgumentException("No size found for id ${it.batteryEntity.sizeEntity.id.value}")
                     val type = TypeEntity.findById(it.batteryEntity.typeEntity.id.value) ?: throw IllegalArgumentException("No type found for id ${it.batteryEntity.typeEntity.id.value}")
-                    EntityParser.toChargeRecord(it, EntityParser.toCharger(it.chargerEntity), EntityParser.toBattery(it.batteryEntity, EntityParser.toType(type),EntityParser.toSize(size)) )
+                    val parser = ParserEntity.findById(it.chargerEntity.parser.id.value) ?: throw IllegalArgumentException("No parser found for id ${it.chargerEntity.parser.id.value}")
+                    EntityParser.toChargeRecord(it, EntityParser.toCharger(it.chargerEntity, EntityParser.toParser(parser)), EntityParser.toBattery(it.batteryEntity, EntityParser.toType(type),EntityParser.toSize(size)) )
                 }
             }
         } catch (e: Exception) {
@@ -139,6 +141,7 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
                             voltages = cellTracking
                         )
                     }
+                    val parser = ParserEntity.findById(charger.parser.id.value) ?: throw IllegalArgumentException("No parser found for id ${charger.parser.id.value}")
                     ChargeRecordWithTracking(
                         idChargeRecord = it.id.value,
                         slot = it.slot,
@@ -147,7 +150,7 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
                         initialCapacity = it.initialCapacity,
                         chargedCapacity = it.chargedCapacity,
                         dischargedCapacity = it.dischargedCapacity,
-                        charger = EntityParser.toCharger(charger),
+                        charger = EntityParser.toCharger(charger, EntityParser.toParser(parser)),
                         battery = EntityParser.toFormatedBattery(battery, EntityParser.toType(type), EntityParser.toSize(size)),
                         tracking = tracking,
                         cells = cells

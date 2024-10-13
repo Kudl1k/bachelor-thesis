@@ -152,6 +152,8 @@ fun Route.chargers(chargersDao: ChargersDao){
             }
 
         }
-
+        get("/parsers") {
+            call.respond(chargersDao.getParsers())
+        }
     }
 }

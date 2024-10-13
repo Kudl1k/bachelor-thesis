@@ -4,6 +4,7 @@ import DatabaseBuilder.dbQuery
 import cz.kudladev.data.entities.*
 import cz.kudladev.data.models.*
 import cz.kudladev.data.models.Charger
+import cz.kudladev.data.models.ParserModel
 import cz.kudladev.data.models.Size
 import cz.kudladev.domain.repository.ChargersDao
 import cz.kudladev.util.EntityParser
@@ -35,8 +36,10 @@ class ChargersDaoImpl : ChargersDao {
                         .toSet()
                     println(sizes)
 
+                    val parser = EntityParser.toParser(chargerEntity.parser)
+
                     // Map to ChargerWithTypesAndSizes
-                    EntityParser.toChargerWithTypesAndSizes(chargerEntity, types, sizes)
+                    EntityParser.toChargerWithTypesAndSizes(chargerEntity, types, sizes, parser)
                 }
             }
         } catch (e: Exception) {
@@ -68,9 +71,11 @@ class ChargersDaoImpl : ChargersDao {
                     .map { Size(it.name.value) }
                     .toSet()
 
+                val parser = EntityParser.toParser(chargerEntity.parser)
+
                 println(sizes)
 
-                EntityParser.toChargerWithTypesAndSizes(chargerEntity, types, sizes)
+                EntityParser.toChargerWithTypesAndSizes(chargerEntity, types, sizes, parser)
             }
         } catch (e: Exception) {
             println(e)
@@ -113,6 +118,9 @@ class ChargersDaoImpl : ChargersDao {
                     val chargerSlots = row[Chargers.slots]
                     val chargerCreatedAt = row[Chargers.createdAt]
 
+                    val parserEntity = ParserEntity.findById(row[Chargers.parser].value)
+                    val parser = parserEntity?.let { EntityParser.toParser(it) }
+
                     // Fetch associated types and sizes for the charger
                     val types = ChargerTypes
                         .select { ChargerTypes.idCharger eq chargerId }
@@ -122,9 +130,12 @@ class ChargersDaoImpl : ChargersDao {
                         .select { ChargerSizes.idCharger eq chargerId }
                         .map { SizeEntity.findById(it[ChargerSizes.sizeName]) }
 
+
+
                     // Map to ChargerWithTypesAndSizes
                     ChargerWithTypesAndSizes(
                         id = chargerId,
+                        parser = parser!!,
                         name = chargerName,
                         tty = chargerTty,
                         baudRate = chargerBaudRate,
@@ -160,6 +171,7 @@ class ChargersDaoImpl : ChargersDao {
                     dtr = charger.dtr
                     slots = charger.slots
                     createdAt = Clock.systemUTC().instant()
+                    parser = ParserEntity.findById(charger.parser) ?: throw IllegalArgumentException("No parser found for id ${charger.parser}")
                 }.id
             }
             for (type in charger.types) {
@@ -286,6 +298,17 @@ class ChargersDaoImpl : ChargersDao {
         } catch (e: Exception) {
             println(e)
             null
+        }
+    }
+
+    override suspend fun getParsers(): List<ParserModel> {
+        return try {
+            dbQuery {
+                Parser.selectAll().map { ParserEntity.wrapRow(it) }.map { EntityParser.toParser(it) }
+            }
+        } catch (e: Exception) {
+            println(e)
+            emptyList()
         }
     }
 

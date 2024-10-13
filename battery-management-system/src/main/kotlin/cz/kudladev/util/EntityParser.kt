@@ -2,6 +2,7 @@ package cz.kudladev.util
 
 import cz.kudladev.data.entities.*
 import cz.kudladev.data.models.*
+import cz.kudladev.data.models.ParserModel
 import java.sql.Timestamp
 
 object EntityParser {
@@ -51,9 +52,17 @@ object EntityParser {
         )
     }
 
-    fun toCharger(chargerEntity: ChargerEntity): Charger{
+    fun toParser(entity: ParserEntity): ParserModel {
+        return ParserModel(
+            id = entity.id.value,
+            name = entity.name
+        )
+    }
+
+    fun toCharger(chargerEntity: ChargerEntity, parser: ParserModel): Charger{
         return Charger(
             id = chargerEntity.id.value,
+            parser = parser,
             name = chargerEntity.name,
             tty = chargerEntity.tty,
             baudRate = chargerEntity.baudRate,
@@ -67,9 +76,10 @@ object EntityParser {
         )
     }
 
-    fun toChargerWithTypesAndSizes(chargerEntity: ChargerEntity, types: List<Type>, sizes: Set<Size>): ChargerWithTypesAndSizes{
+    fun toChargerWithTypesAndSizes(chargerEntity: ChargerEntity, types: List<Type>, sizes: Set<Size>, parser: ParserModel): ChargerWithTypesAndSizes{
         return ChargerWithTypesAndSizes(
             id = chargerEntity.id.value,
+            parser = parser,
             name = chargerEntity.name,
             tty = chargerEntity.tty,
             baudRate = chargerEntity.baudRate,

@@ -1,4 +1,5 @@
 import MultipleSelector from "@/components/comboboxes/MultiSelect";
+import { ParserFormCombobox } from "@/components/comboboxes/ParserCombobox";
 import { TtysCombobox } from "@/components/comboboxes/TtysCombobox";
 import { Dialog } from "@/components/Dialog";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { ChargerInsert, insertChargerData } from "@/models/ChargerData";
+import { ChargerInsert, insertChargerData, Parser } from "@/models/ChargerData";
 import { Size } from "@/models/SizeData";
 import { Type } from "@/models/TypeData";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -36,6 +37,7 @@ const optionSchema = z.object({
 
 const chargerAddFormSchema = z.object({
   name: z.string().min(1, { message: "Name is required." }),
+  parser: z.number().min(1, { message: "Parser is required." }),
   tty: z.string().min(1, { message: "TTY is required." }),
   baudRate: z.string().min(1, { message: "Baud rate is required." }),
   dataBits: z.string().min(1, { message: "Data bits is required." }),
@@ -52,12 +54,14 @@ interface ChargerAddFormProps {
   ttys: string[];
   types: Type[] | [];
   sizes: Size[] | [];
+  parsers: Parser[] | [];
 }
 
 export function ChargerAddFormSchema({
   ttys,
   types,
   sizes,
+  parsers,
 }: ChargerAddFormProps) {
   const [charger, setCharger] = useState<ChargerInsert | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
@@ -83,6 +87,7 @@ export function ChargerAddFormSchema({
   function onSubmit(data: z.infer<typeof chargerAddFormSchema>) {
     const insertedCharger: ChargerInsert = {
       name: data.name,
+      parser: parseInt(data.parser),
       tty: data.tty,
       baudRate: parseInt(data.baudRate),
       dataBits: parseInt(data.dataBits),
@@ -125,6 +130,26 @@ export function ChargerAddFormSchema({
                     <Input
                       {...field}
                       placeholder="Enter the name of the charger..."
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="parser"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <ParserFormCombobox
+                      fieldName="parser"
+                      label="Parser"
+                      description=""
+                      types={parsers}
+                      fieldValue={parseInt(field.value)}
+                      setValue={(name, value) => form.setValue(name as any, value)}
                     />
                   </FormControl>
                   <FormMessage />

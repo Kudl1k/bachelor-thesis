@@ -90,7 +90,7 @@ suspend fun startTracking(
         val data = readFromPort(
             openPort!!,
             34,
-            charger.id!!,
+            charger.parser.id,
             cellNumber
         )
         for (slot in slotStates) {
