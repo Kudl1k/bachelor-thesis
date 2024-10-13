@@ -29,7 +29,21 @@ object DatabaseBuilder {
         Database.connect(hikariDataSource)
 
         transaction {
-            SchemaUtils.createMissingTablesAndColumns(Types, Sizes, Batteries, Chargers, ChargerTypes, ChargerSizes, ChargeRecords, ChargeTrackings,Cell, CellTracking)
+            SchemaUtils.createMissingTablesAndColumns(Types, Sizes, Batteries, Parser, Chargers, ChargerTypes, ChargerSizes, ChargeRecords, ChargeTrackings,Cell, CellTracking)
+        }
+        transaction {
+            val existingParsers = ParserEntity.all().toList()
+            if (existingParsers.isEmpty()) {
+                ParserEntity.new {
+                    name = "Conrad Charge Manager 2010"
+                }
+                ParserEntity.new {
+                    name = "Turnigy Accucel 6"
+                }
+                println("Inserted default parsers")
+            } else {
+                println("Parsers already exist")
+            }
         }
     }
 

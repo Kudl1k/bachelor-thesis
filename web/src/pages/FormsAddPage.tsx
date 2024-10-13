@@ -5,7 +5,7 @@ import { ChargerAddFormSchema } from "@/forms/ChargerAddFormSchema";
 import { SizeAddFormSchema } from "@/forms/SizeAddFromSchema";
 import { TypeAddFormSchema } from "@/forms/TypesAddFormSchema";
 import { fetchNewId } from "@/models/BatteryData";
-import { fetchPorts } from "@/models/ChargerData";
+import { fetchParsers, fetchPorts, Parser } from "@/models/ChargerData";
 import { fetchSizeData, Size } from "@/models/SizeData";
 import { fetchTypeData, Type } from "@/models/TypeData";
 import { useEffect, useState } from "react";
@@ -15,6 +15,7 @@ export function FormsAddPage() {
   const [types, setTypes] = useState<Type[] | null>(null);
   const [sizes, setSizes] = useState<Size[] | null>(null);
   const [ttys, setTtys] = useState<string[] | null>(null);
+  const [parsers, setParsers] = useState<Parser[] | null>(null);
   const [newId, setNewId] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
   const defaultTab = searchParams.get("tab") || "type";
@@ -24,9 +25,10 @@ export function FormsAddPage() {
     fetchSizeData(setSizes);
     fetchPorts(setTtys);
     fetchNewId(setNewId);
+    fetchParsers(setParsers)
   }, []);
 
-  if (!types || !sizes || !ttys || !newId) {
+  if (!types || !sizes || !ttys || !newId || !parsers) {
     return Loading();
   }
 
@@ -49,7 +51,7 @@ export function FormsAddPage() {
           <BatteryAddFormSchema types={types} sizes={sizes} newId={newId} />
         </TabsContent>
         <TabsContent value="charger">
-          <ChargerAddFormSchema types={types} sizes={sizes} ttys={ttys} />
+          <ChargerAddFormSchema types={types} sizes={sizes} ttys={ttys} parsers={parsers} />
         </TabsContent>
       </Tabs>
     </div>

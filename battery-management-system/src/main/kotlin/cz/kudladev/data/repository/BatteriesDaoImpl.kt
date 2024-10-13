@@ -144,6 +144,7 @@ class BatteriesDaoImpl: BatteriesDao {
                     val tracking = ChargeTrackingEntity.find { ChargeTrackings.idChargeRecord eq it.id.value }.orderBy(ChargeTrackings.id to SortOrder.ASC).map {
                         EntityParser.toFormatedChargeTracking(it)
                     }
+                    val parser = ParserEntity.findById(charger.parser.id.value) ?: throw IllegalArgumentException("No parser found for id ${charger.parser.id.value}")
                     val cells = Cell.selectAll().where { Cell.idChargeRecord eq it.id.value }.orderBy(Cell.number to SortOrder.ASC).map { cell ->
                         val cell = ResultRowParser.resultRowToCell(cell)
                         val cellTracking = CellTracking.selectAll().where { (CellTracking.idChargeRecord eq it.id.value) and (CellTracking.number eq cell.number) }.orderBy(CellTracking.number to SortOrder.ASC).map { tracking ->
@@ -171,7 +172,7 @@ class BatteriesDaoImpl: BatteriesDao {
                                 it1
                             )
                         },
-                        charger = EntityParser.toCharger(charger),
+                        charger = EntityParser.toCharger(charger, EntityParser.toParser(parser)),
                         battery = battery,
                         tracking = tracking,
                         cells = cells

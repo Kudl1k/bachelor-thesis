@@ -8,6 +8,7 @@ import org.jetbrains.exposed.sql.javatime.timestamp
 
 object Chargers : IntIdTable("charger") {
     val name = varchar("name", 50)
+    val parser = reference("parserId", Parser)
     val tty = varchar("tty", 30)
     val baudRate = integer("baud_rate")
     val dataBits = integer("data_bits")
@@ -23,6 +24,7 @@ class ChargerEntity(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<ChargerEntity>(Chargers)
 
     var name by Chargers.name
+    var parser by ParserEntity referencedOn Chargers.parser
     var tty by Chargers.tty
     var baudRate by Chargers.baudRate
     var dataBits by Chargers.dataBits

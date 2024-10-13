@@ -7,6 +7,7 @@ import java.sql.Timestamp
 @Serializable
 data class Charger(
     val id: Int? = null,
+    val parser: ParserModel,
     val name: String,
     val tty: String,
     val baudRate: Int,
@@ -23,6 +24,7 @@ data class Charger(
 @Serializable
 data class ChargerWithTypesAndSizes(
     val id: Int? = null,
+    val parser: ParserModel,
     val name: String,
     val tty: String,
     val baudRate: Int,
@@ -40,6 +42,7 @@ data class ChargerWithTypesAndSizes(
 @Serializable
 data class ChargerInsert(
     val name: String,
+    val parser: Int,
     val tty: String,
     val baudRate: Int,
     val dataBits: Int,

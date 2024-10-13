@@ -3,6 +3,7 @@ package cz.kudladev.domain.repository
 import cz.kudladev.data.models.Charger
 import cz.kudladev.data.models.ChargerInsert
 import cz.kudladev.data.models.ChargerWithTypesAndSizes
+import cz.kudladev.data.models.ParserModel
 import cz.kudladev.data.models.SearchCharger
 
 interface ChargersDao {
@@ -29,5 +30,5 @@ interface ChargersDao {
 
     suspend fun updatePort(chargerId: Int, port: String): ChargerWithTypesAndSizes?
 
-
+    suspend fun getParsers(): List<ParserModel>
 }
