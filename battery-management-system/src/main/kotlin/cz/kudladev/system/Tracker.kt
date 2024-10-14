@@ -337,7 +337,7 @@ suspend fun startTracking(
                         }.toMutableList()
                     }
                 }
-            } else if ((data.state == State.END || data.state == State.NO_BATTERY) && data.slot == slot.slotNumber) {
+            } else if ((data.state == State.END || data.state == State.NO_BATTERY) && data.slot == slot.slotNumber && slot.running) {
                 println("Ending charge record")
                 slotStates = slotStates.map {
                     if (it.slotNumber == slot.slotNumber) {
