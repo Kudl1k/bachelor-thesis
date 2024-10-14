@@ -9,7 +9,7 @@ import { addChargerSize, addChargerType, Charger, fetchChargerInfo, removeCharge
 import { fetchSizeData, Size } from "@/models/SizeData";
 import { fetchTypeData, Type } from "@/models/TypeData";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Atom, Cable, Ruler } from "lucide-react";
+import { Atom, Cable, Ruler, Wrench } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useParams } from "react-router-dom";
@@ -150,7 +150,7 @@ export default function ChargersDetail() {
   return (
     <>
       <div className="flex justify-center w-full">
-        <div className="xl:w-4/6 p-4 w-full">
+        <div className="2xl:w-1/2 xl:w-1/2 p-4 w-full">
           <Card className="shadow-md">
             <CardHeader>
               <div className="flex items-center gap-2">
@@ -160,6 +160,48 @@ export default function ChargersDetail() {
             </CardHeader>
             <CardContent>
               <div className="w-full">
+                <div className="pb-3 flex w-full">
+                  <h1 className="text-2xl font-bold shadow-lg border-2 border-background rounded-xl my-1 h-7">
+                    <Wrench />
+                  </h1>
+                  <div className="ps-3">
+                    <div className="flex gap-1">
+                      <h1 className="font-semibold">Parser:</h1>
+                      <p>{charger.parser.name}</p>
+                    </div>
+                    <div className="flex gap-1">
+                      <h1 className="font-semibold">Baud rate:</h1>
+                      <p>{charger.baudRate}</p>
+                    </div>
+                    <div className="flex gap-1">
+                      <h1 className="font-semibold">Data bits:</h1>
+                      <p>{charger.dataBits}</p>
+                    </div>
+                    <div className="flex gap-1">
+                      <h1 className="font-semibold">Stop bits:</h1>
+                      <p>{charger.stopBits}</p>
+                    </div>
+                    <div className="flex gap-1">
+                      <h1 className="font-semibold">Parity:</h1>
+                      <p>{charger.parity}</p>
+                    </div>
+                    <div className="flex gap-1">
+                      <h1 className="font-semibold">RTS: </h1>
+                      <p>{charger.rts && "Yes" || "No"}</p>
+                    </div>
+                    <div className="flex gap-1">
+                      <h1 className="font-semibold">DTR: </h1>
+                      <p>{charger.dtr && "Yes" || "No"}</p>
+                    </div>
+                    <div className="flex gap-1">
+                      <h1 className="font-semibold">TTY: </h1>
+                      <p>{charger.tty}</p>
+                    </div>
+
+
+                  </div>
+
+                </div>
                 <div className="pb-3 flex w-full ">
                   <TooltipProvider>
                     <Tooltip>

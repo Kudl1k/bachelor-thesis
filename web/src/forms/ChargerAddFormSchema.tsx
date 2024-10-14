@@ -87,7 +87,7 @@ export function ChargerAddFormSchema({
   function onSubmit(data: z.infer<typeof chargerAddFormSchema>) {
     const insertedCharger: ChargerInsert = {
       name: data.name,
-      parser: parseInt(data.parser),
+      parser: data.parser,
       tty: data.tty,
       baudRate: parseInt(data.baudRate),
       dataBits: parseInt(data.dataBits),
@@ -148,7 +148,7 @@ export function ChargerAddFormSchema({
                       label="Parser"
                       description=""
                       types={parsers}
-                      fieldValue={parseInt(field.value)}
+                      fieldValue={field.value}
                       setValue={(name, value) => form.setValue(name as any, value)}
                     />
                   </FormControl>
