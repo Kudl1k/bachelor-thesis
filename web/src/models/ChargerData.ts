@@ -108,6 +108,11 @@ export interface ChargeTrackingWithCellTrackings {
   formatedCellTrackings: CellTrakcing[] | null;
 }
 
+export interface EndOfCharging {
+  type: string;
+  charge_record_id: number;
+}
+
 export async function fetchChargerData(
   setChargerData: (data: Charger[]) => void
 ) {
@@ -296,6 +301,13 @@ export function useWebSocketTracking({
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       console.log("Received data:", data);
+
+      if (data.type === 'end_of_charging') {
+        console.log("Charging has ended, reloading the page...");
+        window.location.reload();
+        return;
+      }
+
       setChargeRecords((prevRecords) => {
         if (prevRecords.length === 0 && data != null) {
           window.location.reload();
@@ -503,6 +515,7 @@ export async function checkChargeRecords(){
       throw new Error("Network response was not ok");
     }
     console.log("Charge records checked");
+    window.location.reload();
   } catch (error) {
     console.error("Failed to check charge records:", error);
   }

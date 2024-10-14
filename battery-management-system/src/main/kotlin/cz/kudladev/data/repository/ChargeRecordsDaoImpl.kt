@@ -7,6 +7,7 @@ import cz.kudladev.data.entities.CellTracking
 import cz.kudladev.data.models.*
 import cz.kudladev.data.models.ChargeRecord
 import cz.kudladev.domain.repository.ChargeRecordsDao
+import cz.kudladev.system.stopTracking
 import cz.kudladev.util.EntityParser
 import cz.kudladev.util.ResultRowParser
 import org.jetbrains.exposed.sql.*
@@ -139,7 +140,9 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
                 }
 
                 // Find charge records with the latest group ID
-                ChargeRecordEntity.find { ChargeRecords.groupId eq latestGroupId }.map { it ->
+                ChargeRecordEntity.find { ChargeRecords.groupId eq latestGroupId }
+                    .orderBy(ChargeRecords.slot to SortOrder.ASC)
+                    .map { it ->
                     val charger = ChargerEntity.findById(it.chargerEntity.id.value) ?: throw IllegalArgumentException("No charger found for id ${it.chargerEntity.id.value}")
                     val battery = BatteryEntity.findById(it.batteryEntity.id.value) ?: throw IllegalArgumentException("No battery found for id ${it.batteryEntity.id.value}")
                     val size = SizeEntity.findById(battery.sizeEntity.id.value) ?: throw IllegalArgumentException("No size found for id ${battery.sizeEntity.id.value}")
@@ -189,7 +192,6 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
                 if (latestGroupId == 0) {
                     return@dbQuery emptyList<ChargeRecord>()
                 }
-
                 ChargeRecordEntity.find { ChargeRecords.groupId eq latestGroupId }.forEach {
                     it.checked = true
                     if (it.finishedAt == null) {
