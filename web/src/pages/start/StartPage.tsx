@@ -1,5 +1,5 @@
 import { ChargeRecordChart } from "@/components/charts/ChargeRecordChart";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Carousel,
@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/carousel";
 import {
   ChargeRecord,
+  checkChargeRecords,
   fetchNotEndedChargeRecord,
   useWebSocketTracking,
 } from "@/models/ChargerData";
@@ -39,6 +40,10 @@ export function StartPage() {
     setChargeRecords,
   });
 
+  function check() {
+    checkChargeRecords();
+  }
+
   return (
     <>
       {(!chargeRecords || chargeRecords.length === 0) && (
@@ -63,9 +68,15 @@ export function StartPage() {
                   >
                     <Card>
                       <CardHeader>
-                        <h1 className="text-xl font-bold">
-                          {chargeRecords[0].charger.name}
-                        </h1>
+                        <div className="flex w-full">
+                          <h1 className="text-xl font-bold">
+                            {chargeRecords[0].charger.name}
+                          </h1>
+                          <Button className="ml-auto" variant={"destructive"} onClick={check}>
+                            Check
+                          </Button>
+                        </div>
+                        
                       </CardHeader>
                       <CardContent className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-4">
                         {chargeRecords.map((record) => (
