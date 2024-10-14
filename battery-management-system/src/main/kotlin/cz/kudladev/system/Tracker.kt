@@ -341,6 +341,7 @@ suspend fun startTracking(
                 println("Ending charge record")
                 slotStates = slotStates.map {
                     if (it.slotNumber == slot.slotNumber) {
+                        DatabaseBuilder.broadcastChannel.send(Json.encodeToString(EndOfCharging(type = "end_of_charging", charge_record_id = charge_record_id)))
                         chargeRecordsDao.endChargeRecord(charge_record_id, it.last_charged_capacity,it.last_discharged_capacity)
                         batteriesDao.updateBatteryLastChargingCapacity(
                             slot.battery_id,

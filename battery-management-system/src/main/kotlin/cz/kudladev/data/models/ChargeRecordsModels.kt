@@ -62,3 +62,9 @@ data class ChargeRecordWithTrackingFormated(
     val tracking: List<FormatedChargeTracking>,
     val cells: List<CellWithFormatedTracking> = emptyList()
 )
+
+@Serializable
+data class EndOfCharging(
+    val type: String,
+    val charge_record_id: Int
+)

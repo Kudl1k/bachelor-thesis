@@ -127,6 +127,7 @@ fun Route.chargetrackings(
             val subscription = DatabaseBuilder.broadcastChannel.openSubscription()
             try {
                 for (message in subscription) {
+                    println(message)
                     send(message)
                 }
             } catch (e: ClosedReceiveChannelException) {
