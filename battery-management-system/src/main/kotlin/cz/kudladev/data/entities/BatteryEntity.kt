@@ -14,7 +14,7 @@ object Batteries : IdTable<String>("battery") {
     val cells = integer("cells").default(1)
     val factoryCapacity = integer("factory_capacity")
     val voltage = integer("voltage")
-    val shop_link = varchar("shop_link", 255).nullable()
+    val shop_link = varchar("shop_link", 1024).nullable()
     val lastChargedCapacity = integer("last_charged_capacity").nullable()
     val lastTimeChargedAt = timestamp("last_time_charged_at").nullable()
     val archived = bool("archived").default(false)

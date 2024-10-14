@@ -39,11 +39,9 @@ fun readFromPort(
 ): ParserResult {
     resetPort(port)
     if (parserId == 1) {
-        println("Conrad Charge Manager 2010")
         val buffer = port.readBytes(bytes)
         return BufferParsers.conradChargeManager2010(buffer)
     } else {
-        println("Turnigy Accucell 6")
         var frame = ""
         while (true) {
             try {
