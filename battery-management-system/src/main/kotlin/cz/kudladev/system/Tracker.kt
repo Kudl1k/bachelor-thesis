@@ -45,6 +45,18 @@ suspend fun startTracking(
     var cellNumber = 0
 
     for (battery in batteryWithSlot) {
+        val fetchedBattery = batteriesDao.getBatteryById(battery.id)
+        val data = readFromPort(
+            openPort!!,
+            34,
+            charger.parser.id,
+            fetchedBattery?.cells ?: 1
+        )
+        if (data.state == State.NO_BATTERY || data.state == State.END) {
+            println("No battery in slot ${battery.slot}")
+            continue
+        }
+
         val chargeRecord = ChargeRecordInsert(
             slot = battery.slot,
             battery_id = battery.id,
@@ -63,10 +75,9 @@ suspend fun startTracking(
             running = true
         ))
         val createdChargeRecord = chargeRecordsDao.createChargeRecord(chargeRecord)
-        val battery = batteriesDao.getBatteryById(battery.id)
-        if (battery != null) {
-            if (battery.cells > 1) {
-                (1..battery.cells).map { index ->
+        if (fetchedBattery != null) {
+            if (fetchedBattery.cells > 1) {
+                (1..fetchedBattery.cells).map { index ->
                     cellDao.createCell(
                         CellModel(
                             idChargeRecord = createdChargeRecord.idChargeRecord!!,
@@ -75,7 +86,7 @@ suspend fun startTracking(
                     )
                 }
             }
-            cellNumber = battery.cells
+            cellNumber = fetchedBattery.cells
         }
         chargeRecords.add(createdChargeRecord)
     }
