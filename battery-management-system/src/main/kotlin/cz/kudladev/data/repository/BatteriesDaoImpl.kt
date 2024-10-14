@@ -158,6 +158,7 @@ class BatteriesDaoImpl: BatteriesDao {
                     }
                     val result = ChargeRecordWithTrackingFormated(
                         idChargeRecord = it.id.value,
+                        group_id = it.groupId,
                         slot = it.slot,
                         startedAt = Timestamp.from(it.startedAt),
                         finishedAt = it.finishedAt?.let { Timestamp.from(it) },

@@ -1,6 +1,7 @@
 package cz.kudladev.system
 
 import DatabaseBuilder
+import cz.kudladev.data.entities.Parser
 import cz.kudladev.data.models.*
 import cz.kudladev.domain.repository.BatteriesDao
 import cz.kudladev.domain.repository.CellDao
@@ -46,16 +47,6 @@ suspend fun startTracking(
 
     for (battery in batteryWithSlot) {
         val fetchedBattery = batteriesDao.getBatteryById(battery.id)
-        val data = readFromPort(
-            openPort!!,
-            34,
-            charger.parser.id,
-            fetchedBattery?.cells ?: 1
-        )
-        if (data.state == State.NO_BATTERY || data.state == State.END) {
-            println("No battery in slot ${battery.slot}")
-            continue
-        }
 
         val chargeRecord = ChargeRecordInsert(
             slot = battery.slot,

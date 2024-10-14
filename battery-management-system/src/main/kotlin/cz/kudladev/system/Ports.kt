@@ -41,7 +41,7 @@ fun readFromPort(
     if (parserId == 1) {
         val buffer = port.readBytes(bytes)
         return BufferParsers.conradChargeManager2010(buffer)
-    } else {
+    } else if (parserId == 2) {
         var frame = ""
         while (true) {
             try {
@@ -61,9 +61,9 @@ fun readFromPort(
                 System.err.println(e)
             }
         }
+    } else {
+        throw IllegalArgumentException("Unknown parser id")
     }
-
-
 }
 
 fun resetPort(port: SerialPort) {

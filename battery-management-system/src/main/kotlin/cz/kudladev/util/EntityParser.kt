@@ -98,6 +98,7 @@ object EntityParser {
     fun toChargeRecord(chargeRecordEntity: ChargeRecordEntity, charger: Charger, battery: Battery): ChargeRecord{
         return ChargeRecord(
             idChargeRecord = chargeRecordEntity.id.value,
+            group_id = chargeRecordEntity.groupId,
             slot = chargeRecordEntity.slot,
             startedAt = Timestamp.from(chargeRecordEntity.startedAt),
             finishedAt = chargeRecordEntity.finishedAt?.let { Timestamp.from(it) },

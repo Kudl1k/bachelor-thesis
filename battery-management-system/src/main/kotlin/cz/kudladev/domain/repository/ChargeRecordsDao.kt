@@ -14,4 +14,6 @@ interface ChargeRecordsDao {
     suspend fun endChargeRecord(id: Int, charged_capacity: Int, discharged_capacity: Int): ChargeRecord?
 
     suspend fun getNotEndedChargeRecordsWithTracking(): List<ChargeRecordWithTracking>
+
+    suspend fun getNewChargeGroup(): Int
 }
