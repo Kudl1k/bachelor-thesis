@@ -1,5 +1,5 @@
 import { ChargeRecord } from "@/models/ChargerData";
-import { Battery, BatteryCharging, Hash } from "lucide-react";
+import { Battery, BatteryCharging, BatteryFull, Hash } from "lucide-react";
 import { useEffect, useState } from "react";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import { AspectRatio } from "../ui/aspect-ratio";
@@ -170,7 +170,13 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
             <h2 className="text-xl font-semibold">{data.battery.id}</h2>
           </div>
           <div className="flex items-center gap-1">
-            {data.tracking[data.tracking.length - 1].charging ? (
+          {data.finishedAt ? (
+            <>
+              <BatteryFull />
+              <p className="font-semibold">Finished</p>
+            </>
+          ) : (
+            data.tracking[data.tracking.length - 1].charging ? (
               <>
                 <BatteryCharging />
                 <p className="font-semibold">Charging</p>
@@ -180,7 +186,8 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
                 <Battery />
                 <p className="font-semibold">Discharging</p>
               </>
-            )}
+            )
+          )}
           </div>
           <div>
             <Badge className="me-1">{data.battery.type.shortcut}</Badge>

@@ -7,6 +7,7 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.javatime.timestamp
 
 object ChargeRecords : IntIdTable("charge_record") {
+    val groupId = integer("group_id")
     val slot = integer("slot")
     val startedAt = timestamp("started_at")
     val finishedAt = timestamp("finished_at").nullable()
@@ -20,6 +21,7 @@ object ChargeRecords : IntIdTable("charge_record") {
 class ChargeRecordEntity(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<ChargeRecordEntity>(ChargeRecords)
 
+    var groupId by ChargeRecords.groupId
     var slot by ChargeRecords.slot
     var startedAt by ChargeRecords.startedAt
     var finishedAt by ChargeRecords.finishedAt

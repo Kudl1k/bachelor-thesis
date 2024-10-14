@@ -52,9 +52,11 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
         val time = Clock.systemUTC().instant()
         return try {
             val insertedId = dbQuery {
+                val groupid = getNewChargeGroup()
                 val charger = ChargerEntity.find(Chargers.id eq chargeRecord.charger_id).singleOrNull() ?: throw IllegalArgumentException("No charger found for id ${chargeRecord.charger_id}")
                 val battery = BatteryEntity.find(Batteries.id eq chargeRecord.battery_id).singleOrNull() ?: throw IllegalArgumentException("No battery found for id ${chargeRecord.battery_id}")
                 ChargeRecordEntity.new {
+                    groupId = groupid
                     slot = chargeRecord.slot
                     startedAt = time
                     finishedAt = null
@@ -75,6 +77,7 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
         return try {
             dbQuery {
                 ChargeRecordEntity.findById(chargeRecord.idChargeRecord!!)?.let {
+                    it.groupId = chargeRecord.group_id
                     it.slot = chargeRecord.slot
                     it.startedAt = chargeRecord.startedAt.toInstant()
                     it.finishedAt = chargeRecord.finishedAt?.toInstant()
@@ -122,7 +125,19 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
     override suspend fun getNotEndedChargeRecordsWithTracking(): List<ChargeRecordWithTracking> {
         return try {
             dbQuery {
-                ChargeRecordEntity.find { ChargeRecords.finishedAt eq null }.map { it ->
+                // Get the latest group ID
+                val latestGroupId = ChargeRecordEntity.all().map { it.groupId }.max() ?: 0
+
+                // Check if all records in the latest group have ended
+                val allEnded = ChargeRecordEntity.find { ChargeRecords.groupId eq latestGroupId }
+                    .all { it.finishedAt != null }
+
+                if (allEnded) {
+                    return@dbQuery emptyList<ChargeRecordWithTracking>()
+                }
+
+                // Find charge records with the latest group ID
+                ChargeRecordEntity.find { ChargeRecords.groupId eq latestGroupId }.map { it ->
                     val charger = ChargerEntity.findById(it.chargerEntity.id.value) ?: throw IllegalArgumentException("No charger found for id ${it.chargerEntity.id.value}")
                     val battery = BatteryEntity.findById(it.batteryEntity.id.value) ?: throw IllegalArgumentException("No battery found for id ${it.batteryEntity.id.value}")
                     val size = SizeEntity.findById(battery.sizeEntity.id.value) ?: throw IllegalArgumentException("No size found for id ${battery.sizeEntity.id.value}")
@@ -144,6 +159,7 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
                     val parser = ParserEntity.findById(charger.parser.id.value) ?: throw IllegalArgumentException("No parser found for id ${charger.parser.id.value}")
                     ChargeRecordWithTracking(
                         idChargeRecord = it.id.value,
+                        group_id = it.groupId,
                         slot = it.slot,
                         startedAt = Timestamp.from(it.startedAt),
                         finishedAt = it.finishedAt?.let { Timestamp.from(it) },
@@ -160,6 +176,26 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
         } catch (e: Exception) {
             println(e)
             emptyList()
+        }
+    }
+
+    override suspend fun getNewChargeGroup(): Int {
+        return try {
+            dbQuery {
+                val latestGroupId = ChargeRecordEntity.all().map { it.groupId }.max() ?: 0
+                if (latestGroupId == 0) {
+                    return@dbQuery 1
+                }
+                val latestGroup = ChargeRecordEntity.find { ChargeRecords.groupId eq latestGroupId }.sortedByDescending { it.startedAt }.first()
+                if (latestGroup.finishedAt != null) {
+                    return@dbQuery latestGroupId + 1
+                } else {
+                    return@dbQuery latestGroupId
+                }
+            }
+        } catch (e: Exception) {
+            println(e)
+            1
         }
     }
 }
