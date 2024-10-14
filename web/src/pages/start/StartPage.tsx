@@ -57,7 +57,7 @@ export function StartPage() {
         </div>
       )}
 
-      {chargeRecords && (
+      {(chargeRecords.length > 0) && (
         <div className="flex justify-center">
           <div className="xl:w-3/5 lg:w-4/5 md:w-4/5 sm:w-4/5 w-4/5 py-4">
             <Carousel opts={{ loop: true, watchDrag: false }}>
