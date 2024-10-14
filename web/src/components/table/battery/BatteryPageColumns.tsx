@@ -1,4 +1,4 @@
-import { Battery } from "@/models/BatteryData";
+import { Battery, truncateText } from "@/models/BatteryData";
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "../ColumnHeader";
 
@@ -70,14 +70,12 @@ export const batteryPageColumns: ColumnDef<Battery>[] = [
       <DataTableColumnHeader column={column} title="Shop link" />
     ),
     cell: ({ row }) => {
-      const value = row.original.shop_link;
-
-    
+      const value = truncateText(row.original.shop_link!, 20);    
 
       return (
         <div className="flex items-center">
           <a href={value!} target="_blank">
-            <p className="" >{value}</p>
+            <p className="text-blue-500">{value}</p>
           </a>
         </div>
       );

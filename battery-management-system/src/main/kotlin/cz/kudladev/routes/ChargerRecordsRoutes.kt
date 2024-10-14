@@ -69,5 +69,17 @@ fun Route.chargerrecords(chargeRecordsDao: ChargeRecordsDao){
                 call.respondText(text = "Error: $e", status = HttpStatusCode.BadRequest)
             }
         }
+        get("records/check") {
+            try {
+                val result = chargeRecordsDao.checkChargeRecords()
+                if (result.isNotEmpty()) {
+                    call.respond(HttpStatusCode.OK, result)
+                } else {
+                    call.respondText(text = "No charge records to check", status = HttpStatusCode.NotFound)
+                }
+            } catch (e: Exception) {
+                call.respondText(text = "Error: $e", status = HttpStatusCode.BadRequest)
+            }
+        }
     }
 }

@@ -99,6 +99,7 @@ object EntityParser {
         return ChargeRecord(
             idChargeRecord = chargeRecordEntity.id.value,
             group_id = chargeRecordEntity.groupId,
+            checked = chargeRecordEntity.checked,
             slot = chargeRecordEntity.slot,
             startedAt = Timestamp.from(chargeRecordEntity.startedAt),
             finishedAt = chargeRecordEntity.finishedAt?.let { Timestamp.from(it) },

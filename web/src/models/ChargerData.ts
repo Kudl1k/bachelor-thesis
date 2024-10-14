@@ -495,3 +495,15 @@ export async function fetchParsers(
     console.error("Failed to fetch parsers:", error);
   }
 }
+
+export async function checkChargeRecords(){
+  try {
+    const response = await fetch(`${DEFAULTURL}/chargers/records/check`);
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    console.log("Charge records checked");
+  } catch (error) {
+    console.error("Failed to check charge records:", error);
+  }
+}

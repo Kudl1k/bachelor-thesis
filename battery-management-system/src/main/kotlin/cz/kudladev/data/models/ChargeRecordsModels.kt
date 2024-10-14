@@ -9,6 +9,7 @@ import java.sql.Timestamp
 data class ChargeRecord(
     val idChargeRecord: Int? = null,
     val group_id : Int,
+    val checked: Boolean,
     val slot: Int,
     @Serializable(with = TimestampSerializer::class) val startedAt: Timestamp,
     @Serializable(with = TimestampSerializer::class) val finishedAt: Timestamp? = null,
@@ -31,6 +32,7 @@ data class ChargeRecordInsert(
 data class ChargeRecordWithTracking(
     val idChargeRecord: Int? = null,
     val group_id: Int,
+    val checked: Boolean,
     val slot: Int,
     @Serializable(with = TimestampSerializer::class) val startedAt: Timestamp,
     @Serializable(with = TimestampSerializer::class) val finishedAt: Timestamp? = null,
@@ -48,6 +50,7 @@ data class ChargeRecordWithTracking(
 data class ChargeRecordWithTrackingFormated(
     val idChargeRecord: Int? = null,
     val group_id: Int,
+    val checked: Boolean,
     val slot: Int,
     @Serializable(with = TimestampSerializer::class) val startedAt: Timestamp,
     @Serializable(with = TimestampSerializer::class) val finishedAt: Timestamp? = null,

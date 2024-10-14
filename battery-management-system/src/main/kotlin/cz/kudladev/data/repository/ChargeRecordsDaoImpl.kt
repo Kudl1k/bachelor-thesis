@@ -13,6 +13,7 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import java.sql.Timestamp
 import java.time.Clock
+import java.time.Instant
 
 class ChargeRecordsDaoImpl: ChargeRecordsDao {
     override suspend fun getAllChargeRecords(): List<ChargeRecord> {
@@ -78,6 +79,7 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
             dbQuery {
                 ChargeRecordEntity.findById(chargeRecord.idChargeRecord!!)?.let {
                     it.groupId = chargeRecord.group_id
+                    it.checked = chargeRecord.checked
                     it.slot = chargeRecord.slot
                     it.startedAt = chargeRecord.startedAt.toInstant()
                     it.finishedAt = chargeRecord.finishedAt?.toInstant()
@@ -130,7 +132,7 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
 
                 // Check if all records in the latest group have ended
                 val allEnded = ChargeRecordEntity.find { ChargeRecords.groupId eq latestGroupId }
-                    .all { it.finishedAt != null }
+                    .all { it.finishedAt != null && it.checked }
 
                 if (allEnded) {
                     return@dbQuery emptyList<ChargeRecordWithTracking>()
@@ -160,6 +162,7 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
                     ChargeRecordWithTracking(
                         idChargeRecord = it.id.value,
                         group_id = it.groupId,
+                        checked = it.checked,
                         slot = it.slot,
                         startedAt = Timestamp.from(it.startedAt),
                         finishedAt = it.finishedAt?.let { Timestamp.from(it) },
@@ -179,6 +182,37 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
         }
     }
 
+    override suspend fun checkChargeRecords(): List<ChargeRecord> {
+        return try {
+            dbQuery {
+                val latestGroupId = ChargeRecordEntity.all().map { it.groupId }.max() ?: 0
+                if (latestGroupId == 0) {
+                    return@dbQuery emptyList<ChargeRecord>()
+                }
+                val allEnded = ChargeRecordEntity.find { ChargeRecords.groupId eq latestGroupId }
+                    .all { it.finishedAt != null && !it.checked }
+                if (allEnded) {
+                    ChargeRecordEntity.find { ChargeRecords.groupId eq latestGroupId }.forEach {
+                        it.checked = true
+                        if (it.finishedAt == null) {
+                            it.finishedAt = Instant.now()
+                        }
+                    }
+                }
+                ChargeRecordEntity.find { ChargeRecords.groupId eq latestGroupId }.map {
+                    EntityParser.toChargeRecord(
+                        it,
+                        EntityParser.toCharger(it.chargerEntity, EntityParser.toParser(it.chargerEntity.parser)),
+                        EntityParser.toBattery(it.batteryEntity, EntityParser.toType(it.batteryEntity.typeEntity), EntityParser.toSize(it.batteryEntity.sizeEntity))
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            println(e)
+            emptyList()
+        }
+    }
+
     override suspend fun getNewChargeGroup(): Int {
         return try {
             dbQuery {
@@ -186,8 +220,9 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
                 if (latestGroupId == 0) {
                     return@dbQuery 1
                 }
-                val latestGroup = ChargeRecordEntity.find { ChargeRecords.groupId eq latestGroupId }.sortedByDescending { it.startedAt }.first()
-                if (latestGroup.finishedAt != null) {
+                val allEnded = ChargeRecordEntity.find { ChargeRecords.groupId eq latestGroupId }
+                    .all { it.finishedAt != null && it.checked }
+                if (allEnded) {
                     return@dbQuery latestGroupId + 1
                 } else {
                     return@dbQuery latestGroupId
