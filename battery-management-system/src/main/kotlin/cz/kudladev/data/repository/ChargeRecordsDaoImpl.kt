@@ -189,16 +189,14 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
                 if (latestGroupId == 0) {
                     return@dbQuery emptyList<ChargeRecord>()
                 }
-                val allEnded = ChargeRecordEntity.find { ChargeRecords.groupId eq latestGroupId }
-                    .all { it.finishedAt != null && !it.checked }
-                if (allEnded) {
-                    ChargeRecordEntity.find { ChargeRecords.groupId eq latestGroupId }.forEach {
-                        it.checked = true
-                        if (it.finishedAt == null) {
-                            it.finishedAt = Instant.now()
-                        }
+
+                ChargeRecordEntity.find { ChargeRecords.groupId eq latestGroupId }.forEach {
+                    it.checked = true
+                    if (it.finishedAt == null) {
+                        it.finishedAt = Instant.now()
                     }
                 }
+
                 ChargeRecordEntity.find { ChargeRecords.groupId eq latestGroupId }.map {
                     EntityParser.toChargeRecord(
                         it,
