@@ -180,8 +180,10 @@ export function BaterryPage() {
           </div>
         </div>
       )}
-
-      <div className="flex justify-center">
+      
+      {batteryData.length > 0 && (
+        <>
+        <div className="flex justify-center">
         {viewMode === "card" && (
           <div className="w-full xl:w-4/6 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-4 p-4">
             {paginatedData.map((battery) => (
@@ -195,13 +197,13 @@ export function BaterryPage() {
           </div>
         )}
       </div>
-      {batteryData.length > 0 && (
         <PaggingMenu
           totalPosts={filteredData.length}
           postsPerPage={perPage}
           currentPage={page}
           setCurrentPage={setPage}
         />
+        </>
       )}
     </>
   );

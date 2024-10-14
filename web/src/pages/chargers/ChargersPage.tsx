@@ -59,8 +59,8 @@ export function ChargersPage() {
         <div className="flex justify-center">
           <div className="w-full xl:w-1/4 lg:w-3/6 md:w-4/6 ps-4 pe-4 pt-4">
             <InfoBox
-              alertTitle="No batteries found"
-              alertDescription="There are no batteries found in the database. Please add a new battery."
+              alertTitle="No chargers found"
+              alertDescription="There are no chargers found in the database. Please add a new charger."
               icon={PlugZap}
             />
           </div>
