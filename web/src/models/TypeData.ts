@@ -1,4 +1,5 @@
 import { toast } from "sonner";
+import { DEFAULTURL } from "./Default";
 
 export interface Type {
   shortcut: string;
@@ -12,7 +13,7 @@ export interface TypeInsert {
 
 export async function fetchTypeData(setTypeData: (data: Type[]) => void) {
   try {
-    const response = await fetch("http://127.0.0.1:8080/types");
+    const response = await fetch(`http://${DEFAULTURL}/types`);
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
@@ -27,7 +28,7 @@ export async function insertTypeData(
   typeInsert: TypeInsert
 ): Promise<Type | null> {
   try {
-    const response = await fetch("http://127.0.0.1:8080/types", {
+    const response = await fetch(`http://${DEFAULTURL}/types`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -117,7 +117,7 @@ export async function fetchChargerData(
   setChargerData: (data: Charger[]) => void
 ) {
   try {
-    const response = await fetch(`${DEFAULTURL}/chargers`);
+    const response = await fetch(`http://${DEFAULTURL}/chargers`);
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
@@ -133,7 +133,7 @@ export async function insertChargerData(
   chargerInsert: ChargerInsert
 ): Promise<Charger | null> {
   try {
-    const response = await fetch(`${DEFAULTURL}/chargers`, {
+    const response = await fetch(`http://${DEFAULTURL}/chargers`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -159,7 +159,7 @@ export async function fetchChargerInfo(
   setCharger: (data: Charger) => void
 ) {
   try {
-    const response = await fetch(`${DEFAULTURL}/chargers/${id}`);
+    const response = await fetch(`http://${DEFAULTURL}/chargers/${id}`);
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
@@ -175,7 +175,7 @@ export async function searchChargerData(
   setChargerData: (data: Charger[]) => void
 ) {
   try {
-    const response = await fetch(`${DEFAULTURL}/chargers/search`, {
+    const response = await fetch(`http://${DEFAULTURL}/chargers/search`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -194,7 +194,7 @@ export async function searchChargerData(
 
 export async function fetchPorts(setTtys: (data: string[]) => void) {
   try {
-    const response = await fetch(`${DEFAULTURL}/chargers/ports`);
+    const response = await fetch(`http://${DEFAULTURL}/chargers/ports`);
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
@@ -209,7 +209,7 @@ export async function fetchPorts(setTtys: (data: string[]) => void) {
 export async function startTracking(tracking: Tracking) {
   try {
     const response = await fetch(
-      `${DEFAULTURL}/chargers/${tracking.id_charger}/tracking/start`,
+      `http://${DEFAULTURL}/chargers/${tracking.id_charger}/tracking/start`,
       {
         method: "POST",
         headers: {
@@ -231,7 +231,7 @@ export async function startTracking(tracking: Tracking) {
 export async function stopTracking(id_charger: number) {
   try {
     const response = await fetch(
-      `${DEFAULTURL}/chargers/${id_charger}/tracking/start`,
+      `http://${DEFAULTURL}/chargers/${id_charger}/tracking/start`,
       {
         method: "GET",
       }
@@ -249,7 +249,9 @@ export async function fetchNotEndedChargeRecord(
   setChargeRecord: (data: ChargeRecord[]) => void
 ) {
   try {
-    const response = await fetch(`${DEFAULTURL}/chargers/records/notended`);
+    const response = await fetch(
+      `http://${DEFAULTURL}/chargers/records/notended`
+    );
     {
       if (!response.ok) {
         throw new Error("Network response was not ok");
@@ -268,7 +270,7 @@ export async function fetchTrackingRecord(
 ) {
   try {
     const response = await fetch(
-      `${DEFAULTURL}/chargers/records/${id_charge_record}/tracking`
+      `http://${DEFAULTURL}/chargers/records/${id_charge_record}/tracking`
     );
     if (!response.ok) {
       throw new Error("Network response was not ok");
@@ -291,7 +293,7 @@ export function useWebSocketTracking({
 }: useWebSocketTrackingProps) {
   useEffect(() => {
     const ws = new WebSocket(
-      `ws://localhost:8080/chargers/${id_charger}/tracking/last`
+      `ws://${DEFAULTURL}/chargers/${id_charger}/tracking/last`
     );
 
     ws.onopen = () => {
@@ -302,7 +304,7 @@ export function useWebSocketTracking({
       const data = JSON.parse(event.data);
       console.log("Received data:", data);
 
-      if (data.type === 'end_of_charging') {
+      if (data.type === "end_of_charging") {
         console.log("Charging has ended, reloading the page...");
         window.location.reload();
         return;
@@ -382,13 +384,16 @@ export function useWebSocketTracking({
 
 export async function updatePort(charge_id: number, port: string) {
   try {
-    const response = await fetch(`${DEFAULTURL}/chargers/${charge_id}/port`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: port,
-    });
+    const response = await fetch(
+      `http://${DEFAULTURL}/chargers/${charge_id}/port`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: port,
+      }
+    );
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
@@ -403,13 +408,16 @@ export async function addChargerSize(
   size: string
 ): Promise<Charger | null> {
   try {
-    const response = await fetch(`${DEFAULTURL}/chargers/${charge_id}/size/${size}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: size,
-    });
+    const response = await fetch(
+      `http://${DEFAULTURL}/chargers/${charge_id}/size/${size}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: size,
+      }
+    );
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
@@ -427,13 +435,16 @@ export async function addChargerType(
   type: string
 ): Promise<Charger | null> {
   try {
-    const response = await fetch(`${DEFAULTURL}/chargers/${charge_id}/type/${type}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: type,
-    });
+    const response = await fetch(
+      `http://${DEFAULTURL}/chargers/${charge_id}/type/${type}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: type,
+      }
+    );
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
@@ -452,7 +463,7 @@ export async function removeChargerSize(
 ): Promise<Charger | null> {
   try {
     const response = await fetch(
-      `${DEFAULTURL}/chargers/${charge_id}/size/${size}`,
+      `http://${DEFAULTURL}/chargers/${charge_id}/size/${size}`,
       {
         method: "DELETE",
       }
@@ -475,7 +486,7 @@ export async function removeChargerType(
 ): Promise<Charger | null> {
   try {
     const response = await fetch(
-      `${DEFAULTURL}/chargers/${charge_id}/type/${type}`,
+      `http://${DEFAULTURL}/chargers/${charge_id}/type/${type}`,
       {
         method: "DELETE",
       }
@@ -492,11 +503,9 @@ export async function removeChargerType(
   }
 }
 
-export async function fetchParsers(
-  setParsers: (data: Parser[]) => void
-) {
+export async function fetchParsers(setParsers: (data: Parser[]) => void) {
   try {
-    const response = await fetch(`${DEFAULTURL}/chargers/parsers`);
+    const response = await fetch(`http://${DEFAULTURL}/chargers/parsers`);
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
@@ -508,9 +517,9 @@ export async function fetchParsers(
   }
 }
 
-export async function checkChargeRecords(){
+export async function checkChargeRecords() {
   try {
-    const response = await fetch(`${DEFAULTURL}/chargers/records/check`);
+    const response = await fetch(`http://${DEFAULTURL}/chargers/records/check`);
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }

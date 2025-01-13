@@ -85,7 +85,7 @@ export async function fetchBatteryData(
   setBatteryData: (data: Battery[]) => void
 ) {
   try {
-    const response = await fetch(`${DEFAULTURL}/batteries`);
+    const response = await fetch(`http://${DEFAULTURL}/batteries`);
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
@@ -104,7 +104,7 @@ export async function insertBatteryData(
   batteryInsert: BatteryInsert
 ): Promise<Battery | null> {
   try {
-    const response = await fetch(`${DEFAULTURL}/batteries`, {
+    const response = await fetch(`http://${DEFAULTURL}/batteries`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -132,7 +132,7 @@ export async function fetchBatteryInfo(
   setBatteryData: (data: BatteryInfo) => void
 ) {
   try {
-    const response = await fetch(`${DEFAULTURL}/batteries/${id}/info`);
+    const response = await fetch(`http://${DEFAULTURL}/batteries/${id}/info`);
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
@@ -145,7 +145,7 @@ export async function fetchBatteryInfo(
 
 export async function fetchNewId(setNewId: (id: string) => void) {
   try {
-    const response = await fetch(`${DEFAULTURL}/batteries/newId`);
+    const response = await fetch(`http://${DEFAULTURL}/batteries/newId`);
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
@@ -161,7 +161,7 @@ export async function fetchNewId(setNewId: (id: string) => void) {
 
 export async function toggleArchived(id: string) {
   try {
-    const response = await fetch(`${DEFAULTURL}/batteries/${id}/toggleArchive`);
+    const response = await fetch(`http://${DEFAULTURL}/batteries/${id}/toggleArchive`);
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
