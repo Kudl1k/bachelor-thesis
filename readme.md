@@ -9,9 +9,9 @@ You can control the system using the web application. The application allows you
 
 ### Requirements
 Versions are those that were used during the development of the project. It is possible that the project will work with other versions of the software.
-- Java with JDK 21
-- npm version 10.5.0
-- docker version 26.0.0
+- `Java 21`
+- `npm 10.5.0`
+- `docker 26.0.0`
 
 ### How to run
 
@@ -50,8 +50,10 @@ cd web
 npm install
 npm run dev
 ```
+If you don't have `npm` you can install it [here](https://github.com/nodesource/distributions?tab=readme-ov-file#installation-instructions-deb)
+
 **OPTIONAL:**
-If you want to have exposed port, you need to change the default url here:
+If you want to have [exposed port](https://www.a2hosting.com/kb/developer-corner/linux/installing-and-configuring-ufw-uncomplicated-firewall/), you need to change the default url here:
 ```
 /web/src/models/Default.ts
 ```
