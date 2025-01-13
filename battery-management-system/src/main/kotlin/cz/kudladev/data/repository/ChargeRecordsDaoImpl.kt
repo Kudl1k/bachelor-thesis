@@ -233,4 +233,25 @@ class ChargeRecordsDaoImpl: ChargeRecordsDao {
             1
         }
     }
+
+    override suspend fun endGroupChargeRecords(group: Int): Boolean {
+        return try {
+            dbQuery {
+                ChargeRecordEntity.find { ChargeRecords.groupId eq group }.forEach {
+                    if (it.finishedAt == null) {
+                        it.finishedAt = Instant.now()
+                    }
+                    val lastChargingChargeTracking = ChargeTrackingEntity.find { (ChargeTrackings.idChargeRecord eq it.id.value) and (ChargeTrackings.charging eq true) }.orderBy(ChargeTrackings.id to SortOrder.DESC).firstOrNull()
+                    val lastDischargingChargeTracking = ChargeTrackingEntity.find { (ChargeTrackings.idChargeRecord eq it.id.value) and (ChargeTrackings.charging eq false) }.orderBy(ChargeTrackings.id to SortOrder.DESC).firstOrNull()
+                    it.chargedCapacity = lastChargingChargeTracking?.capacity
+                    it.dischargedCapacity = lastDischargingChargeTracking?.capacity
+                    it.checked = true
+                }
+            }
+            true
+        } catch (e: Exception) {
+            println(e)
+            false
+        }
+    }
 }

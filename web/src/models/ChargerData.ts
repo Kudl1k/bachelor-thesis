@@ -4,6 +4,7 @@ import { Battery, BatteryWithSlot } from "./BatteryData";
 import { DEFAULTURL } from "./Default";
 import { Size } from "./SizeData";
 import { Type } from "./TypeData";
+import { create } from "zustand";
 
 export interface Charger {
   id: number;
@@ -63,6 +64,8 @@ export interface Tracking {
 
 export interface ChargeRecord {
   idChargeRecord: number;
+  group_id: number;
+  checked: boolean;
   slot: number;
   startedAt: string;
   finishedAt: string;
@@ -112,6 +115,16 @@ export interface EndOfCharging {
   type: string;
   charge_record_id: number;
 }
+
+interface ChargerStore {
+  groupId: number | null;
+  setGroupId: (id: number) => void;
+}
+
+export const useChargerStore = create<ChargerStore>((set) => ({
+  groupId: null,
+  setGroupId: (id: number) => set(() => ({ groupId: id })),
+}));
 
 export async function fetchChargerData(
   setChargerData: (data: Charger[]) => void
@@ -231,7 +244,7 @@ export async function startTracking(tracking: Tracking) {
 export async function stopTracking(id_charger: number) {
   try {
     const response = await fetch(
-      `http://${DEFAULTURL}/chargers/${id_charger}/tracking/start`,
+      `http://${DEFAULTURL}/chargers/${id_charger}/tracking/stop`,
       {
         method: "GET",
       }
@@ -291,6 +304,8 @@ export function useWebSocketTracking({
   id_charger,
   setChargeRecords,
 }: useWebSocketTrackingProps) {
+  const setGroupId = useChargerStore((state) => state.setGroupId);
+
   useEffect(() => {
     const ws = new WebSocket(
       `ws://${DEFAULTURL}/chargers/${id_charger}/tracking/last`
@@ -318,6 +333,9 @@ export function useWebSocketTracking({
           const chargeRecordId = Array.isArray(data.formatedChargeTracking)
             ? data.formatedChargeTracking[0].charge_record_id
             : data.formatedChargeTracking.charge_record_id;
+
+          setGroupId(data.formatedChargeTracking.group_id);
+          console.log("Group id:", data.formatedChargeTracking.group_id);
           if (Number(record.idChargeRecord) === Number(chargeRecordId)) {
             console.log("Record found:", record);
             if (Array.isArray(data.formatedChargeTracking)) {
@@ -527,5 +545,21 @@ export async function checkChargeRecords() {
     window.location.reload();
   } catch (error) {
     console.error("Failed to check charge records:", error);
+  }
+}
+
+export async function endGroup(group: number) {
+  try {
+    const response = await fetch(
+      `http://${DEFAULTURL}/chargers/tracking/${group}`,
+      { method: "DELETE" }
+    );
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    console.log("Group ended");
+    window.location.reload();
+  } catch (error) {
+    console.error("Failed to end group:", error);
   }
 }

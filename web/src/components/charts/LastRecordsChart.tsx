@@ -43,7 +43,7 @@ export function LastRecordsChart({ data }: LastRecordsChartProps) {
 
   return (
     <ChartContainer config={LastRecordsChartConfig}>
-      <BarChart accessibilityLayer data={data}>
+      <BarChart accessibilityLayer data={data.slice(0, 10)}>
         <CartesianGrid vertical={false} />
         <XAxis
           dataKey="idChargeRecord"
@@ -61,9 +61,13 @@ export function LastRecordsChart({ data }: LastRecordsChartProps) {
         <ChartTooltip
           content={
             <ChartTooltipContent
-              hideLabel
-              formatter={(value, name) => {
-                console.log("Tooltip formatter called with:", { value, name });
+              labelKey="idChargeRecord"
+              formatter={(value, name, props) => {
+                console.log("Tooltip formatter called with:", {
+                  value,
+                  name,
+                  props,
+                });
                 if (!value || !name) {
                   console.error("Invalid value or name in tooltip formatter:", {
                     value,

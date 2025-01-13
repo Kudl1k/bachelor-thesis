@@ -18,4 +18,6 @@ interface ChargeRecordsDao {
     suspend fun checkChargeRecords(): List<ChargeRecord>
 
     suspend fun getNewChargeGroup(): Int
+
+    suspend fun endGroupChargeRecords(group: Int): Boolean
 }

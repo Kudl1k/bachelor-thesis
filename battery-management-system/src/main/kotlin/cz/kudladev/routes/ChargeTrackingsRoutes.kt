@@ -81,6 +81,19 @@ fun Route.chargetrackings(
                 call.respondText(text = "Please fill all fields", status = HttpStatusCode.BadRequest)
             }
         }
+        delete("tracking/{id}") {
+            try {
+                val group_id = call.parameters["id"]?.toInt() ?: return@delete call.respond(HttpStatusCode.BadRequest)
+                val result = chargerRecordsDao.endGroupChargeRecords(group_id)
+                if (result) {
+                    call.respond(HttpStatusCode.OK)
+                } else {
+                    call.respondText(text = "Group with ID $group_id not found", status = HttpStatusCode.NotFound)
+                }
+            } catch (e: Exception) {
+                call.respondText(text = "Please insert right form of ID (Int), starting from 1", status = HttpStatusCode.BadRequest)
+            }
+        }
         post("{id}/tracking/start") {
             val id = call.parameters["id"]?.toInt() ?: return@post call.respond(HttpStatusCode.BadRequest)
             val charger = chargersDao.getChargerById(id) ?: return@post call.respond(HttpStatusCode.BadRequest)
@@ -118,6 +131,7 @@ fun Route.chargetrackings(
         get("{id}/tracking/stop") {
             if (job != null && job?.isActive == true) {
                 stopTracking()
+
                 call.respondText("Process stopped", status = HttpStatusCode.OK)
             } else {
                 call.respondText("No process running", status = HttpStatusCode.BadRequest)

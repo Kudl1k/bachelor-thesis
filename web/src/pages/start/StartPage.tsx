@@ -12,6 +12,7 @@ import {
   ChargeRecord,
   checkChargeRecords,
   fetchNotEndedChargeRecord,
+  useChargerStore,
   useWebSocketTracking,
 } from "@/models/ChargerData";
 import { useEffect, useRef, useState } from "react";
@@ -21,6 +22,8 @@ export function StartPage() {
   const [chargeRecords, setChargeRecords] = useState<ChargeRecord[]>([]);
   const [chargerId, setChargerId] = useState<number | null>(null);
   const hasFetched = useRef(false);
+
+  const setGroupId = useChargerStore((state) => state.setGroupId);
 
   useEffect(() => {
     if (!hasFetched.current) {
@@ -32,6 +35,7 @@ export function StartPage() {
   useEffect(() => {
     if (chargeRecords.length > 0) {
       setChargerId(chargeRecords[0].charger.id);
+      setGroupId(chargeRecords[0].group_id);
     }
   }, [chargeRecords]);
 
@@ -57,7 +61,7 @@ export function StartPage() {
         </div>
       )}
 
-      {(chargeRecords.length > 0) && (
+      {chargeRecords.length > 0 && (
         <div className="flex justify-center">
           <div className="xl:w-3/5 lg:w-4/5 md:w-4/5 sm:w-4/5 w-4/5 py-4">
             <Carousel opts={{ loop: true, watchDrag: false }}>
@@ -72,11 +76,14 @@ export function StartPage() {
                           <h1 className="text-xl font-bold">
                             {chargeRecords[0].charger.name}
                           </h1>
-                          <Button className="ml-auto" variant={"destructive"} onClick={check}>
+                          <Button
+                            className="ml-auto"
+                            variant={"destructive"}
+                            onClick={check}
+                          >
                             Check
                           </Button>
                         </div>
-                        
                       </CardHeader>
                       <CardContent className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-4">
                         {chargeRecords.map((record) => (

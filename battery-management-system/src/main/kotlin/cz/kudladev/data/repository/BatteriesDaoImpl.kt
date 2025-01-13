@@ -139,7 +139,7 @@ class BatteriesDaoImpl: BatteriesDao {
                 val battery = getBatteryById(id) ?: return@dbQuery null
                 println("battery: $battery")
 
-                val chargeRecords = ChargeRecordEntity.find { ChargeRecords.idBattery eq id }.map {
+                val chargeRecords = ChargeRecordEntity.find { ChargeRecords.idBattery eq id }.orderBy(ChargeRecords.id to SortOrder.DESC).map {
                     val charger = ChargerEntity.findById(it.chargerEntity.id.value) ?: throw IllegalArgumentException("No charger found for id ${it.chargerEntity.id.value}")
                     val tracking = ChargeTrackingEntity.find { ChargeTrackings.idChargeRecord eq it.id.value }.orderBy(ChargeTrackings.id to SortOrder.ASC).map {
                         EntityParser.toFormatedChargeTracking(it)
