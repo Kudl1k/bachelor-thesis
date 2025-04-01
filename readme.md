@@ -9,9 +9,9 @@ You can control the system using the web application. The application allows you
 
 ### Requirements
 Versions are those that were used during the development of the project. It is possible that the project will work with other versions of the software.
-- Java with JDK 21
-- npm version 10.5.0
-- docker version 26.0.0
+- `Java 21`
+- `npm 10.5.0`
+- `docker 26.0.0`
 
 ### How to run
 
@@ -19,23 +19,45 @@ Versions are those that were used during the development of the project. It is p
 ```
 git clone https://github.com/Kudl1k/bachelor-thesis
 ```
-2. Go to the directory with the project and create a docker image using the command:
+2. Create a docker container with this command:
+```bash
+docker run -d \
+  --name postgres_battery \
+  -e POSTGRES_USER=admin \
+  -e POSTGRES_PASSWORD=admin \
+  -v postgres_data:/var/lib/postgresql/data \
+  -p 5432:5432 \
+  postgres:17-alpine
+```
+If you don't have the docker on your raspberry. Here is setup of [docker](https://docs.docker.com/engine/install/raspberry-pi-os/).
+
+3. Create a database in the docker container:
+``` bash
+docker exec -it postgres_battery psql -U admin -d postgres -c "CREATE DATABASE battery;"
+```
+4. Go to the directory with the project and create a docker image using the command:
 ```
 cd bachelor-thesis
 cd battery-managerment-system
-./gradlew databaseInstance
 ```
-3. Wait for the database to start and then run the backend using the command:
+5. Wait for the database to start and then run the backend using the command:
 ```
 ./gradlew run
 ```
-4. Go to the directory with the project and run the frontend using the command:
+6. Go back to root directory with the project, navigate to `web` and run the frontend using the command:
 ```
 cd web
 npm install
 npm run dev
 ```
-5. Open the browser and go to the address:
+If you don't have `npm` you can install it [here](https://github.com/nodesource/distributions?tab=readme-ov-file#installation-instructions-deb)
+
+**OPTIONAL:**
+If you want to have [exposed port](https://www.a2hosting.com/kb/developer-corner/linux/installing-and-configuring-ufw-uncomplicated-firewall/), you need to change the default url here:
+```
+/web/src/models/Default.ts
+```
+7. Open the browser and go to the address:
 ```
 http://localhost:5173/
 ```
