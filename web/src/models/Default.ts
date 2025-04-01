@@ -1,1 +1,1 @@
-export const DEFAULTURL = "127.0.0.1:8080";
+export const DEFAULTURL = import.meta.env.VITE_DEFAULT_URL || "0.0.0.0:8080";

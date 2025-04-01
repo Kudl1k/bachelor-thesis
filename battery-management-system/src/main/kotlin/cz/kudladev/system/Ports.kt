@@ -1,5 +1,6 @@
 package cz.kudladev.system
 
+import cz.kudladev.system.BufferParsers.conradChargeManager2010
 import jssc.SerialPort
 import jssc.SerialPortList
 
@@ -27,6 +28,7 @@ fun openPort(
         rts,
         dtr
     )
+    resetPort(port)
     println(port.isOpened)
     return port
 }
@@ -36,11 +38,29 @@ fun readFromPort(
     bytes: Int,
     parserId: Int,
     cells: Int,
-): ParserResult {
+    targetSlot: Int
+): PortData {
     resetPort(port)
     if (parserId == 1) {
-        val buffer = port.readBytes(bytes)
-        return BufferParsers.conradChargeManager2010(buffer)
+        resetPort(port)
+        val fullCycle = port.readBytes(34 * 4)
+        if (targetSlot != null && targetSlot in 1..4) {
+            for (i in 0 until 4) {
+                val startIndex = i * 34
+                if (startIndex + 34 <= fullCycle.size) {
+                    val slotNum = fullCycle[startIndex].toInt() and 0xFF
+                    if (slotNum == targetSlot) {
+                        val slotData = ByteArray(34)
+                        System.arraycopy(fullCycle, startIndex, slotData, 0, 34)
+                        println("Raw bytes for slot $slotNum: ${slotData.joinToString(", ") { it.toUByte().toString() }}")
+                        return conradChargeManager2010(slotData)
+                    }
+                }
+            }
+            println("Warning: Couldn't find data for slot $targetSlot in the current cycle")
+        }
+        println("Warning: Couldn't find valid slot data in the current cycle")
+        return PortData(0, State.NO_BATTERY, 0, 0, 0)
     } else if (parserId == 2) {
         var frame = ""
         while (true) {

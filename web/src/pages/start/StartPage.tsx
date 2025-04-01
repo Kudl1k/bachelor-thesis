@@ -47,6 +47,7 @@ export function StartPage() {
   function check() {
     checkChargeRecords();
   }
+  console.log(chargeRecords);
 
   return (
     <>
@@ -66,7 +67,7 @@ export function StartPage() {
           <div className="xl:w-3/5 lg:w-4/5 md:w-4/5 sm:w-4/5 w-4/5 py-4">
             <Carousel opts={{ loop: true, watchDrag: false }}>
               <CarouselContent className="h-full">
-                {chargeRecords.length > 1 && (
+                {chargeRecords.length >= 1 && (
                   <CarouselItem
                     key={`carousel-item-${chargeRecords[0].idChargeRecord}`}
                   >

@@ -57,11 +57,9 @@ export function BatteryCard({ battery }: BatteryCardProps) {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger>
-                  <h1 className="text-2xl font-bold hover:shadow-lg border-2 border-background hover:border-primary ease-in-out duration-150 rounded-2xl p-1">
-                    <div className="flex items-center gap-2">
-                      <Hash className="size-7" />
-                      {battery.id}
-                    </div>
+                  <h1 className="text-2xl font-bold hover:shadow-lg border-2 border-background hover:border-primary ease-in-out duration-150 rounded-2xl p-1 flex items-center gap-2">
+                    <Hash className="size-7" />
+                    {battery.id}
                   </h1>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -98,40 +96,32 @@ export function BatteryCard({ battery }: BatteryCardProps) {
           </div>
         </CardTitle>
         <CardDescription className="space-y-1">
-          <div className="flex items-center gap-2">
+          <span className="flex items-center gap-2">
             <CalendarClock />
             {battery.last_time_charged_at || "N/A"}
-          </div>
-          <div className="flex items-center gap-2">
+          </span>
+          <span className="flex items-center gap-2">
             <BatteryCharging />
             {battery.last_charged_capacity || "N/A"} mAh
-          </div>
+          </span>
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <h2 className="text-lg font-semibold">
-          <div className="flex items-center gap-2">
-            <Ruler />
-            {battery.size.name}
-          </div>
+        <h2 className="text-lg font-semibold flex items-center gap-2">
+          <Ruler />
+          {battery.size.name}
         </h2>
-        <h2 className="text-lg font-semibold">
-          <div className="flex items-center gap-2">
-            <BatteryFull />
-            {battery.factory_capacity} mAh
-          </div>
+        <h2 className="text-lg font-semibold flex items-center gap-2">
+          <BatteryFull />
+          {battery.factory_capacity} mAh
         </h2>
-        <h2 className="text-lg font-semibold">
-          <div className="flex items-center gap-2">
-            <Zap />
-            {battery.voltage} V
-          </div>
+        <h2 className="text-lg font-semibold flex items-center gap-2">
+          <Zap />
+          {battery.voltage} V
         </h2>
-        <h2 className="text-lg font-semibold">
-          <div className="flex items-center gap-2">
-            <Atom />
-            {battery.type.shortcut}
-          </div>
+        <h2 className="text-lg font-semibold flex items-center gap-2">
+          <Atom />
+          {battery.type.shortcut}
         </h2>
         <div className="flex justify-between w-full">
           <div className="flex items-center space-x-2 text-red-500">

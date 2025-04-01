@@ -319,9 +319,28 @@ export function useWebSocketTracking({
       const data = JSON.parse(event.data);
       console.log("Received data:", data);
 
+      // Handle "end_of_charging" type
       if (data.type === "end_of_charging") {
-        console.log("Charging has ended, reloading the page...");
-        window.location.reload();
+        console.log("Charging has ended, updating state to Finished...");
+        setChargeRecords((prevRecords) =>
+          prevRecords.map((record) =>
+            record.idChargeRecord === data.charge_record_id
+              ? { ...record, finishedAt: new Date().toISOString() } // Mark as finished
+              : record
+          )
+        );
+        return;
+      }
+
+      // Handle both singular and plural keys for charge tracking
+      const formattedTracking =
+        data.formatedChargeTracking || data.formatedChargeTrackings;
+
+      if (!formattedTracking) {
+        console.error(
+          "Invalid data received: formatedChargeTracking or formatedChargeTrackings is undefined",
+          data
+        );
         return;
       }
 
@@ -330,19 +349,22 @@ export function useWebSocketTracking({
           window.location.reload();
         }
         return prevRecords.map((record) => {
-          const chargeRecordId = Array.isArray(data.formatedChargeTracking)
-            ? data.formatedChargeTracking[0].charge_record_id
-            : data.formatedChargeTracking.charge_record_id;
+          const chargeRecordId = Array.isArray(formattedTracking)
+            ? formattedTracking[0].charge_record_id
+            : formattedTracking.charge_record_id;
 
-          setGroupId(data.formatedChargeTracking.group_id);
-          console.log("Group id:", data.formatedChargeTracking.group_id);
+          setGroupId(formattedTracking.group_id || record.group_id);
+          console.log(
+            "Group id:",
+            formattedTracking.group_id || record.group_id
+          );
           if (Number(record.idChargeRecord) === Number(chargeRecordId)) {
             console.log("Record found:", record);
-            if (Array.isArray(data.formatedChargeTracking)) {
+            if (Array.isArray(formattedTracking)) {
               console.log("formatedChargeTracking is array");
               return {
                 ...record,
-                tracking: [...record.tracking, ...data.formatedChargeTracking],
+                tracking: formattedTracking,
                 cells: record.cells.map((cell) => {
                   const updatedVoltages: CellTrakcing[] =
                     data.formatedCellTrackings
@@ -362,7 +384,7 @@ export function useWebSocketTracking({
             } else {
               return {
                 ...record,
-                tracking: [...record.tracking, data.formatedChargeTracking],
+                tracking: [...record.tracking, formattedTracking],
                 cells: record.cells.map((cell) => {
                   const updatedVoltages: CellTrakcing[] =
                     data.formatedCellTrackings

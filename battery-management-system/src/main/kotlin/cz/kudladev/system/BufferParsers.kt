@@ -5,10 +5,10 @@ import java.nio.ByteOrder
 
 object BufferParsers {
 
-    fun conradChargeManager2010(byteArray: ByteArray): ParserResult{
+    fun conradChargeManager2010(byteArray: ByteArray): PortData {
         val buffer = ByteBuffer.wrap(byteArray).order(ByteOrder.BIG_ENDIAN)
         val slot = buffer.get(0).toInt() and 0xFF
-        val currentLo = buffer.get(2).toInt() and 0xFF
+        val programState = buffer.get(2).toInt() and 0x0F
         buffer.position(13)
         val current = buffer.short.toInt() and 0xFFFF
         buffer.position(15)
@@ -21,18 +21,19 @@ object BufferParsers {
         val dischargedCapacity = ((buffer.get().toInt() and 0xFF) shl 16) or
                 ((buffer.get().toInt() and 0xFF) shl 8) or
                 (buffer.get().toInt() and 0xFF)
-
-        val state = when(currentLo) {
-            0 -> State.NO_BATTERY
-            1,3,5,7 -> State.CHARGING
-            2,4,6 -> State.DISCHARGING
-            else -> State.END
+        val state = when(programState) {
+            0 -> State.NO_BATTERY  // No program active / No battery
+            1, 3, 5 -> State.CHARGING  // Charging states
+            2, 4, 6 -> State.DISCHARGING  // Discharging states
+            7 -> State.CHARGING  // Trickle charging
+            8 -> State.END  // Ready, finished
+            else -> State.NO_BATTERY
         }
         val capacity = if (state == State.CHARGING) chargedCapacity else dischargedCapacity
-        return ParserResult(slot, state, current, batteryVoltage, capacity)
+        return PortData(slot, state, current, batteryVoltage, capacity)
     }
 
-    fun turnigyAccucell6(frame: String,cellNumber: Int): ParserResult {
+    fun turnigyAccucell6(frame: String,cellNumber: Int): PortData {
         val state = frame[7].code and 0x7f
         val running = (frame[23].code and 1) != 0
         val charging = (state and 0x01) != 0
@@ -49,7 +50,7 @@ object BufferParsers {
         }
 
 
-        return ParserResult(
+        return PortData(
             slot = 1,
             state = if (running) {
                 if (charging) State.CHARGING else State.DISCHARGING
@@ -65,14 +66,13 @@ object BufferParsers {
 }
 
 
-data class ParserResult(
+data class PortData(
     val slot: Int,
     val state: State,
     val current: Int,
     val voltage: Int,
     val capacity: Int,
-    val cells: List<Pair<Int,Int>> = emptyList()
-)
+    val cells: List<Pair<Int,Int>> = emptyList())
 
 enum class State {
     NO_BATTERY,

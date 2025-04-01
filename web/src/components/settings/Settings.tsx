@@ -14,7 +14,7 @@ export function SettingsComponent() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
+      <DropdownMenuTrigger asChild>
         <Button variant={"ghost"}>
           <Settings />
         </Button>

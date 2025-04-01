@@ -84,6 +84,7 @@ export function SetupPage() {
         id: battery.id,
         type: battery.type.shortcut,
         size: battery.size.name,
+        cells: battery.cells,
         factory_capacity: battery.factory_capacity,
         voltage: battery.voltage,
         last_charged_capacity: battery.last_charged_capacity

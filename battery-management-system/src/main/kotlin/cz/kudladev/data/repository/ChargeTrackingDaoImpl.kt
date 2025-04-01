@@ -31,7 +31,7 @@ class ChargeTrackingDaoImpl: ChargeTrackingDao {
     override suspend fun getChargeTrackingById(id: Int): List<FormatedChargeTracking>? {
         return try {
             dbQuery {
-                ChargeTrackingEntity.find { ChargeTrackings.idChargeRecord eq id }.map { chargeTrackingEntity ->
+                ChargeTrackingEntity.find { ChargeTrackings.idChargeRecord eq id }.orderBy(ChargeTrackings.id to SortOrder.ASC).map { chargeTrackingEntity ->
                     EntityParser.toFormatedChargeTracking(chargeTrackingEntity)
                 }
             }

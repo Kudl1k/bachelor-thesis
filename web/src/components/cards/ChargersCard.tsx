@@ -19,12 +19,12 @@ export function ChargersCard({ charger }: ChargersCardProps) {
   return (
     <Card className="shadow-md">
       <CardHeader>
-        <div className="flex w-full space-x-2">
-          <Cable />
-          <CardTitle>
+        <CardTitle>
+          <div className="flex w-full space-x-2">
+            <Cable />
             <h2 className="text-xl">{charger.name}</h2>
-          </CardTitle>
-        </div>
+          </div>
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="pb-3 flex">

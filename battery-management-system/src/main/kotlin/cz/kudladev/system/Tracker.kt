@@ -81,7 +81,7 @@ suspend fun startTracking(
         }
         chargeRecords.add(createdChargeRecord)
     }
-
+    var slot = 1
     while (isRunning) {
         if (slotsCounter == slots) {
             delay(5000)
@@ -93,8 +93,11 @@ suspend fun startTracking(
             openPort!!,
             34,
             charger.parser.id,
-            cellNumber
+            cellNumber,
+            slot
         )
+        slot = (slot % slots) + 1
+        println("Data: $data")
         for (slot in slotStates) {
             if (data.slot != slot.slotNumber) continue
 
