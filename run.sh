@@ -24,7 +24,7 @@ echo "Spouštění backendu..."
 docker run -d \
   --name battery_backend \
   --network battery_net \
-  -v $(pwd)/battery-management-system/build/libs/battery-management-system-0.0.1.jar:/app.jar \
+  -v $(pwd)/battery-management-system/build/libs/battery-management-system-all.jar:/app.jar \
   openjdk:17-slim \
   sh -c "java -jar /app.jar --port=8080"
 
@@ -41,8 +41,8 @@ echo "Spouštění Nginx s Vite výstupem..."
 docker run -d \
   --name battery_frontend_nginx \
   --network battery_net \
-  -v $(pwd)/dist:/usr/share/nginx/html:ro \
-  -v $(pwd)/nginx.conf:/etc/nginx/nginx.conf:ro \
+  -v $(pwd)/web/dist:/usr/share/nginx/html:ro \
+  -v $(pwd)/web/nginx.conf:/etc/nginx/nginx.conf:ro \
   -p 3000:80 \
   nginx:alpine
 

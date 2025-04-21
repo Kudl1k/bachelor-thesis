@@ -76,7 +76,11 @@ tasks.register("databaseInstance") {
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
+    archiveBaseName.set("battery-management-system")
+    archiveClassifier.set("")
+    archiveVersion.set("0.0.1")
     mergeServiceFiles()
+    transform(com.github.jengelman.gradle.plugins.shadow.transformers.ServiceFileTransformer())
     manifest {
         attributes(mapOf("Main-Class" to "cz.kudladev.ApplicationKt"))
     }
