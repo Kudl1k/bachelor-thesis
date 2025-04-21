@@ -24,15 +24,15 @@ echo "Spouštění backendu..."
 docker run -d \
   --name battery_backend \
   --network battery_net \
-  -v $(pwd)/battery-management-system.jar:/app.jar \
-  openjdk:17-alpine \
+  -v $(pwd)/battery-management-system/build/libs/battery-management-system-0.0.1.jar:/app.jar \
+  openjdk:17-slim \
   sh -c "java -jar /app.jar --port=8080"
 
 echo "Čekání na spuštění backendu..."
 sleep 10
 
 echo "Buildování Vite frontendu..."
-cd frontend
+cd web
 npm install
 npm run build
 cd ..
@@ -41,7 +41,7 @@ echo "Spouštění Nginx s Vite výstupem..."
 docker run -d \
   --name battery_frontend_nginx \
   --network battery_net \
-  -v $(pwd)/frontend/dist:/usr/share/nginx/html:ro \
+  -v $(pwd)/dist:/usr/share/nginx/html:ro \
   -v $(pwd)/nginx.conf:/etc/nginx/nginx.conf:ro \
   -p 3000:80 \
   nginx:alpine
