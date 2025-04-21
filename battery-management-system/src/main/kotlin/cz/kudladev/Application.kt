@@ -14,6 +14,13 @@ fun main(args: Array<String>) {
         ?: System.getenv("PORT")?.toIntOrNull()
         ?: 8080
 
+    val databaseName = args.firstOrNull { it.startsWith("--db=") }
+        ?.substringAfter("=")
+        ?: System.getenv("DB_NAME")
+        ?: "jdbc:postgresql://localhost:5432/battery"
+
+    DatabaseBuilder.databaseName = databaseName
+
     embeddedServer(Netty, port = port, host = "0.0.0.0", module = Application::module)
         .start(wait = true)
 }
