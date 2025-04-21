@@ -20,6 +20,11 @@ sleep 5
 echo "Vytváření databáze..."
 docker exec -it battery_postgres psql -U admin -d postgres -c "CREATE DATABASE battery;"
 
+echo "Buildování backendu..."
+cd battery-management-system
+./gradlew shadowJar
+cd ..
+
 echo "Spouštění backendu..."
 docker run -d \
   --name battery_backend \
