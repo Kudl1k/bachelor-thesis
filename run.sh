@@ -30,6 +30,7 @@ docker run -d \
   --name battery_backend \
   --network battery_net \
   -v $(pwd)/battery-management-system/build/libs/battery-management-system-all.jar:/app.jar \
+  -p 8080:8080 \
   openjdk:17-slim \
   sh -c "java -jar /app.jar --port=8080 --db=jdbc:postgresql://battery_postgres:5432/battery"
 
