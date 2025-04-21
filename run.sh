@@ -6,7 +6,7 @@ docker network create battery_net 2>/dev/null || true
 
 echo "Spouštění PostgreSQL kontejneru..."
 docker run -d \
-  --name postgres_battery \
+  --name battery_postgres \
   --network battery_net \
   -e POSTGRES_USER=admin \
   -e POSTGRES_PASSWORD=admin \
@@ -18,7 +18,7 @@ echo "Čekání na spuštění PostgreSQL..."
 sleep 5
 
 echo "Vytváření databáze..."
-docker exec -it postgres_battery psql -U admin -d postgres -c "CREATE DATABASE battery;"
+docker exec -it battery_postgres psql -U admin -d postgres -c "CREATE DATABASE battery;"
 
 echo "Spouštění backendu..."
 docker run -d \
@@ -26,7 +26,7 @@ docker run -d \
   --network battery_net \
   -v $(pwd)/battery-management-system/build/libs/battery-management-system-all.jar:/app.jar \
   openjdk:17-slim \
-  sh -c "java -jar /app.jar --port=8080"
+  sh -c "java -jar /app.jar --port=8080 --db=jdbc:postgresql://battery_postgres:5432/battery"
 
 echo "Čekání na spuštění backendu..."
 sleep 10
