@@ -13,6 +13,7 @@ object DatabaseBuilder {
 
     private lateinit var hikariDataSource: HikariDataSource
 
+    var databaseName: String = "jdbc:postgresql://localhost:5432/battery"
 
     @OptIn(ObsoleteCoroutinesApi::class)
     val broadcastChannel = BroadcastChannel<String>(Channel.BUFFERED)
@@ -21,7 +22,7 @@ object DatabaseBuilder {
     fun init() {
         Class.forName("org.postgresql.Driver")
         val config = HikariConfig().apply {
-            jdbcUrl = "jdbc:postgresql://localhost:5432/battery"
+            jdbcUrl = databaseName
             username = "admin"
             password = "admin"
             maximumPoolSize = 10
