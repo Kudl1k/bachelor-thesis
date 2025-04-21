@@ -29,6 +29,8 @@ echo "Spouštění backendu..."
 docker run -d \
   --name battery_backend \
   --network battery_net \
+  --privileged \
+  -v /dev:/dev \
   -v $(pwd)/battery-management-system/build/libs/battery-management-system-all.jar:/app.jar \
   -p 8080:8080 \
   openjdk:17-slim \
