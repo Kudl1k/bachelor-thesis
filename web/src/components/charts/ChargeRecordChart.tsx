@@ -51,6 +51,39 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
   }, [data]);
 
   const [timeRange, setTimeRange] = useState("full");
+  const [selectedLine, setSelectedLine] = useState("all");
+
+  const maxCellVoltage = (() => {
+    try {
+      if (data.cells && data.cells.length > 0) {
+        const voltages = data.cells.flatMap((cell) =>
+          cell.voltages.map((v) => {
+            const voltage = parseFloat(String(v.voltage));
+            return !isNaN(voltage) ? voltage : 0;
+          })
+        );
+
+        const validVoltages = voltages.filter((v) => v > 0 && v < 10);
+
+        if (validVoltages.length > 0) {
+          const max = Math.max(...validVoltages);
+          return max * 2;
+        }
+      }
+      return 4.2;
+    } catch (error) {
+      console.error("Error calculating max cell voltage:", error);
+      return 4.2;
+    }
+  })();
+
+  const minCellVoltage = 0;
+
+  const displayedLines = {
+    real_capacity: selectedLine === "all" || selectedLine === "real_capacity",
+    voltage: selectedLine === "all" || selectedLine === "voltage",
+    current: selectedLine === "all" || selectedLine === "current",
+  };
 
   if (data.tracking.length === 0) {
     return (
@@ -134,34 +167,58 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
     <div className="rounded-lg p-4 mt-4 shadow-md">
       <div className="flex w-full justify-between">
         <h1 className="text-xl font-bold">Slot {data.slot}</h1>
-        <Select value={timeRange} onValueChange={setTimeRange}>
-          <SelectTrigger
-            className="w-[160px] rounded-lg sm:ml-auto"
-            aria-label="Select a value"
-          >
-            <SelectValue placeholder="Full view" />
-          </SelectTrigger>
-          <SelectContent className="rounded-xl">
-            <SelectItem value="full" className="rounded-lg">
-              Full view
-            </SelectItem>
-            <SelectItem value="5m" className="rounded-lg">
-              Last 5 minutes
-            </SelectItem>
-            <SelectItem value="15m" className="rounded-lg">
-              Last 15 minutes
-            </SelectItem>
-            <SelectItem value="30m" className="rounded-lg">
-              Last 30 minutes
-            </SelectItem>
-            <SelectItem value="1h" className="rounded-lg">
-              Last 1 hour
-            </SelectItem>
-            <SelectItem value="2h" className="rounded-lg">
-              Last 2 hours
-            </SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex gap-4">
+          <Select value={timeRange} onValueChange={setTimeRange}>
+            <SelectTrigger
+              className="w-[160px] rounded-lg sm:ml-auto"
+              aria-label="Select a time range"
+            >
+              <SelectValue placeholder="Full view" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl">
+              <SelectItem value="full" className="rounded-lg">
+                Full view
+              </SelectItem>
+              <SelectItem value="5m" className="rounded-lg">
+                Last 5 minutes
+              </SelectItem>
+              <SelectItem value="15m" className="rounded-lg">
+                Last 15 minutes
+              </SelectItem>
+              <SelectItem value="30m" className="rounded-lg">
+                Last 30 minutes
+              </SelectItem>
+              <SelectItem value="1h" className="rounded-lg">
+                Last 1 hour
+              </SelectItem>
+              <SelectItem value="2h" className="rounded-lg">
+                Last 2 hours
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={selectedLine} onValueChange={setSelectedLine}>
+            <SelectTrigger
+              className="w-[160px] rounded-lg sm:ml-auto"
+              aria-label="Select a line"
+            >
+              <SelectValue placeholder="All lines" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl">
+              <SelectItem value="all" className="rounded-lg">
+                All lines
+              </SelectItem>
+              <SelectItem value="real_capacity" className="rounded-lg">
+                Real Capacity
+              </SelectItem>
+              <SelectItem value="voltage" className="rounded-lg">
+                Voltage
+              </SelectItem>
+              <SelectItem value="current" className="rounded-lg">
+                Current
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       <div className="flex w-full justify-between text-start">
         <div className="">
@@ -170,13 +227,12 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
             <h2 className="text-xl font-semibold">{data.battery.id}</h2>
           </div>
           <div className="flex items-center gap-1">
-          {data.finishedAt ? (
-            <>
-              <BatteryFull />
-              <p className="font-semibold">Finished</p>
-            </>
-          ) : (
-            data.tracking[data.tracking.length - 1].charging ? (
+            {data.finishedAt ? (
+              <>
+                <BatteryFull />
+                <p className="font-semibold">Finished</p>
+              </>
+            ) : data.tracking[data.tracking.length - 1].charging ? (
               <>
                 <BatteryCharging />
                 <p className="font-semibold">Charging</p>
@@ -186,8 +242,7 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
                 <Battery />
                 <p className="font-semibold">Discharging</p>
               </>
-            )
-          )}
+            )}
           </div>
           <div>
             <Badge className="me-1">{data.battery.type.shortcut}</Badge>
@@ -268,6 +323,7 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
             stroke="var(--color-real_capacity)"
             strokeWidth={2}
             dot={false}
+            hide={!displayedLines.real_capacity}
           />
           <Line
             dataKey="voltage"
@@ -275,6 +331,7 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
             stroke="var(--color-voltage)"
             strokeWidth={2}
             dot={false}
+            hide={!displayedLines.voltage}
           />
           <Line
             dataKey="current"
@@ -282,6 +339,7 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
             stroke="var(--color-current)"
             strokeWidth={2}
             dot={false}
+            hide={!displayedLines.current}
           />
         </LineChart>
       </ChartContainer>
@@ -324,6 +382,7 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
                         tickLine={false}
                         axisLine={false}
                         tickMargin={20}
+                        domain={[minCellVoltage, maxCellVoltage]}
                       />
                       <ChartTooltip
                         content={

@@ -1,7 +1,6 @@
 package cz.kudladev.system
 
 import DatabaseBuilder
-import cz.kudladev.data.entities.Parser
 import cz.kudladev.data.models.*
 import cz.kudladev.domain.repository.BatteriesDao
 import cz.kudladev.domain.repository.CellDao
@@ -9,6 +8,7 @@ import cz.kudladev.domain.repository.ChargeRecordsDao
 import cz.kudladev.domain.repository.ChargeTrackingDao
 import jssc.SerialPort
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -19,17 +19,23 @@ var job: Job? = null
 var openPort: SerialPort? = null
 
 data class SlotState(
-    val battery_id: String,
+    val batteryId: String,
     val slotNumber: Int,
-    val last_charged_capacity: Int,
-    val last_discharged_capacity: Int,
-    val initial_capacity: Int,
+    val maximumChargedCapacity: Int,
+    val lastChargedCapacity: Int,
+    val lastDischargedCapacity: Int,
+    val lastValues : ArrayDeque<Int>,
+    val attemptsToAddValue : Int = 0,
+    val endAttempts: Int = 0,
+    val initialCapacity: Int,
+    val realCapacity: Int = 0,
     var charged: Boolean,
     var discharged: Boolean,
     var charging: Boolean? = null,
     val running: Boolean
 )
 
+@OptIn(ObsoleteCoroutinesApi::class)
 suspend fun startTracking(
     charger: ChargerWithTypesAndSizes,
     batteryWithSlot: List<BatteryWithSlot>,
@@ -55,11 +61,14 @@ suspend fun startTracking(
         )
 
         slotStates.add(SlotState(
-            battery_id = battery.id,
+            batteryId = battery.id,
             slotNumber = battery.slot,
-            last_charged_capacity = 0,
-            last_discharged_capacity = 0,
-            initial_capacity = 0,
+            maximumChargedCapacity = 0,
+            lastChargedCapacity = 0,
+            lastDischargedCapacity = 0,
+            lastValues = ArrayDeque<Int>(),
+            endAttempts = 0,
+            initialCapacity = 0,
             charged = false,
             discharged = false,
             charging = null,
@@ -82,6 +91,8 @@ suspend fun startTracking(
         chargeRecords.add(createdChargeRecord)
     }
     var slot = 1
+    var nullReadCount = 0
+    val maxNullReads = 3
     while (isRunning) {
         if (slotsCounter == slots) {
             delay(5000)
@@ -89,13 +100,53 @@ suspend fun startTracking(
         } else {
             slotsCounter++
         }
-        val data = readFromPort(
-            openPort!!,
-            34,
-            charger.parser.id,
-            cellNumber,
-            slot
-        )
+        val data = try {
+            val result = readFromPort(
+                openPort!!,
+                charger.parser.id,
+                cellNumber,
+                slot
+            )
+            nullReadCount = 0
+            result
+        } catch (e: Exception) {
+            println("Error reading from port: ${e.message}")
+            nullReadCount++
+            null
+        }
+
+        if (data == null) {
+            println("Null data received from port. Attempt $nullReadCount of $maxNullReads")
+            if (nullReadCount >= maxNullReads) {
+                println("Port appears to be dead after $maxNullReads consecutive failed reads. Ending all charge records.")
+                for (slot in slotStates) {
+                    if (slot.running) {
+                        var charge_record_id = -1
+                        for (chargeRecord in chargeRecords) {
+                            if (chargeRecord.slot == slot.slotNumber) {
+                                charge_record_id = chargeRecord.idChargeRecord!!
+                            }
+                        }
+
+                        DatabaseBuilder.broadcastChannel.send(Json.encodeToString(
+                            EndOfCharging(type = "end_of_charging", charge_record_id = charge_record_id)
+                        ))
+                        chargeRecordsDao.endChargeRecord(charge_record_id, slot.lastChargedCapacity, slot.lastDischargedCapacity)
+                        batteriesDao.updateBatteryLastChargingCapacity(
+                            slot.batteryId,
+                            slot.lastChargedCapacity
+                        )
+                    }
+                }
+                isRunning = false
+                break
+            }
+            delay(1000)
+            continue
+        } else {
+            nullReadCount = 0
+        }
+
         slot = (slot % slots) + 1
         println("Data: $data")
         for (slot in slotStates) {
@@ -127,14 +178,7 @@ suspend fun startTracking(
                                     )
                                 )
                             }
-                            SlotState(
-                                battery_id = it.battery_id,
-                                slotNumber = it.slotNumber,
-                                last_charged_capacity = it.last_charged_capacity,
-                                last_discharged_capacity = it.last_discharged_capacity,
-                                initial_capacity = it.initial_capacity,
-                                charged = it.charged,
-                                discharged = it.discharged,
+                            it.copy(
                                 charging = data.state == State.CHARGING,
                                 running = true
                             )
@@ -149,79 +193,87 @@ suspend fun startTracking(
                         println("Switching to discharging")
                         slotStates = slotStates.map {
                             if (it.slotNumber == slot.slotNumber) {
-                                SlotState(
-                                    battery_id = it.battery_id,
-                                    slotNumber = it.slotNumber,
-                                    last_charged_capacity = it.last_charged_capacity,
-                                    last_discharged_capacity = it.last_discharged_capacity,
-                                    initial_capacity = it.initial_capacity,
+                                it.copy(
                                     charged = true,
-                                    discharged = it.discharged,
                                     charging = false,
-                                    running = true
+                                    lastValues = ArrayDeque<Int>(),
+                                    endAttempts = 0,
+                                    attemptsToAddValue = 0,
+                                    lastDischargedCapacity = 0,
                                 )
                             } else {
                                 it
                             }
                         }.toMutableList()
                     } else {
-                        println("Charging")
-                        val chargeTracking = ChargeTrackingID(
-                            charge_record_id = charge_record_id,
-                            charging = true,
-                            real_capacity = data.capacity,
-                            capacity = data.capacity,
-                            voltage = data.voltage,
-                            current = data.current,
-                        )
+
                         slotStates = slotStates.map {
                             if (it.slotNumber == slot.slotNumber) {
-                                val slotState = SlotState(
-                                    battery_id = it.battery_id,
-                                    slotNumber = it.slotNumber,
-                                    last_charged_capacity = data.capacity,
-                                    last_discharged_capacity = it.last_discharged_capacity,
-                                    initial_capacity = slot.initial_capacity,
-                                    charged = it.charged,
-                                    discharged = it.discharged,
+                                println("Charging")
+                                val chargeTracking = ChargeTrackingID(
+                                    charge_record_id = charge_record_id,
                                     charging = true,
-                                    running = true
+                                    real_capacity = it.realCapacity + data.capacity,
+                                    capacity = data.capacity,
+                                    voltage = data.voltage,
+                                    current = data.current,
                                 )
-                                slotState
+                                val shouldAdd = it.lastValues.checkNewValue(data.capacity - it.lastChargedCapacity)
+                                if (shouldAdd || it.attemptsToAddValue >= 5) {
+                                    val formated = chargeTrackingDao.createChargeTracking(
+                                        chargeTracking = chargeTracking
+                                    )
+                                    val cells = data.cells.map { (index,cell) ->
+                                        cellDao.createCellTracking(
+                                            CellTrackingModel(
+                                                formated!!.timestamp,
+                                                charge_record_id,
+                                                index + 1,
+                                                cell
+                                            )
+                                        )
+                                    }
+                                    DatabaseBuilder.broadcastChannel.send(Json.encodeToString(ChargeTrackingWithCellTrackings(formated!!,cells)))
+                                }
+                                it.copy(
+                                    lastChargedCapacity = data.capacity,
+                                    initialCapacity = if (data.capacity > it.initialCapacity) data.capacity else it.initialCapacity,
+                                    maximumChargedCapacity = if (data.capacity > it.maximumChargedCapacity) data.capacity else it.maximumChargedCapacity,
+                                    lastValues = if (it.attemptsToAddValue >= 5) {
+                                        ArrayDeque<Int>()
+                                    } else {
+                                        it.lastValues
+                                    },
+                                    attemptsToAddValue = if (!shouldAdd) {
+                                        it.attemptsToAddValue + 1
+                                    } else {
+
+                                        0
+                                    },
+                                    endAttempts = 0,
+                                    charging = true,
+                                    running = true,
+                                )
                             } else {
                                 it
                             }
                         }.toMutableList()
-                        val formated = chargeTrackingDao.createChargeTracking(
-                            chargeTracking = chargeTracking
-                        )
-                        val cells = data.cells.map { (index,cell) ->
-                            cellDao.createCellTracking(
-                                CellTrackingModel(
-                                    formated!!.timestamp,
-                                    charge_record_id,
-                                    index + 1,
-                                    cell
-                                )
-                            )
-                        }
-                        DatabaseBuilder.broadcastChannel.send(Json.encodeToString(ChargeTrackingWithCellTrackings(formated!!,cells)))
+
                     }
-                } else {
+                }
+                else {
                     if (data.state == State.CHARGING) {
                         println("Switching to charging")
                         slotStates = slotStates.map {
                             if (it.slotNumber == slot.slotNumber) {
-                                SlotState(
-                                    battery_id = it.battery_id,
-                                    slotNumber = it.slotNumber,
-                                    last_charged_capacity = it.last_charged_capacity,
-                                    last_discharged_capacity = it.last_discharged_capacity,
-                                    initial_capacity = slot.initial_capacity,
-                                    charged = it.charged,
-                                    discharged = true,
+                                it.copy(
+                                    charged = true,
                                     charging = true,
-                                    running = true
+                                    running = true,
+                                    lastValues = ArrayDeque<Int>(),
+                                    endAttempts = 0,
+                                    attemptsToAddValue = 0,
+                                    lastChargedCapacity = 0
                                 )
                             } else {
                                 it
@@ -229,7 +281,7 @@ suspend fun startTracking(
                         }.toMutableList()
                     } else {
                         println("Discharging")
-                        val chargeTracking = ChargeTrackingID(
+                        var chargeTracking = ChargeTrackingID(
                             charge_record_id = charge_record_id,
                             charging = false,
                             real_capacity = 0,
@@ -239,48 +291,55 @@ suspend fun startTracking(
                         )
                         slotStates = slotStates.map {
                             if (it.slotNumber == slot.slotNumber) {
-                                val state: SlotState =
-                                    if (it.initial_capacity < data.capacity && !it.charged) {
-                                        println("Discharging before charging")
+                                if (it.initialCapacity < data.capacity && !it.charged) {
+                                    println("Discharging before charging")
+                                    val shouldAdd = it.lastValues.checkNewValue(data.capacity - it.lastDischargedCapacity)
+                                    if (shouldAdd || it.attemptsToAddValue >= 5) {
                                         val inserted = chargeTrackingDao.createChargeTracking(chargeTracking)
+
+                                        val cells = data.cells.map { (index,cell) ->
+                                            cellDao.createCellTracking(
+                                                CellTrackingModel(
+                                                    inserted!!.timestamp,
+                                                    charge_record_id,
+                                                    index + 1,
+                                                    cell
+                                                )
+                                            )
+                                        }
                                         val updated = chargeTrackingDao.updateDischargeTrackingValues(
                                             id_charge_record = charge_record_id,
                                             capacity = data.capacity
                                         )
-                                        val cells = data.cells.map { (index,cell) ->
-                                            cellDao.createCellTracking(
-                                                CellTrackingModel(
-                                                    inserted!!.timestamp,
-                                                    charge_record_id,
-                                                    index + 1,
-                                                    cell
-                                                )
-                                            )
-                                        }
                                         DatabaseBuilder.broadcastChannel.send(Json.encodeToString(ChargeTrackingsWithCellTrackings(updated,cells)))
-                                        SlotState(
-                                            battery_id = it.battery_id,
-                                            slotNumber = it.slotNumber,
-                                            last_charged_capacity = it.last_charged_capacity,
-                                            last_discharged_capacity = data.capacity,
-                                            initial_capacity = data.capacity,
-                                            charged = it.charged,
-                                            discharged = it.discharged,
-                                            charging = false,
-                                            running = true
+                                    }
+                                    it.copy(
+                                        lastDischargedCapacity = data.capacity,
+                                        initialCapacity = data.capacity,
+                                        charging = false,
+                                        running = true,
+                                        endAttempts = 0,
+                                        lastValues = if (it.attemptsToAddValue >= 5) {
+                                            ArrayDeque<Int>()
+                                        } else {
+                                            it.lastValues
+                                        },
+                                        attemptsToAddValue = if (!shouldAdd) {
+                                            it.attemptsToAddValue + 1
+                                        } else {
+                                            0
+                                        },
+                                        realCapacity = 0
+                                    )
+                                } else if(it.lastDischargedCapacity < data.capacity && it.charged) {
+                                    println("Discharging after charging")
+                                    val shouldAdd = it.lastValues.checkNewValue(data.capacity - it.lastDischargedCapacity)
+                                    if (shouldAdd || it.attemptsToAddValue >= 5) {
+                                        chargeTracking = chargeTracking.copy(
+                                            real_capacity = if (data.capacity < it.maximumChargedCapacity) it.lastChargedCapacity - data.capacity else 0
                                         )
-                                    } else if(it.last_charged_capacity < data.capacity && it.charged) {
-                                        println("Discharging after charging")
                                         val inserted = chargeTrackingDao.createChargeTracking(chargeTracking)
-                                        chargeTrackingDao.updateChargeTrackingValues(
-                                            id_charge_record = charge_record_id,
-                                            capacity = data.capacity - it.last_charged_capacity
-                                        )
-                                        chargeTrackingDao.updateDischargeTrackingValues(
-                                            id_charge_record = charge_record_id,
-                                            capacity = data.capacity
-                                        )
-                                        val updated = chargeTrackingDao.getChargeTrackingById(charge_record_id)
+
                                         val cells = data.cells.map { (index,cell) ->
                                             cellDao.createCellTracking(
                                                 CellTrackingModel(
@@ -291,23 +350,48 @@ suspend fun startTracking(
                                                 )
                                             )
                                         }
-                                        DatabaseBuilder.broadcastChannel.send(Json.encodeToString(ChargeTrackingsWithCellTrackings(updated!!,cells)))
-                                        SlotState(
-                                            battery_id = it.battery_id,
-                                            slotNumber = it.slotNumber,
-                                            last_charged_capacity = it.last_charged_capacity,
-                                            last_discharged_capacity = data.capacity,
-                                            initial_capacity = data.capacity - it.last_charged_capacity,
-                                            charged = it.charged,
-                                            discharged = it.discharged,
-                                            charging = false,
-                                            running = true
-                                        )
-                                    } else {
-                                        println("Constant discharging")
+
+                                        if (data.capacity > it.maximumChargedCapacity){
+                                            chargeTrackingDao.updateChargeTrackingValues(
+                                                id_charge_record = charge_record_id,
+                                                capacity = data.capacity - it.maximumChargedCapacity,
+                                            )
+                                            chargeTrackingDao.updateDischargeTrackingValues(
+                                                id_charge_record = charge_record_id,
+                                                capacity = data.capacity
+                                            )
+                                            val updated = chargeTrackingDao.getChargeTrackingById(charge_record_id)
+                                            DatabaseBuilder.broadcastChannel.send(Json.encodeToString(ChargeTrackingsWithCellTrackings(updated!!,cells)))
+                                        } else {
+                                            DatabaseBuilder.broadcastChannel.send(Json.encodeToString(ChargeTrackingWithCellTrackings(inserted!!,cells)))
+                                        }
+                                    }
+                                    it.copy(
+                                        lastDischargedCapacity = data.capacity,
+                                        initialCapacity = data.capacity - it.lastChargedCapacity,
+                                        charging = false,
+                                        running = true,
+                                        endAttempts = 0,
+                                        lastValues = if (it.attemptsToAddValue >= 5) {
+                                            ArrayDeque<Int>()
+                                        } else {
+                                            it.lastValues
+                                        },
+                                        attemptsToAddValue = if (!shouldAdd) {
+                                            it.attemptsToAddValue + 1
+                                        } else {
+
+                                            0
+                                        },
+                                        realCapacity = chargeTracking.real_capacity
+                                    )
+                                } else {
+                                    println("Constant discharging")
+                                    val shouldAdd = it.lastValues.checkNewValue(data.capacity - it.lastDischargedCapacity)
+                                    if (shouldAdd || it.attemptsToAddValue >= 5) {
                                         val inserted = chargeTrackingDao.createChargeTracking(
                                             chargeTracking.copy(
-                                                real_capacity = if (!it.charged) 0 else it.last_discharged_capacity - data.capacity
+                                                real_capacity = if (data.capacity < it.maximumChargedCapacity) it.lastChargedCapacity - data.capacity else 0
                                             )
                                         )
                                         val cells = data.cells.map { (index,cell) ->
@@ -321,45 +405,56 @@ suspend fun startTracking(
                                             )
                                         }
                                         DatabaseBuilder.broadcastChannel.send(Json.encodeToString(ChargeTrackingWithCellTrackings(inserted!!,cells)))
-                                        SlotState(
-                                            battery_id = it.battery_id,
-                                            slotNumber = it.slotNumber,
-                                            last_charged_capacity = it.last_charged_capacity,
-                                            last_discharged_capacity = data.capacity,
-                                            initial_capacity = slot.initial_capacity,
-                                            charged = it.charged,
-                                            discharged = it.discharged,
-                                            charging = false,
-                                            running = true
-                                        )
                                     }
-                                state
+                                    it.copy(
+                                        lastDischargedCapacity = data.capacity,
+                                        charging = false,
+                                        running = true,
+                                        endAttempts = 0,
+                                        lastValues = if (it.attemptsToAddValue >= 5) {
+                                            ArrayDeque<Int>()
+                                        } else {
+                                            it.lastValues
+                                        },
+                                        attemptsToAddValue = if (!shouldAdd) {
+                                            it.attemptsToAddValue + 1
+                                        } else {
+                                            0
+                                        },
+                                        realCapacity = chargeTracking.real_capacity
+                                    )
+                                }
                             } else {
                                 it
                             }
                         }.toMutableList()
                     }
                 }
-            } else if ((data.state == State.END || data.state == State.NO_BATTERY) && data.slot == slot.slotNumber && slot.running) {
+            }
+            else if (slot.endAttempts == 3 && slot.running) {
                 println("Ending charge record")
                 slotStates = slotStates.map {
                     if (it.slotNumber == slot.slotNumber) {
                         DatabaseBuilder.broadcastChannel.send(Json.encodeToString(EndOfCharging(type = "end_of_charging", charge_record_id = charge_record_id)))
-                        chargeRecordsDao.endChargeRecord(charge_record_id, it.last_charged_capacity,it.last_discharged_capacity)
+                        chargeRecordsDao.endChargeRecord(charge_record_id, it.lastChargedCapacity,it.lastDischargedCapacity)
                         batteriesDao.updateBatteryLastChargingCapacity(
-                            slot.battery_id,
-                            it.last_charged_capacity
+                            slot.batteryId,
+                            it.lastChargedCapacity
                         )
-                        SlotState(
-                            battery_id = it.battery_id,
-                            slotNumber = it.slotNumber,
-                            initial_capacity = it.initial_capacity,
-                            last_charged_capacity = it.last_charged_capacity,
-                            last_discharged_capacity = it.last_discharged_capacity,
-                            charged = it.charged,
-                            discharged = it.discharged,
-                            charging = it.charging,
+                        it.copy(
                             running = false
+                        )
+                    } else {
+                        it
+                    }
+                }.toMutableList()
+            }
+            else if ((data.state == State.NO_BATTERY || data.state == State.END) && slot.running) {
+                slotStates = slotStates.map {
+                    if (it.slotNumber == slot.slotNumber) {
+                        val endAttempts = it.endAttempts + 1
+                        it.copy(
+                            endAttempts = endAttempts,
                         )
                     } else {
                         it
@@ -374,6 +469,29 @@ suspend fun startTracking(
     stopTracking()
 }
 
+private fun ArrayDeque<Int>.checkNewValue(
+    newValue: Int
+): Boolean{
+    if (newValue == 0){
+        println("Returning true, but not adding new value : $newValue -  ${this.joinToString(",")}")
+        return true
+    }
+    if (this.size < 10) {
+        println("Queue is too small, adding new value : $newValue -  ${this.joinToString(",")}")
+        this.add(newValue)
+        return true
+    }
+    val average = this.average()
+    if (newValue > average * 5) {
+        println("New value is too high, not adding : $newValue - Average: $average - ${this.joinToString(",")}")
+        return false
+    } else {
+        println("New value is acceptable, adding : $newValue - Average: $average - ${this.joinToString(",")}")
+        this.removeFirst()
+        this.add(newValue)
+        return true
+    }
+}
 
 
 fun stopTracking() {

@@ -7,8 +7,14 @@ import io.ktor.server.netty.*
 import io.ktor.server.websocket.*
 import java.time.Duration
 
-fun main() {
-    embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module)
+fun main(args: Array<String>) {
+    val port = args.firstOrNull { it.startsWith("--port=") }
+        ?.substringAfter("=")
+        ?.toIntOrNull()
+        ?: System.getenv("PORT")?.toIntOrNull()
+        ?: 8080
+
+    embeddedServer(Netty, port = port, host = "0.0.0.0", module = Application::module)
         .start(wait = true)
 }
 

@@ -39,7 +39,7 @@ object BufferParsers {
         val charging = (state and 0x01) != 0
         val current = ((frame[32].code and 0x7f) * 1000) + ((frame[33].code and 0x7f) * 10)
         val voltage = ((frame[34].code and 0x7f) * 1000) + ((frame[35].code and 0x7f) * 10)
-        val capacity = (((0.1 * (frame[42].code and 0x7f)) + (0.001 * (frame[43].code and 0x7f))) * 100).toInt()
+        val capacity = (((0.1 * (frame[42].code and 0x7f)) + (0.001 * (frame[43].code and 0x7f))) * 100000).toInt()
 
         var cells = emptyList<Pair<Int,Int>>()
         if (cellNumber > 1) {

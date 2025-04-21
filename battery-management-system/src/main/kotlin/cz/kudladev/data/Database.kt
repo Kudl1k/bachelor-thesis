@@ -19,6 +19,7 @@ object DatabaseBuilder {
 
     @OptIn(ObsoleteCoroutinesApi::class)
     fun init() {
+        Class.forName("org.postgresql.Driver")
         val config = HikariConfig().apply {
             jdbcUrl = "jdbc:postgresql://localhost:5432/battery"
             username = "admin"
