@@ -43,7 +43,7 @@ export function LastRecordsChart({ data }: LastRecordsChartProps) {
 
   return (
     <ChartContainer config={LastRecordsChartConfig}>
-      <BarChart accessibilityLayer data={data.slice(0, 10)}>
+      <BarChart accessibilityLayer data={data.slice(0, 10).reverse()}>
         <CartesianGrid vertical={false} />
         <XAxis
           dataKey="idChargeRecord"
@@ -105,13 +105,13 @@ export function LastRecordsChart({ data }: LastRecordsChartProps) {
         />
         <Bar
           dataKey="chargedCapacity"
-          stackId="a"
+          // stackId="a"
           fill="var(--color-chargedCapacity)"
-          radius={[0, 0, 4, 4]}
+          radius={[4, 4, 0, 0]}
         />
         <Bar
           dataKey="dischargedCapacity"
-          stackId="a"
+          // stackId="a"
           fill="var(--color-dischargedCapacity)"
           radius={[4, 4, 0, 0]}
         />

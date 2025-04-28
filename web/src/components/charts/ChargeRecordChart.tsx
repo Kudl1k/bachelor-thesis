@@ -30,6 +30,7 @@ const chartConfig = {
   current: {
     label: "Current",
     color: "#34d399",
+    yAxisId: "farRight", // Changed to use a separate axis
   },
 } satisfies ChartConfig;
 
@@ -37,6 +38,8 @@ const cellChartConfig = {
   voltage: {
     label: "Voltage",
     color: "#2563eb",
+    unit: "V",
+    yAxisId: "left",
   },
 };
 
@@ -51,7 +54,6 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
   }, [data]);
 
   const [timeRange, setTimeRange] = useState("full");
-  const [selectedLine, setSelectedLine] = useState("all");
 
   const maxCellVoltage = (() => {
     try {
@@ -78,12 +80,6 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
   })();
 
   const minCellVoltage = 0;
-
-  const displayedLines = {
-    real_capacity: selectedLine === "all" || selectedLine === "real_capacity",
-    voltage: selectedLine === "all" || selectedLine === "voltage",
-    current: selectedLine === "all" || selectedLine === "current",
-  };
 
   if (data.tracking.length === 0) {
     return (
@@ -167,7 +163,7 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
     <div className="rounded-lg p-4 mt-4 shadow-md">
       <div className="flex w-full justify-between">
         <h1 className="text-xl font-bold">Slot {data.slot}</h1>
-        <div className="flex gap-4">
+        <div>
           <Select value={timeRange} onValueChange={setTimeRange}>
             <SelectTrigger
               className="w-[160px] rounded-lg sm:ml-auto"
@@ -193,28 +189,6 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
               </SelectItem>
               <SelectItem value="2h" className="rounded-lg">
                 Last 2 hours
-              </SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={selectedLine} onValueChange={setSelectedLine}>
-            <SelectTrigger
-              className="w-[160px] rounded-lg sm:ml-auto"
-              aria-label="Select a line"
-            >
-              <SelectValue placeholder="All lines" />
-            </SelectTrigger>
-            <SelectContent className="rounded-xl">
-              <SelectItem value="all" className="rounded-lg">
-                All lines
-              </SelectItem>
-              <SelectItem value="real_capacity" className="rounded-lg">
-                Real Capacity
-              </SelectItem>
-              <SelectItem value="voltage" className="rounded-lg">
-                Voltage
-              </SelectItem>
-              <SelectItem value="current" className="rounded-lg">
-                Current
               </SelectItem>
             </SelectContent>
           </Select>
@@ -255,14 +229,20 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
             {data.startedAt.split(" ")[1]} -{" "}
             {data.tracking[data.tracking.length - 1].timestamp.split(" ")[1]}
           </p>
-          <p className="text-sm text-gray-500 ml-2">
-            {data.tracking[data.tracking.length - 1].capacity} mAh
+          <p className="text-sm ml-2">
+            <span style={{ color: chartConfig.real_capacity.color }}>
+              {data.tracking[data.tracking.length - 1].capacity} mAh
+            </span>
           </p>
-          <p className="text-sm text-gray-500 ml-2">
-            {data.tracking[data.tracking.length - 1].voltage} V
+          <p className="text-sm ml-2">
+            <span style={{ color: chartConfig.voltage.color }}>
+              {data.tracking[data.tracking.length - 1].voltage} V
+            </span>
           </p>
-          <p className="text-sm text-gray-500 ml-2">
-            {data.tracking[data.tracking.length - 1].current} A
+          <p className="text-sm ml-2">
+            <span style={{ color: chartConfig.current.color }}>
+              {data.tracking[data.tracking.length - 1].current} A
+            </span>
           </p>
         </div>
       </div>
@@ -271,7 +251,12 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
         config={chartConfig}
         className={`min-h-[200px] max-h-[400px] w-full ${className}`}
       >
-        <LineChart accessibilityLayer data={filteredData} syncId={1}>
+        <LineChart
+          accessibilityLayer
+          data={filteredData}
+          syncId={1}
+          margin={{ right: 40, left: 5 }}
+        >
           <CartesianGrid vertical={false} />
           <XAxis
             dataKey="timestamp"
@@ -281,9 +266,73 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
             tickFormatter={(value) =>
               value.split(" ")[1].split(":").slice(0, 3).join(":")
             }
+            minTickGap={20}
           />
 
-          <YAxis tickLine={false} axisLine={false} tickMargin={20} />
+          {/* Right Y-axis for voltage */}
+          <YAxis
+            yAxisId="right"
+            orientation="right"
+            tickLine={false}
+            axisLine={false} // Remove colored line
+            tickMargin={20}
+            domain={["auto", "auto"]}
+            label={{
+              value: "V",
+              angle: -90,
+              dx: 30,
+              fill: chartConfig.voltage.color,
+              style: { fontWeight: "bold" },
+            }}
+            tick={{
+              stroke: chartConfig.voltage.color,
+            }}
+            tickFormatter={(value) => value.toFixed(2)}
+            stroke={chartConfig.voltage.color} // Color the line itself
+          />
+
+          {/* Far right Y-axis for current */}
+          <YAxis
+            yAxisId="farRight"
+            orientation="right"
+            tickLine={false}
+            axisLine={false} // Remove colored line
+            tickMargin={40}
+            domain={["auto", "auto"]}
+            label={{
+              value: "A",
+              angle: -90,
+              dx: 50,
+              fill: chartConfig.current.color,
+              style: { fontWeight: "bold" },
+            }}
+            tick={{
+              stroke: chartConfig.current.color,
+            }}
+            tickFormatter={(value) => value.toFixed(2)}
+            stroke={chartConfig.current.color} // Color the line itself
+          />
+
+          {/* Left Y-axis for capacity */}
+          <YAxis
+            yAxisId="left"
+            tickLine={false}
+            axisLine={false} // Remove colored line
+            tickMargin={20}
+            domain={["auto", "auto"]}
+            label={{
+              value: "mAh",
+              angle: -90,
+              dx: -30,
+              fill: chartConfig.real_capacity.color,
+              style: { fontWeight: "bold" },
+            }}
+            tick={{
+              stroke: chartConfig.real_capacity.color,
+            }}
+            stroke={chartConfig.real_capacity.color} // Color the line itself
+          />
+
           <ChartTooltip
             content={
               <ChartTooltipContent
@@ -300,14 +349,19 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
                     <div className="flex min-w-[130px] items-center text-xs text-muted-foreground">
                       {chartConfig[name as keyof typeof chartConfig]?.label ||
                         name}
-                      <div className="ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums text-foreground">
-                        {value}
-                        <span className="font-normal text-muted-foreground">
-                          {name === "real_capacity"
-                            ? " mAh"
-                            : name === "voltage"
-                            ? " V"
-                            : " A"}
+                      <div className="ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums">
+                        <span
+                          style={{
+                            color:
+                              chartConfig[name as keyof typeof chartConfig]
+                                ?.color || "inherit",
+                          }}
+                        >
+                          {value}
+                          <span className="font-normal">
+                            {chartConfig[name as keyof typeof chartConfig]
+                              ?.unit || ""}
+                          </span>
                         </span>
                       </div>
                     </div>
@@ -317,29 +371,30 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
             }
             cursor={true}
           />
-          <Line
-            dataKey="real_capacity"
-            fill={chartConfig.real_capacity.color}
-            stroke="var(--color-real_capacity)"
-            strokeWidth={2}
-            dot={false}
-            hide={!displayedLines.real_capacity}
-          />
+
           <Line
             dataKey="voltage"
+            yAxisId="right"
             fill={chartConfig.voltage.color}
-            stroke="var(--color-voltage)"
+            stroke={chartConfig.voltage.color} // Use direct color reference instead of var
             strokeWidth={2}
             dot={false}
-            hide={!displayedLines.voltage}
           />
           <Line
             dataKey="current"
+            yAxisId="farRight" // Use the far right axis
             fill={chartConfig.current.color}
-            stroke="var(--color-current)"
+            stroke={chartConfig.current.color} // Use direct color reference instead of var
             strokeWidth={2}
             dot={false}
-            hide={!displayedLines.current}
+          />
+          <Line
+            dataKey="real_capacity"
+            yAxisId="left"
+            fill={chartConfig.real_capacity.color}
+            stroke={chartConfig.real_capacity.color} // Use direct color reference instead of var
+            strokeWidth={2}
+            dot={false}
           />
         </LineChart>
       </ChartContainer>
@@ -356,8 +411,10 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
                   <div className="flex w-full justify-between">
                     <h1 className="text-xl font-bold">Cell {cell.number}</h1>
                     <div className="text-end">
-                      <p className="text-sm text-gray-500 ml-2">
-                        {cell.voltages[cell.voltages.length - 1].voltage} V
+                      <p className="text-sm ml-2">
+                        <span style={{ color: cellChartConfig.voltage.color }}>
+                          {cell.voltages[cell.voltages.length - 1].voltage} V
+                        </span>
                       </p>
                     </div>
                   </div>
@@ -380,9 +437,22 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
 
                       <YAxis
                         tickLine={false}
-                        axisLine={false}
+                        axisLine={false} // Remove colored line
                         tickMargin={20}
                         domain={[minCellVoltage, maxCellVoltage]}
+                        tick={{
+                          fill: cellChartConfig.voltage.color,
+                          fontWeight: "bold",
+                        }}
+                        stroke={cellChartConfig.voltage.color}
+                        label={{
+                          value: "V",
+                          position: "insideLeft",
+                          angle: -90,
+                          dy: -10,
+                          fill: cellChartConfig.voltage.color,
+                          style: { fontWeight: "bold" },
+                        }}
                       />
                       <ChartTooltip
                         content={
@@ -398,16 +468,24 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
                                   }
                                 />
                                 <div className="flex min-w-[130px] items-center text-xs text-muted-foreground">
-                                  {chartConfig[name as keyof typeof chartConfig]
-                                    ?.label || name}
-                                  <div className="ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums text-foreground">
-                                    {value}
-                                    <span className="font-normal text-muted-foreground">
-                                      {name === "real_capacity"
-                                        ? " mAh"
-                                        : name === "voltage"
-                                        ? " V"
-                                        : " A"}
+                                  {cellChartConfig[
+                                    name as keyof typeof cellChartConfig
+                                  ]?.label || name}
+                                  <div className="ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums">
+                                    <span
+                                      style={{
+                                        color:
+                                          cellChartConfig[
+                                            name as keyof typeof cellChartConfig
+                                          ]?.color || "inherit",
+                                      }}
+                                    >
+                                      {value}
+                                      <span className="font-normal">
+                                        {cellChartConfig[
+                                          name as keyof typeof cellChartConfig
+                                        ]?.unit || ""}
+                                      </span>
                                     </span>
                                   </div>
                                 </div>
@@ -417,11 +495,10 @@ export function ChargeRecordChart({ data, className }: ChargeRecordChartProps) {
                         }
                         cursor={true}
                       />
-
                       <Line
                         dataKey="voltage"
-                        fill={chartConfig.voltage.color}
-                        stroke="var(--color-voltage)"
+                        fill={cellChartConfig.voltage.color}
+                        stroke={cellChartConfig.voltage.color} // Use direct color reference
                         strokeWidth={2}
                         dot={false}
                       />
