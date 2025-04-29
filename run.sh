@@ -44,7 +44,7 @@ docker run -d \
   --name battery_frontend_dev \
   --network battery_net \
   -v $(pwd)/web:/app \
-  -p 3000:3000 \
+  -p 5173:3000 \
   -w /app \
   node:18-alpine \
   sh -c "npm install && npm run dev"
