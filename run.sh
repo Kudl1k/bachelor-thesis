@@ -39,19 +39,14 @@ docker run -d \
 echo "Čekání na spuštění backendu..."
 sleep 10
 
-echo "Buildování Vite frontendu..."
-cd web
-npm install
-npm run build
-cd ..
-
-echo "Spouštění Nginx s Vite výstupem..."
+echo "Spouštění frontendu..."
 docker run -d \
-  --name battery_frontend_nginx \
+  --name battery_frontend_dev \
   --network battery_net \
-  -v $(pwd)/web/dist:/usr/share/nginx/html:ro \
-  -v $(pwd)/web/nginx.conf:/etc/nginx/nginx.conf:ro \
-  -p 3000:80 \
-  nginx:alpine
+  -v $(pwd)/web:/app \
+  -p 3000:3000 \
+  -w /app \
+  node:18-alpine \
+  sh -c "npm install && npm run dev"
 
 echo "Aplikace běží na http://localhost:3000"
